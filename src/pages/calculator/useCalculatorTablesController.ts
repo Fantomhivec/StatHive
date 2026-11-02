@@ -1,3 +1,17 @@
+// Copyright 2026 StatHive
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { hostApi } from "../../bridge/hostApi";
 import { useAppDialogs } from "../../components/useAppDialogs";
@@ -51,8 +65,36 @@ export function useCalculatorTablesController() {
     () => tableKeys.filter((row) => (row.marketplace ?? "").toLowerCase() === "ozon"),
     [tableKeys],
   );
-  const showWbSection = wbTables.length > 0;
-  const showOzSection = ozTables.length > 0;
+  /** Плашка = выбран ≥1 кабинет MP (или уже есть tableKeys с бэка). */
+  const selectedMp = useMemo(() => {
+    if (!snap) return { wb: false, oz: false };
+    const mpOf = (name: string) => {
+      const fromMap = (snap.cabinetMarketplaces?.[name] || "").trim().toLowerCase();
+      if (fromMap.includes("ozon") || fromMap === "oz") return "ozon";
+      if (fromMap) return "wb";
+      const chip = snap.cabinetChips?.find((c) => c.name === name);
+      const fromChip = (chip?.marketplace || "").trim().toLowerCase();
+      if (fromChip.includes("ozon") || fromChip === "oz") return "ozon";
+      if (fromChip) return "wb";
+      return "";
+    };
+    let wb = false;
+    let oz = false;
+    for (const name of snap.selectedCabinets ?? []) {
+      const m = mpOf(name);
+      if (m === "ozon") oz = true;
+      else if (m === "wb") wb = true;
+    }
+    const tm = (snap.tablesMarketplace || "").toLowerCase();
+    if (tm === "both") {
+      wb = true;
+      oz = true;
+    } else if (tm === "ozon") oz = true;
+    else if (tm === "wb") wb = true;
+    return { wb, oz };
+  }, [snap]);
+  const showWbSection = wbTables.length > 0 || selectedMp.wb;
+  const showOzSection = ozTables.length > 0 || selectedMp.oz;
 
   useEffect(() => {
     if (!snap?.bundleId) return;

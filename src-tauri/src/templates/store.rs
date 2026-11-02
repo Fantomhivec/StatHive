@@ -1,4 +1,17 @@
-use crate::core::config::AppConfig;
+// Copyright 2026 StatHive
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 use crate::core::i18n::{t, tf};
 use crate::templates::model::{
     normalize_marketplace, Template, TemplateGroup, TemplatesFile, TemplatesSnapshot,
@@ -8,13 +21,23 @@ use std::fs;
 use std::path::PathBuf;
 use std::sync::{Mutex, OnceLock};
 
+const TEMPLATES_FILE: &str = "templates.json";
+
 pub fn store_path() -> PathBuf {
-    AppConfig::config_dir().join("templates.json")
+    crate::core::team_profile::absorb_legacy_root_file(TEMPLATES_FILE);
+    crate::core::team_profile::active_dir().join(TEMPLATES_FILE)
 }
 
 fn cache() -> &'static Mutex<Option<TemplatesFile>> {
     static CACHE: OnceLock<Mutex<Option<TemplatesFile>>> = OnceLock::new();
     CACHE.get_or_init(|| Mutex::new(None))
+}
+
+/// Сброс RAM-кэша при смене команды (иначе шаблоны «переезжают» между слотами).
+pub fn invalidate_cache() {
+    if let Ok(mut g) = cache().lock() {
+        *g = None;
+    }
 }
 
 fn load_from_disk() -> Result<TemplatesFile, String> {
@@ -63,12 +86,14 @@ pub(crate) fn with_file_mut<T>(
 }
 
 fn write_disk(file: &TemplatesFile) -> Result<(), String> {
-    let dir = AppConfig::config_dir();
-    fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+    let path = store_path();
+    if let Some(dir) = path.parent() {
+        fs::create_dir_all(dir).map_err(|e| e.to_string())?;
+    }
     let value = serde_json::to_value(file).map_err(|e| e.to_string())?;
     let compact = super::json_compact::compact_value(value);
     let raw = serde_json::to_string_pretty(&compact).map_err(|e| e.to_string())?;
-    fs::write(store_path(), raw).map_err(|e| e.to_string())?;
+    fs::write(path, raw).map_err(|e| e.to_string())?;
     Ok(())
 }
 

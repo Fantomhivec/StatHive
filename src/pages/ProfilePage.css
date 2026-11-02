@@ -152,3 +152,14 @@
 .profile-page .mono {
   word-break: break-all;
 }
+
+.profile-license-link {
+  display: inline-block;
+  margin-top: 8px;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.profile-license-link:hover {
+  text-decoration: underline;
+}

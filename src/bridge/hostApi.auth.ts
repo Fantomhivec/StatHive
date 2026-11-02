@@ -1,3 +1,17 @@
+// Copyright 2026 StatHive
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 import { invoke } from "@tauri-apps/api/core";
 import type {
   AccessPresetDto,
@@ -8,6 +22,13 @@ import type {
   TeamUserRow,
   UserInfo,
 } from "./hostApi.types";
+import { clearCalculatorSnapCaches } from "./calcSnapCache";
+import { clearTemplatesSnapCache } from "./templatesSnapCache";
+
+function clearTeamScopedUiCaches() {
+  clearTemplatesSnapCache();
+  clearCalculatorSnapCaches();
+}
 
 /** Session auth — RequireAuth / title bar / profile share one IPC. */
 let authCached: UserInfo | null | undefined = undefined;
@@ -92,6 +113,7 @@ export function createAuthApi(deps: AuthApiDeps) {
     applyTeamInvite: (code: string, passphrase: string) =>
       invoke<void>("auth_apply_team_invite", { args: { code, passphrase } }).then(() => {
         clearTabsLayoutCache();
+        clearTeamScopedUiCaches();
       }),
     teamOauthGet: () =>
       invoke<{
@@ -110,20 +132,27 @@ export function createAuthApi(deps: AuthApiDeps) {
         args: { allowedLogins },
       }),
     listTeams: () => invoke<TeamIndexEntry[]>("auth_list_teams"),
-    beginNewTeam: () => invoke<string>("auth_begin_new_team"),
+    beginNewTeam: () =>
+      invoke<string>("auth_begin_new_team").then((id) => {
+        clearTeamScopedUiCaches();
+        return id;
+      }),
     setActiveTeam: (id: string) =>
       invoke<void>("auth_set_active_team", { args: { id } }).then(() => {
         clearAuthStatusCache();
         clearTabsLayoutCache();
+        clearTeamScopedUiCaches();
       }),
     removeLocalTeam: (id: string) =>
       invoke<void>("auth_remove_local_team", { args: { id } }).then(() => {
         clearAuthStatusCache();
         clearTabsLayoutCache();
+        clearTeamScopedUiCaches();
       }),
     switchTeam: (id: string) =>
       invoke<SwitchTeamResult>("auth_switch_team", { args: { id } }).then((r) => {
         clearTabsLayoutCache();
+        clearTeamScopedUiCaches();
         if (r.user) setAuthStatusCache(r.user);
         else clearAuthStatusCache();
         return r;
@@ -211,6 +240,7 @@ export function createAuthApi(deps: AuthApiDeps) {
       await invoke<void>("auth_logout");
       clearAuthStatusCache();
       clearTabsLayoutCache();
+      clearTeamScopedUiCaches();
     },
     changePassword: (
       currentPassword: string,

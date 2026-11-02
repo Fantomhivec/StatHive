@@ -1,3 +1,17 @@
+// Copyright 2026 StatHive
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 import { FormEvent } from "react";
 import AppComboBox from "../../components/AppComboBox";
 import { useT } from "../../i18n";
@@ -56,13 +70,15 @@ export default function UsersInviteForm({
     saConfigured &&
     !presetsEmpty &&
     !!invitePreset &&
-    !calcConfigsEmpty &&
-    !!inviteCalcConfig;
+    (calcConfigsEmpty || !!inviteCalcConfig);
 
   return (
     <div className="users-dialog-stack combo-clip-ok field-flush">
       {presetsEmpty ? <p className="muted u-m-0">{t("users.noPresetsInvite")}</p> : null}
       {!saConfigured ? <p className="muted u-m-0">{t("users.inviteNeedsSa")}</p> : null}
+      {calcConfigsEmpty ? (
+        <p className="muted u-m-0">{t("users.inviteCalcConfigOptional")}</p>
+      ) : null}
       <form id={formId} className="users-invite-form" onSubmit={onSubmit}>
         <div className="field">
           <label htmlFor="u-name">{t("common.name")}</label>
@@ -154,7 +170,6 @@ export function inviteFormCanSubmit(p: {
     p.saConfigured &&
     !p.presetsEmpty &&
     !!p.invitePreset &&
-    !p.calcConfigsEmpty &&
-    !!p.inviteCalcConfig
+    (p.calcConfigsEmpty || !!p.inviteCalcConfig)
   );
 }

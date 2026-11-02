@@ -7,6 +7,7 @@ name = "stathive"
 version = "0.0.0"
 description = "StatHive — кроссплатформенный клиент выгрузки (Tauri + React)"
 authors = ["StatHive"]
+license = "Apache-2.0"
 edition = "2021"
 default-run = "stathive"
 

@@ -1,3 +1,17 @@
+// Copyright 2026 StatHive
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 //! Несколько команд на одном ПК: `teams_index.json` + `teams/{id}/…`.
 
 use crate::core::config::AppConfig;
@@ -20,6 +34,7 @@ const LEGACY_FILES: &[&str] = &[
     "session.json",
     "wb_calculator_settings.json",
     "calc_team_applied.json",
+    "templates.json",
 ];
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -261,6 +276,8 @@ fn invalidate_runtime_caches() {
     google_sa::clear_token_cache();
     crate::core::access::clear_presets_cache();
     crate::core::oauth_config::clear_check_google_cap();
+    crate::templates::store::invalidate_cache();
+    crate::calculator::article_index::clear();
 }
 
 /// Новый пустой слот под Admin OAuth (пока нет spreadsheet id).

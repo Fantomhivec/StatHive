@@ -1,5 +1,20 @@
+// Copyright 2026 StatHive
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 //! Периодическая подстановка назначенной конфигурации + событие UI.
 
+use crate::calculator::profile::CalculatorProfile;
 use crate::calculator::team_config::{self, TeamConfigEntry};
 use crate::core::google_sheets::GoogleSheetsClient;
 use crate::core::i18n::{t, tf};
@@ -47,9 +62,11 @@ pub async fn sync_assigned_config(
         if !stamp.config_id.trim().is_empty() {
             return Ok(false);
         }
-        let Some(entry) = team_config::resolve_entry(&catalog, "").cloned() else {
+        let Some(mut entry) = team_config::resolve_entry(&catalog, "").cloned() else {
             return Ok(false);
         };
+        // Новая команда: кабинеты/ставки из default, spreadsheetId пустые (свои таблицы).
+        strip_sheet_bindings_for_new_team(&mut entry.profile);
         team_config::apply_entry_locally(&entry)?;
         emit_applied(&entry);
         log.info(tf(
@@ -88,4 +105,14 @@ pub async fn sync_assigned_config(
         &[("name", &entry.name), ("id", &entry.id)],
     ));
     Ok(true)
+}
+
+/// Первый pull в пустой слот: оставить кабинеты/формулы, сбросить id таблиц.
+fn strip_sheet_bindings_for_new_team(profile: &mut CalculatorProfile) {
+    profile.table_links.clear();
+    profile.last_updated.clear();
+    profile.template_ids_by_table_key.clear();
+    for b in &mut profile.column_bindings {
+        b.spreadsheet_url.clear();
+    }
 }

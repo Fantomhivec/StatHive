@@ -1,4 +1,24 @@
+// Copyright 2026 StatHive
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  clearCalculatorSnapCaches,
+  getCalculatorSnapCache,
+  setCalculatorSnapCache,
+  type CalcSnapshotView,
+} from "../../bridge/calcSnapCache";
 import { hostApi, onEvent } from "../../bridge/hostApi";
 import {
   invalidateCalculatorLookupCaches,
@@ -12,21 +32,7 @@ import {
   type CalculatorSnapshot,
 } from "./calculatorTypes";
 
-export type CalcSnapshotView = "view" | "settings" | "tables" | "kgt" | "full";
-
-/** Кэш по view — не смешивать slice между вкладками. */
-const cacheByView: Partial<Record<CalcSnapshotView, CalculatorSnapshot>> = {};
-
-function setCached(view: CalcSnapshotView, next: CalculatorSnapshot | null) {
-  if (next) cacheByView[view] = next;
-  else delete cacheByView[view];
-}
-
-function clearAllSnapCaches() {
-  for (const k of Object.keys(cacheByView) as CalcSnapshotView[]) {
-    delete cacheByView[k];
-  }
-}
+export type { CalcSnapshotView };
 
 /** Дополнить отсутствующие поля после view-slice (мутации могут вернуть full). */
 function coerceSnap(raw: Record<string, unknown>): CalculatorSnapshot {
@@ -77,6 +83,7 @@ function coerceSnap(raw: Record<string, unknown>): CalculatorSnapshot {
       : [],
     templateIdsByTableKey: (raw.templateIdsByTableKey as Record<string, string>) ?? {},
     createButtonLabel: String(raw.createButtonLabel ?? ""),
+    needsCreateAutoTables: Boolean(raw.needsCreateAutoTables),
   };
 }
 
@@ -90,7 +97,7 @@ function ensureLookupWarm() {
 
 export function useCalculatorSnapshot(view: CalcSnapshotView = "full") {
   const [snap, setSnapState] = useState<CalculatorSnapshot | null>(
-    () => cacheByView[view] ?? null,
+    () => getCalculatorSnapCache<CalculatorSnapshot>(view) ?? null,
   );
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -108,7 +115,7 @@ export function useCalculatorSnapshot(view: CalcSnapshotView = "full") {
     ) => {
       setSnapState((prev) => {
         const resolved = typeof next === "function" ? next(prev) : next;
-        setCached(viewRef.current, resolved);
+        setCalculatorSnapCache(viewRef.current, resolved);
         return resolved;
       });
     },
@@ -119,14 +126,14 @@ export function useCalculatorSnapshot(view: CalcSnapshotView = "full") {
     const v = viewRef.current;
     const raw = (await hostApi.wbCalculator.getSnapshot(v)) as Record<string, unknown>;
     const s = coerceSnap(raw);
-    setCached(v, s);
+    setCalculatorSnapCache(v, s);
     setSnapState(s);
   }, []);
 
   useEffect(() => {
     // Sheets lookup needed only on the card view — not Settings/Tables/KGT.
     if (view === "view") ensureLookupWarm();
-    const cached = cacheByView[view];
+    const cached = getCalculatorSnapCache<CalculatorSnapshot>(view);
     if (cached) {
       setSnapState(cached);
       return;
@@ -137,7 +144,7 @@ export function useCalculatorSnapshot(view: CalcSnapshotView = "full") {
   useEffect(() => {
     return onEvent<{ name?: string }>("wbCalculator.teamConfigApplied", () => {
       invalidateCalculatorLookupCaches();
-      clearAllSnapCaches();
+      clearCalculatorSnapCaches();
       void reload().catch((e) => setError(e instanceof Error ? e.message : String(e)));
     });
   }, [reload]);

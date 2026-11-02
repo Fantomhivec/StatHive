@@ -1,12 +1,33 @@
+// Copyright 2026 StatHive
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 import {
   hostApi,
   type TemplateDto,
   type TemplateGroupDto,
   type TemplatesSnapshot,
 } from "../../bridge/hostApi";
+import {
+  clearTemplatesSnapCache,
+  getTemplatesSnapCache,
+  setTemplatesSnapCache,
+  type TemplatesMarket,
+} from "../../bridge/templatesSnapCache";
 import { t as tr } from "../../i18n";
 
-export type TemplatesMarket = "wb" | "ozon";
+export type { TemplatesMarket };
+export { clearTemplatesSnapCache, getTemplatesSnapCache, setTemplatesSnapCache };
 
 export type TemplatesRunProgress = {
   entityType: string;
@@ -58,23 +79,6 @@ export function applyTemplatesRunProgress(
 
 /** scriptsList не зависит от market — один раз на сессию страницы. */
 let scriptsListCache: Record<string, string> | null = null;
-
-/** Snapshot по market между remount lazy-чанка (как usersPageSnap). */
-const templatesSnapCache: Partial<Record<TemplatesMarket, TemplatesSnapshot>> = {};
-
-export function clearTemplatesSnapCache() {
-  for (const k of Object.keys(templatesSnapCache) as TemplatesMarket[]) {
-    delete templatesSnapCache[k];
-  }
-}
-
-export function getTemplatesSnapCache(market: TemplatesMarket): TemplatesSnapshot | undefined {
-  return templatesSnapCache[market];
-}
-
-export function setTemplatesSnapCache(market: TemplatesMarket, snap: TemplatesSnapshot) {
-  templatesSnapCache[market] = snap;
-}
 
 export function emptySnap(market: TemplatesMarket): TemplatesSnapshot {
   return {

@@ -1,3 +1,17 @@
+// Copyright 2026 StatHive
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 //! Snapshot / save settings / table links / cabinets.
 
 use crate::calculator::catalog::{self, tables_for_marketplace};
@@ -199,15 +213,18 @@ fn build_snapshot(local_keys: bool, view: &str) -> Value {
                 })
             })
             .collect();
-        let create_label = if tables.iter().any(|t| {
-            !catalog::is_table_manual(&profile.table_modes, t.key)
-                && profile
-                    .table_links
-                    .iter()
-                    .find(|(k, _)| k.eq_ignore_ascii_case(t.key))
-                    .map(|(_, u)| u.trim().is_empty())
-                    .unwrap_or(true)
-        }) {
+        // Пустой каталог (нет выбранных кабинетов) — не «все уже созданы».
+        let needs_create = tables.is_empty()
+            || tables.iter().any(|t| {
+                !catalog::is_table_manual(&profile.table_modes, t.key)
+                    && profile
+                        .table_links
+                        .iter()
+                        .find(|(k, _)| k.eq_ignore_ascii_case(t.key))
+                        .map(|(_, u)| u.trim().is_empty())
+                        .unwrap_or(true)
+            });
+        let create_label = if needs_create {
             t("calc.createTables")
         } else {
             t("calc.refreshAllTables")
@@ -228,6 +245,7 @@ fn build_snapshot(local_keys: bool, view: &str) -> Value {
             json!(profile.template_ids_by_table_key),
         );
         obj.insert("createButtonLabel".into(), json!(create_label));
+        obj.insert("needsCreateAutoTables".into(), json!(needs_create));
     }
 
     if need_kgt {
