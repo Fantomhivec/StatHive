@@ -1,7 +1,9 @@
 import { useState } from "react";
-import { hostApi } from "../../bridge/hostApi";
+import { hostApi, openUrl } from "../../bridge/hostApi";
 import AppComboBox from "../AppComboBox";
 import { t } from "../../i18n";
+import { sheetsUrl } from "../../pages/users/usersPageCache";
+import "./templates-dialogs.css";
 
 type Props = {
   spreadsheetId: string;
@@ -23,7 +25,7 @@ type Props = {
   onMessage?: (msg: string | null) => void;
 };
 
-/** Унифицированный блок: ID/URL таблицы + лист + «Загрузить листы». */
+/** Унифицированный блок: ID/URL таблицы + «Открыть» + лист + «Загрузить листы». */
 export default function SpreadsheetIdField({
   spreadsheetId,
   sheetName,
@@ -41,6 +43,7 @@ export default function SpreadsheetIdField({
   onMessage,
 }: Props) {
   const [busy, setBusy] = useState(false);
+  const [openBusy, setOpenBusy] = useState(false);
   const sidId = `${idPrefix}-ssid`;
   const snameId = `${idPrefix}-sname`;
   const titleShown = spreadsheetTitle.trim();
@@ -53,6 +56,27 @@ export default function SpreadsheetIdField({
       if (res.changed) onSpreadsheetIdChange(res.spreadsheet_id);
     } catch {
       /* ignore */
+    }
+  }
+
+  async function openSpreadsheet() {
+    const raw = spreadsheetId.trim();
+    if (!raw) return;
+    setOpenBusy(true);
+    onMessage?.(null);
+    try {
+      const res = await hostApi.spreadsheetNormalize(raw);
+      const id = (res.spreadsheet_id || raw).trim();
+      if (res.changed) onSpreadsheetIdChange(id);
+      if (!id) {
+        onMessage?.(t("templates.spreadsheet.specifyTableFirst"));
+        return;
+      }
+      await openUrl(sheetsUrl(id));
+    } catch (err) {
+      onMessage?.(err instanceof Error ? err.message : String(err));
+    } finally {
+      setOpenBusy(false);
     }
   }
 
@@ -87,6 +111,7 @@ export default function SpreadsheetIdField({
 
   const loadedSheetOptions =
     sheetOptions.length > 0 ? sheetOptions.map((n) => ({ value: n, label: n })) : [];
+  const locked = disabled || busy || openBusy;
 
   return (
     <>
@@ -95,18 +120,30 @@ export default function SpreadsheetIdField({
           {spreadsheetIdLabel}
           {titleShown ? <span className="tpl-gs-title"> — {titleShown}</span> : null}
         </label>
-        <input
-          id={sidId}
-          value={spreadsheetId}
-          disabled={disabled || busy}
-          onChange={(e) => {
-            onSpreadsheetIdChange(e.target.value);
-            onSpreadsheetTitleChange?.("");
-          }}
-          onBlur={() => void normalizeOnBlur()}
-          placeholder={t("templates.spreadsheet.idPlaceholder")}
-          autoComplete="off"
-        />
+        <div className="tpl-ssid-row">
+          <input
+            id={sidId}
+            className="tpl-ssid-input"
+            value={spreadsheetId}
+            disabled={locked}
+            onChange={(e) => {
+              onSpreadsheetIdChange(e.target.value);
+              onSpreadsheetTitleChange?.("");
+            }}
+            onBlur={() => void normalizeOnBlur()}
+            placeholder={t("templates.spreadsheet.idPlaceholder")}
+            autoComplete="off"
+          />
+          <button
+            type="button"
+            className="btn btn-outline btn-sm"
+            disabled={locked || !spreadsheetId.trim()}
+            title={t("users.openSheet")}
+            onClick={() => void openSpreadsheet()}
+          >
+            {openBusy ? t("common.loading") : t("common.open")}
+          </button>
+        </div>
       </div>
       {!hideSheet && (
         <>
@@ -116,7 +153,7 @@ export default function SpreadsheetIdField({
               <AppComboBox
                 editable
                 value={sheetName}
-                disabled={disabled || busy}
+                disabled={locked}
                 options={loadedSheetOptions}
                 onChange={onSheetNameChange}
                 placeholder={t("templates.spreadsheet.sheetPlaceholder")}
@@ -125,7 +162,7 @@ export default function SpreadsheetIdField({
               <input
                 id={snameId}
                 value={sheetName}
-                disabled={disabled || busy}
+                disabled={locked}
                 onChange={(e) => onSheetNameChange(e.target.value)}
                 placeholder={t("templates.spreadsheet.sheetPlaceholder")}
                 autoComplete="off"
@@ -136,7 +173,7 @@ export default function SpreadsheetIdField({
             <button
               className="btn btn-outline"
               type="button"
-              disabled={disabled || busy || !spreadsheetId.trim()}
+              disabled={locked || !spreadsheetId.trim()}
               onClick={() => void loadSheets()}
             >
               {busy ? t("common.loading") : t("templates.spreadsheet.loadSheets")}

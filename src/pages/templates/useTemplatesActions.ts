@@ -91,7 +91,13 @@ export function useTemplatesActions() {
 
   useEffect(() => {
     return onEvent<TemplatesRunProgress>("templates.runProgress", (p) => {
-      setSnap((prev) => (prev ? applyTemplatesRunProgress(prev, p) : prev));
+      setSnap((prev) => {
+        if (!prev) return prev;
+        const next = applyTemplatesRunProgress(prev, p);
+        const m = (next.marketplace === "ozon" ? "ozon" : "wb") as TemplatesMarket;
+        setTemplatesSnapCache(m, next);
+        return next;
+      });
     });
   }, []);
 
@@ -142,14 +148,15 @@ export function useTemplatesActions() {
           ? t("templates.dryRunDone", { count: res.rows_written })
           : t("templates.rowsWritten", { count: res.rows_written });
         setMsg(res.message || fallback);
-        // Статус/is_running уже с `templates.runProgress` — полный snapshot не нужен.
       } catch (e) {
         setError(e instanceof Error ? e.message : String(e));
       } finally {
         setBusyId(null);
+        // С диска: иначе кэш/effect откатывает карточку к старому last_run_*.
+        await reloadSnap();
       }
     },
-    [t],
+    [t, reloadSnap],
   );
 
   const runGroup = useCallback(
@@ -167,9 +174,10 @@ export function useTemplatesActions() {
         setError(e instanceof Error ? e.message : String(e));
       } finally {
         setBusyId(null);
+        await reloadSnap();
       }
     },
-    [t],
+    [t, reloadSnap],
   );
 
   const cancelRun = useCallback(async (id: string, entityType: "template" | "group") => {

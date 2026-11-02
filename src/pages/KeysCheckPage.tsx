@@ -29,16 +29,13 @@ export default function KeysCheckPage() {
   const [envExists, setEnvExists] = useState(true);
   const [google, setGoogle] = useState<GoogleStatus | null>(null);
   const [googleBusy, setGoogleBusy] = useState(false);
-  const [oauthBusy, setOauthBusy] = useState(false);
   const [lines, setLines] = useState<KeyCheckLine[]>([]);
   const [warnings, setWarnings] = useState<string[]>([]);
   const [keysBusy, setKeysBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [ok, setOk] = useState<string | null>(null);
   const [envEditorOpen, setEnvEditorOpen] = useState(false);
-  const [oauthJson, setOauthJson] = useState("");
   const isMainAdmin = !!layoutCaps.isMainAdmin;
-  const canEditOauthClient = isMainAdmin;
   const canCheckGoogle = !!layoutCaps.canCheckGoogle || isMainAdmin;
 
   async function applyCheck() {
@@ -93,21 +90,6 @@ export default function KeysCheckPage() {
     }
   }
 
-  async function saveOwnOauthJson() {
-    setOauthBusy(true);
-    setError(null);
-    setOk(null);
-    try {
-      await hostApi.saveOauthClient(oauthJson);
-      setOauthJson("");
-      setOk(t("keys.oauthPasteOk"));
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-    } finally {
-      setOauthBusy(false);
-    }
-  }
-
   // При заходе: ключи + тихая проверка Google (только если есть client/грант).
   useEffect(() => {
     let cancelled = false;
@@ -145,11 +127,11 @@ export default function KeysCheckPage() {
                   <button
                     className="btn btn-primary"
                     type="button"
-                    disabled={googleBusy || oauthBusy}
+                    disabled={googleBusy}
                     title={t("keys.connectMemberOauthHint")}
                     onClick={() => void checkGoogle(false)}
                   >
-                    {googleBusy || oauthBusy
+                    {googleBusy
                       ? t("common.checking")
                       : t("keys.checkGoogleConnection")}
                   </button>
@@ -159,35 +141,6 @@ export default function KeysCheckPage() {
             ) : (
               <p className="muted keys-check-hint">{t("keys.googleNoAccessHint")}</p>
             )}
-
-            {canEditOauthClient ? (
-              <div className="keys-check-oauth-paste">
-                <h3>{t("keys.oauthPasteTitle")}</h3>
-                <p className="muted keys-check-hint">{t("keys.oauthPasteHint")}</p>
-                <div className="field field-flush">
-                  <label htmlFor="keys-oauth-json">{t("keys.oauthPasteLabel")}</label>
-                  <textarea
-                    id="keys-oauth-json"
-                    className="input input-mono"
-                    rows={4}
-                    value={oauthJson}
-                    disabled={oauthBusy}
-                    onChange={(e) => setOauthJson(e.target.value)}
-                    placeholder='{"installed":{…}}'
-                  />
-                </div>
-                <div className="form-actions">
-                  <button
-                    type="button"
-                    className="btn btn-outline"
-                    disabled={oauthBusy || !oauthJson.trim()}
-                    onClick={() => void saveOwnOauthJson()}
-                  >
-                    {t("keys.oauthPasteSave")}
-                  </button>
-                </div>
-              </div>
-            ) : null}
 
             <hr className="keys-check-sep" />
 
@@ -294,7 +247,9 @@ export default function KeysCheckPage() {
                     ? "keys-check-gs-status ok-text"
                     : google?.tone === "danger"
                       ? "keys-check-gs-status danger"
-                      : "keys-check-gs-status"
+                      : google?.tone === "warn"
+                        ? "keys-check-gs-status warn"
+                        : "keys-check-gs-status"
               }
             >
               {googleBusy ? t("common.checking") : google?.status || t("keys.notChecked")}

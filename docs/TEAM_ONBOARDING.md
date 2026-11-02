@@ -64,7 +64,7 @@
 5. Google OAuth (user token / командный Desktop client) нужен, если в пресете есть скрипты/таблицы без пометки «без OAuth»:
    - если Admin выдал грант TeamOAuth — Desktop client подтягивается при входе; на «Проверка ключей» — **Проверить подключение** (браузер consent);
    - без гранта кнопка не показывается, а локальный `oauth_client.json` при таком логине **удаляется** (потом снова создаётся auto-pull при логине с грантом);
-   - вставку Desktop JSON делает **только main Admin** (не keysCheck).
+   - вставку Desktop JSON делает **только main Admin при setup** (не Keys Check).
 
 Права на скрипты, калькулятор, вкладки «Пользователи» / «Проверка ключей» и режимы с/без своего Google OAuth — см. **[USER_ACCESS.md](./USER_ACCESS.md)** (роли, пресет, `HasOauth`, грант TeamOAuth, `memberOk`, tables view-only).
 

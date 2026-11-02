@@ -111,7 +111,7 @@ IPC отвергает Google write шаблонов и мутации табл�
 | Tables refresh / URL / fill | ✓ | — | — | — | ✓ | — |
 | Tables только открыть / смотреть | ✓ | — | — | — | ✓ | ✓ |
 
-\* Admin OAuth обычно уже есть с регистрации workspace; кнопка connect на Keys Check для Admin не обязательна. Save OAuth client / `connect_google` / switch — setup без сессии или main Admin (не keysCheck).  
+\* Admin вставляет Desktop JSON при setup; на Keys Check «Проверить подключение» открывает browser consent и у Admin, и у грантованного участника. Save OAuth client / switch — setup без сессии или main Admin (не Keys Check).  
 † Лист Users/пресеты пишет **SA**. Drive-share на таблицы invitee при флаге `tables` у invitee требует **user OAuth менеджера**. **Fail-closed до append:** если Drive нужен, а OAuth менеджера нет — invite падает **до** записи строки Users. Остаточный риск «полуприглашённого»: OAuth был, append прошёл, а share/SA-share упал после записи строки.
 
 ## Типовые пресеты (рекомендации)

@@ -75,18 +75,33 @@ impl AuthService {
     }
 
     /// Keys Check: подключить Google (браузер) → HasOauth=да.
-    /// Всегда проверяет грант TeamOAuth (даже если client уже на диске от другого логина).
+    /// Admin тоже открывает consent (иначе token нет, «Проверить подключение» вечно fail).
+    /// Участник: грант TeamOAuth обязателен даже если client уже на диске.
     pub async fn connect_member_oauth(&self) -> Result<crate::auth::UserInfo, String> {
         let mut user = self
             .current_user()
             .filter(|u| u.is_authorized)
             .ok_or_else(|| t("errors.auth.notAuthorized"))?;
         if access::is_admin_role(&user.access_level) {
+            if !crate::core::oauth_config::is_configured() {
+                return Err(t("errors.auth.saveOAuthFirst"));
+            }
+            google_oauth::authorize_interactive().await?;
+            let email = google_oauth::cached_email().unwrap_or_default();
+            if email.trim().is_empty() {
+                google_oauth::clear_cached_token();
+                return Err(t("errors.auth.teamGoogleRequired"));
+            }
+            user.google_email = email;
             user.has_oauth = true;
-            let _ = self.save_session(&user);
+            self.save_session(&user)?;
             if let Ok(mut g) = self.current.lock() {
                 *g = Some(user.clone());
             }
+            self.log.info(tf(
+                "log.auth.memberOauthConnected",
+                &[("login", &user.login)],
+            ));
             return Ok(user);
         }
         if user.row_index < 2 {

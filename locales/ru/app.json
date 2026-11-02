@@ -544,6 +544,7 @@
  "connectedApiConfirmed": "Подключено (доступ к API подтвержден)",
  "sheetsApiConfirmed": "Доступ к Google Sheets API подтвержден.",
  "noClientLocal": "Нет локальных данных для Google Sheets. Если администратор выдал доступ — перезайдите или нажмите «Проверить подключение».",
+ "notConnectedStatus": "Не подключено",
  "notConnectedHint": "Google Sheets не подключён. Нажмите «Проверить подключение».",
  "sessionExpired": "Сессия Google истекла. Нажмите «Проверить подключение».",
  "tokenInfoTitle": "Информация о токене",

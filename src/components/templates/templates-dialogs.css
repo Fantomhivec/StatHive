@@ -186,6 +186,22 @@ body.tpl-picker-dragging * {
   margin-bottom: 0;
 }
 
+/* ID/URL + «Открыть» (SpreadsheetIdField) */
+.tpl-ssid-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tpl-ssid-row .tpl-ssid-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.tpl-ssid-row .btn {
+  flex-shrink: 0;
+}
+
 .tpl-ed-section {
   display: flex;
   flex-direction: column;

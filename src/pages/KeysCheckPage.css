@@ -160,6 +160,10 @@
   color: var(--danger);
 }
 
+.keys-check-gs-status.warn {
+  color: var(--warn);
+}
+
 .keys-check-gs-status.info {
   color: var(--accent);
 }

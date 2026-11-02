@@ -263,13 +263,20 @@ pub async fn google_check_connection(
     let client = match GoogleSheetsClient::from_user_oauth().await {
         Ok(c) => c,
         Err(oauth_err) => {
-            // auto=true при заходе на вкладку — не засоряем лог; ручная проверка — warn.
-            if !args.auto {
-                state.log.warn(tf(
-                    "log.google.notConnected",
-                    &[("error", &oauth_err.to_string())],
-                ));
+            // auto=true при заходе на вкладку — не засоряем лог и не пугаем «Ошибка».
+            if args.auto {
+                return Ok(serde_json::json!({
+                    "success": false,
+                    "status": t("errors.google.notConnectedStatus"),
+                    "message": t("errors.google.notConnectedHint"),
+                    "time": time,
+                    "tone": "warn",
+                }));
             }
+            state.log.warn(tf(
+                "log.google.notConnected",
+                &[("error", &oauth_err.to_string())],
+            ));
             return Ok(serde_json::json!({
                 "success": false,
                 "status": t("errors.google.statusError"),

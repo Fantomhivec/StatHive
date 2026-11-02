@@ -39,7 +39,7 @@ StatHive не кладёт облачные ключи и OAuth-секреты �
 
 ### TeamOAuth (лист на таблице Users)
 
-Admin публикует Desktop client JSON и гранты `Login | Allowed`. **Builtin / main Admin всегда допущен**. Участники по умолчанию без доступа; с грантом Desktop client подтягивается **автоматически при входе/старте** (без кнопки). Вставка Desktop JSON локально — **только main Admin** (setup или экран Admin / Keys Check).
+Admin публикует Desktop client JSON и гранты `Login | Allowed`. **Builtin / main Admin всегда допущен**. Участники по умолчанию без доступа; с грантом Desktop client подтягивается **автоматически при входе/старте** (без кнопки). Вставка Desktop JSON — **только main Admin при setup команды** (Login); на Keys Check только «Проверить подключение» (browser consent).
 
 Файлы `oauth_client.json` / `google_oauth_token.json` лежат в слоте команды. Использовать их может только Admin или участник с грантом. На shared PC: logout/kick удаляет **token**; при логине **без гранта** удаляется и **`oauth_client.json`** (чтобы чужой JSON не оставался на диске). Логин с грантом снова подтягивает client через auto-pull.
 
