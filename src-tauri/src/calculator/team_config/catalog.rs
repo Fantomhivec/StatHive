@@ -217,6 +217,8 @@ pub async fn publish(
         catalog.default_id = entry.id.clone();
     }
     save_catalog(client, &catalog).await?;
+    // Локальный профиль = опубликованный снимок — зафиксировать stamp в слоте команды.
+    save_stamp(&entry.id, &entry.revision)?;
     Ok(entry)
 }
 

@@ -1,6 +1,5 @@
 //! Профиль калькулятора: `wb_calculator_settings.json`.
 
-use crate::core::config::AppConfig;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;
@@ -298,8 +297,11 @@ impl Default for CalculatorProfile {
     }
 }
 
+const SETTINGS_FILE: &str = "wb_calculator_settings.json";
+
 pub fn settings_path() -> PathBuf {
-    AppConfig::config_dir().join("wb_calculator_settings.json")
+    crate::core::team_profile::absorb_legacy_root_file(SETTINGS_FILE);
+    crate::core::team_profile::active_dir().join(SETTINGS_FILE)
 }
 
 pub fn load() -> CalculatorProfile {
@@ -311,8 +313,10 @@ pub fn load() -> CalculatorProfile {
 }
 
 pub fn save(profile: &CalculatorProfile) -> Result<(), String> {
-    let dir = AppConfig::config_dir();
-    fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+    let path = settings_path();
+    if let Some(dir) = path.parent() {
+        fs::create_dir_all(dir).map_err(|e| e.to_string())?;
+    }
     let raw = serde_json::to_string_pretty(profile).map_err(|e| e.to_string())?;
-    fs::write(settings_path(), raw).map_err(|e| e.to_string())
+    fs::write(path, raw).map_err(|e| e.to_string())
 }

@@ -372,6 +372,21 @@ impl AuthService {
         Ok(id)
     }
 
+    /// Удалить локальный профиль команды с ПК (в т.ч. OAuth client/token).
+    pub fn remove_local_team(&self, id: &str) -> Result<(), String> {
+        let id = id.trim();
+        let was_active = crate::core::team_profile::active_id()
+            .as_deref()
+            .map(|a| a == id)
+            .unwrap_or(false);
+        if was_active {
+            self.clear_local_session_keep_files();
+        }
+        crate::core::team_profile::remove_team(id)?;
+        crate::auth::team_oauth_sheet::reset_auto_pull_gate();
+        Ok(())
+    }
+
     /// Профиль: переключить команду. Admin → Google OAuth; Member — без браузера.
     pub async fn switch_team(&self, id: &str) -> Result<super::super::SwitchTeamResult, String> {
         use crate::core::team_profile::{self, target_needs_google};

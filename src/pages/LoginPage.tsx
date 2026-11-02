@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { takeAccessRevokedMessage, useAuth } from "../auth/AuthContext";
 import { hostApi, openUrl, type AuthSetupStatus, type TeamIndexEntry } from "../bridge/hostApi";
+import { useAppDialogs } from "../components/useAppDialogs";
 import { DISCORD_COMMUNITY_NAME, DISCORD_INVITE_URL } from "../shared/community";
 import { shortTeamName } from "../shared/workspaceTitle";
 import { LoginOauthGuidePanel } from "./LoginOauthGuidePanel";
@@ -17,16 +18,23 @@ type Gate =
   | "member_code"
   | "login";
 
+/** Defaults after Connect Google; Admin may change them on the register form. */
+const DEFAULT_ADMIN_LOGIN = "Admin";
+const DEFAULT_ADMIN_PASSWORD = "Admin123";
+const DEFAULT_ADMIN_NAME = "Admin";
+const DEFAULT_WORKSPACE_TITLE = "Команда";
+
 function teamsOf(s: AuthSetupStatus): TeamIndexEntry[] {
   return s.teams ?? [];
 }
 
 function pickGate(s: AuthSetupStatus): Gate {
+  // Incomplete Admin slot (incl. hub → «Новый OAuth»): never login/hub until workspace exists.
+  if (s.oauth_configured && s.can_register_admin && !s.workspace_configured) {
+    return s.google_connected ? "admin_register" : "admin_oauth";
+  }
   if (teamsOf(s).length >= 1) return "hub";
   if (s.oauth_configured && s.workspace_configured) return "login";
-  if (s.oauth_configured && s.google_connected && s.can_register_admin) return "admin_register";
-  if (s.oauth_configured && !s.google_connected) return "admin_oauth";
-  if (s.oauth_configured && s.can_register_admin) return "admin_register";
   return "choose";
 }
 
@@ -41,6 +49,7 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { setUser } = useAuth();
+  const { confirm, dialogs } = useAppDialogs();
   const [setup, setSetup] = useState<AuthSetupStatus | null>(null);
   const [gate, setGate] = useState<Gate>("login");
   const [oauthJson, setOauthJson] = useState("");
@@ -51,15 +60,48 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [memberEmail, setMemberEmail] = useState("");
   const [displayName, setDisplayName] = useState("");
-  const [workspaceTitle, setWorkspaceTitle] = useState("StatHive");
+  const [workspaceTitle, setWorkspaceTitle] = useState(DEFAULT_WORKSPACE_TITLE);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  function primeRegisterDefaults() {
+    setLogin(DEFAULT_ADMIN_LOGIN);
+    setPassword(DEFAULT_ADMIN_PASSWORD);
+    setDisplayName(DEFAULT_ADMIN_NAME);
+    setWorkspaceTitle(DEFAULT_WORKSPACE_TITLE);
+  }
 
   async function refreshSetup(prefer?: Gate) {
     const s = await hostApi.authSetupStatus();
     setSetup(s);
-    setGate(prefer ?? pickGate(s));
+    const next = prefer ?? pickGate(s);
+    setGate(next);
+    if (next === "admin_register") primeRegisterDefaults();
     if (!s.oauth_configured) setOauthReplacing(false);
+  }
+
+  /** Auto-create Admin after successful Connect Google only. */
+  async function afterGoogleConnected() {
+    const s = await hostApi.authSetupStatus();
+    setSetup(s);
+    if (!s.can_register_admin || s.workspace_configured) {
+      setGate(pickGate(s));
+      return;
+    }
+    try {
+      const u = await hostApi.registerAdmin({
+        login: DEFAULT_ADMIN_LOGIN,
+        password: DEFAULT_ADMIN_PASSWORD,
+        display_name: DEFAULT_ADMIN_NAME,
+        workspace_title: DEFAULT_WORKSPACE_TITLE,
+      });
+      setUser(u);
+      navigate("/", { replace: true });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+      primeRegisterDefaults();
+      setGate("admin_register");
+    }
   }
 
   useEffect(() => {
@@ -81,7 +123,7 @@ export default function LoginPage() {
       setOauthJson("");
       setOauthReplacing(false);
       await hostApi.connectGoogle();
-      await refreshSetup();
+      await afterGoogleConnected();
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
       await refreshSetup("admin_oauth").catch(() => undefined);
@@ -95,7 +137,7 @@ export default function LoginPage() {
     setBusy(true);
     try {
       await hostApi.connectGoogle();
-      await refreshSetup();
+      await afterGoogleConnected();
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -136,6 +178,25 @@ export default function LoginPage() {
     try {
       await hostApi.setActiveTeam(id);
       await refreshSetup("login");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function onDeleteTeam(team: TeamIndexEntry) {
+    const name = teamLabel(team);
+    if (!(await confirm(t("login.deleteTeamConfirm", { name })))) return;
+    setError(null);
+    setBusy(true);
+    try {
+      await hostApi.removeLocalTeam(team.id);
+      const s = await hostApi.authSetupStatus();
+      setSetup(s);
+      if (teamsOf(s).length >= 1) setGate("pick_team");
+      else setGate(pickGate(s));
+      if (!s.oauth_configured) setOauthReplacing(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -289,17 +350,27 @@ export default function LoginPage() {
               <ul className="login-team-list">
                 {savedTeams.map((team) => (
                   <li key={team.id} className="login-team-row">
-                    <button
-                      type="button"
-                      className="btn btn-outline login-team-pick"
-                      disabled={busy}
-                      onClick={() => void onPickTeam(team.id)}
-                    >
-                      <span className="login-team-name">{teamLabel(team)}</span>
-                      {team.id === activeId ? (
-                        <span className="muted login-team-badge">{t("login.activeTeamMark")}</span>
-                      ) : null}
-                    </button>
+                    <div className="login-team-row-inner">
+                      <button
+                        type="button"
+                        className="btn btn-outline login-team-pick"
+                        disabled={busy}
+                        onClick={() => void onPickTeam(team.id)}
+                      >
+                        <span className="login-team-name">{teamLabel(team)}</span>
+                        {team.id === activeId ? (
+                          <span className="muted login-team-badge">{t("login.activeTeamMark")}</span>
+                        ) : null}
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-danger btn-sm"
+                        disabled={busy}
+                        onClick={() => void onDeleteTeam(team)}
+                      >
+                        {t("login.deleteTeam")}
+                      </button>
+                    </div>
                   </li>
                 ))}
               </ul>
@@ -651,6 +722,7 @@ export default function LoginPage() {
 
         {error && <div className="error">{error}</div>}
       </div>
+      {dialogs}
     </div>
   );
 }

@@ -30,7 +30,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  max-height: min(38vh, 260px);
+  max-height: min(48vh, 320px);
   overflow: auto;
   padding: 10px 12px;
   border: 1px solid var(--border);
@@ -96,6 +96,8 @@
   flex: 1;
   min-width: 0;
   color: var(--text);
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .login-oauth-footer {
@@ -165,13 +167,25 @@
   margin: 0;
 }
 
+.login-team-row-inner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
 .login-team-pick {
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
   text-align: left;
+}
+
+.login-team-row-inner > .btn-danger {
+  flex-shrink: 0;
 }
 
 .login-team-name {

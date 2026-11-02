@@ -256,6 +256,14 @@ pub fn auth_set_active_team(
 }
 
 #[tauri::command]
+pub fn auth_remove_local_team(
+    state: State<'_, Arc<AppState>>,
+    args: TeamIdArgs,
+) -> Result<(), String> {
+    state.auth.remove_local_team(&args.id)
+}
+
+#[tauri::command]
 pub async fn auth_switch_team(
     state: State<'_, Arc<AppState>>,
     args: TeamIdArgs,

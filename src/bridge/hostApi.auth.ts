@@ -116,6 +116,11 @@ export function createAuthApi(deps: AuthApiDeps) {
         clearAuthStatusCache();
         clearTabsLayoutCache();
       }),
+    removeLocalTeam: (id: string) =>
+      invoke<void>("auth_remove_local_team", { args: { id } }).then(() => {
+        clearAuthStatusCache();
+        clearTabsLayoutCache();
+      }),
     switchTeam: (id: string) =>
       invoke<SwitchTeamResult>("auth_switch_team", { args: { id } }).then((r) => {
         clearTabsLayoutCache();

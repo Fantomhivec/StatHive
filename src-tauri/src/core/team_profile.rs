@@ -18,6 +18,8 @@ const LEGACY_FILES: &[&str] = &[
     "service_account.json",
     "google_oauth_token.json",
     "session.json",
+    "wb_calculator_settings.json",
+    "calc_team_applied.json",
 ];
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -171,6 +173,40 @@ pub fn list_teams() -> Vec<TeamIndexEntry> {
     load_index_raw().teams
 }
 
+/// Файл ещё в корне AppData (старый общий calc): в единственную команду — перенести;
+/// при нескольких командах — удалить, чтобы не занести чужой профиль.
+pub fn absorb_legacy_root_file(name: &str) {
+    ensure_migrated();
+    let name = name.trim();
+    if name.is_empty() {
+        return;
+    }
+    let root_dir = root();
+    let legacy = root_dir.join(name);
+    if !legacy.is_file() {
+        return;
+    }
+    let active = active_dir();
+    if active == root_dir {
+        return;
+    }
+    let dest = active.join(name);
+    if dest.is_file() {
+        let _ = fs::remove_file(&legacy);
+        return;
+    }
+    if load_index_raw().teams.len() == 1 {
+        let _ = fs::create_dir_all(&active);
+        let _ = fs::rename(&legacy, &dest).or_else(|_| {
+            fs::copy(&legacy, &dest)
+                .map(|_| ())
+                .and_then(|_| fs::remove_file(&legacy))
+        });
+    } else {
+        let _ = fs::remove_file(&legacy);
+    }
+}
+
 pub fn set_active(id: &str) -> Result<(), String> {
     ensure_migrated();
     let id = id.trim();
@@ -186,6 +222,35 @@ pub fn set_active(id: &str) -> Result<(), String> {
         return Err("Нет каталога профиля команды".into());
     }
     idx.active_id = id.to_string();
+    save_index(&idx)?;
+    invalidate_runtime_caches();
+    Ok(())
+}
+
+/// Удалить локальный профиль команды (OAuth, token, session, workspace, SA) + индекс.
+/// Таблицу в Google Drive не трогает.
+pub fn remove_team(id: &str) -> Result<(), String> {
+    ensure_migrated();
+    let id = id.trim();
+    if id.is_empty() {
+        return Err("Пустой id команды".into());
+    }
+    let mut idx = load_index_raw();
+    if !idx.teams.iter().any(|t| t.id == id) {
+        return Err("Команда не найдена".into());
+    }
+    let dir = team_dir(id);
+    if dir.is_dir() {
+        let _ = fs::remove_dir_all(&dir);
+    }
+    idx.teams.retain(|t| t.id != id);
+    if idx.active_id.trim() == id {
+        idx.active_id = idx
+            .teams
+            .first()
+            .map(|t| t.id.clone())
+            .unwrap_or_default();
+    }
     save_index(&idx)?;
     invalidate_runtime_caches();
     Ok(())

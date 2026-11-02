@@ -54,6 +54,7 @@ pub fn run() {
             bridge::auth_list_teams,
             bridge::auth_begin_new_team,
             bridge::auth_set_active_team,
+            bridge::auth_remove_local_team,
             bridge::auth_switch_team,
             bridge::auth_invite_user,
             bridge::auth_list_team,

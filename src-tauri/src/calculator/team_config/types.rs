@@ -1,7 +1,6 @@
 //! Каталог конфигураций калькулятора — лист `CalcTeam` в workspace (SA).
 
 use crate::calculator::profile::CalculatorProfile;
-use crate::core::config::AppConfig;
 use crate::core::i18n::t;
 use crate::core::spreadsheet_id;
 use crate::core::workspace_cfg;
@@ -63,8 +62,11 @@ pub(crate) fn spreadsheet_id_ws() -> Result<String, String> {
     Ok(sid)
 }
 
+const STAMP_FILE: &str = "calc_team_applied.json";
+
 pub(crate) fn stamp_path() -> PathBuf {
-    AppConfig::config_dir().join("calc_team_applied.json")
+    crate::core::team_profile::absorb_legacy_root_file(STAMP_FILE);
+    crate::core::team_profile::active_dir().join(STAMP_FILE)
 }
 
 pub fn load_stamp() -> AppliedStamp {
@@ -76,14 +78,16 @@ pub fn load_stamp() -> AppliedStamp {
 }
 
 pub fn save_stamp(config_id: &str, revision: &str) -> Result<(), String> {
-    let dir = AppConfig::config_dir();
-    fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+    let path = stamp_path();
+    if let Some(dir) = path.parent() {
+        fs::create_dir_all(dir).map_err(|e| e.to_string())?;
+    }
     let raw = serde_json::to_string_pretty(&AppliedStamp {
         config_id: config_id.to_string(),
         revision: revision.to_string(),
     })
     .map_err(|e| e.to_string())?;
-    fs::write(stamp_path(), raw).map_err(|e| e.to_string())
+    fs::write(path, raw).map_err(|e| e.to_string())
 }
 
 pub(crate) fn chunk_json(raw: &str) -> Vec<String> {

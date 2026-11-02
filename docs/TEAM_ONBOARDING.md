@@ -7,10 +7,10 @@
 ## Admin
 
 1. Установите приложение.
-2. «Я Admin» → вставьте OAuth Desktop JSON → Google → создайте команду.
-   - В поле названия укажите **имя команды** (например `URI`) — в Drive таблица будет **`URI - Команда`**.
-   - На экране Admin инструкция по OAuth **всегда** на экране; если client уже сохранён — текущий client и внизу **«Новый OAuth»**.
-   - Кратко создать клиент: [Google Cloud Console](https://console.cloud.google.com/) → проект → OAuth consent screen (Application name) → включить **Sheets API** и **Drive API** → Credentials → OAuth client ID → **Desktop app** → Download JSON.
+2. «Я Admin» → вставьте OAuth Desktop JSON → Connect Google → приложение создаёт Admin (по умолчанию `Admin` / `Admin123`) и пускает в настройку; при сбое — форма регистрации со своими логином/паролем.
+   - Название команды (например `URI`) можно задать на форме регистрации или позже на вкладке Пользователи — в Drive таблица **`URI - Команда`**.
+   - На экране Admin инструкция по OAuth **всегда** видна; если client уже сохранён — текущий client и внизу **«Новый OAuth»**.
+   - Кратко создать клиент: [Google Cloud Console](https://console.cloud.google.com/) → страна **Germany** (первый вход) → проект → **Google Auth Platform** (Overview: Application name, User support email) → **Audience** External + **Test users** (gmail Admin) → **Clients** → OAuth client → **Desktop app** → Download JSON → включить **Sheets API** и **Drive API**.
    - Redirect loopback StatHive: `http://localhost:8765/`.
    - Scopes обычной работы: `spreadsheets`, `drive`, `drive.file`, `userinfo.email`, `openid`. Scope `cloud-platform` нужен **только** если создаёте Service Account кнопкой из приложения.
 3. Вкладка **Пользователи**:
@@ -32,17 +32,19 @@
 
 ### Несколько команд на одном ПК
 
-Профили лежат в `%AppData%/StatHive/teams/{id}/` (oauth, SA, token, session, workspace) + индекс `teams_index.json`. Если раньше файлы лежали прямо в корне AppData, при первом запуске они переедут в первый профиль команды.
+Профили лежат в `%AppData%/StatHive/teams/{id}/` (oauth, SA, token, session, workspace, `wb_calculator_settings.json`, `calc_team_applied.json`) + индекс `teams_index.json`. Если раньше файлы лежали прямо в корне AppData, при первом запуске они переедут в первый профиль команды.
+
+Локальный калькулятор **по команде**: после смены/новой команды настройки пустые, пока в CalcTeam нет конфигураций. Когда есть хотя бы одна — Admin подтягивает default; участник — назначенную в списке Пользователи.
 
 **Экран входа (хаб)**, если есть хотя бы одна сохранённая команда:
 
-1. **Войти в существующую** — список → email / логин / пароль.
+1. **Войти в существующую** — список → email / логин / пароль; у каждой строки можно **Удалить** локальный профиль.
 2. **Ввести код команды** — UR3 + пароль кода (добавить или обновить профиль).
 3. **Настроить новый OAuth** — Admin: новый слот → JSON → Google → новая команда.
 
-Ручное удаление AppData для «с нуля» не нужно.
+Удаление команды с ПК стирает локальный OAuth / token / session / SA в `teams/{id}/` (таблица в Drive не удаляется). После этого можно снова настроить тот же Google OAuth. Ручное чистка AppData обычно не нужна.
 
-**Профиль → сохранённые команды:** переключение на другую команду.
+**Профиль → сохранённые команды:** переключение на другую команду или удаление локального профиля.
 
 - Цель = **Admin** (роль в этой команде / команда создана локально): откроется браузер Google (обновить user OAuth под client этой команды).
 - Цель = **участник**: без браузера; при валидной `session.json` команды сессия восстановится, иначе форма входа.
@@ -51,9 +53,9 @@
 
 ### «Доступ к приложению StatHive» (Google)
 
-Это **не** название команды/Sheets. Так Google показывает **Application name** OAuth consent screen у Desktop-клиента.
+Это **не** название команды/Sheets. Так Google показывает **Application name** из **Google Auth Platform** (Overview) у Desktop-клиента.
 
-Чтобы сменить надпись: [Google Cloud Console](https://console.cloud.google.com/) → APIs & Services → OAuth consent screen → Application name (или создайте новый OAuth Desktop client в нужном проекте и вставьте новый JSON Admin’у). Название таблицы в Drive на это не влияет.
+Чтобы сменить надпись: [Google Cloud Console](https://console.cloud.google.com/) → Google Auth Platform → Overview → Application name (или создайте новый OAuth Desktop client в нужном проекте и вставьте новый JSON Admin’у). Название таблицы в Drive на это не влияет.
 
 ## Участник
 

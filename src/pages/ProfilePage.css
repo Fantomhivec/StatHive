@@ -108,7 +108,14 @@
   white-space: nowrap;
 }
 
-.profile-team-row .btn {
+.profile-team-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.profile-team-actions .btn {
   flex-shrink: 0;
 }
 

@@ -8,4 +8,6 @@ pub use catalog::{
     publish, pull_by_id, resolve_entry, set_default,
 };
 pub use drive::{keep_going, needs_apply, share_tables_with_service_account, sync_drive_access};
-pub use types::{profile_for_user_drive, table_ids_from_profile, TeamConfigEntry};
+pub use types::{
+    load_stamp, profile_for_user_drive, table_ids_from_profile, TeamConfigEntry,
+};

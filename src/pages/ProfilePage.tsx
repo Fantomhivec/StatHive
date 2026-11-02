@@ -13,6 +13,7 @@ import {
 } from "../bridge/hostApi";
 import { useAuth } from "../auth/AuthContext";
 import { IconEye } from "../components/icons";
+import { useAppDialogs } from "../components/useAppDialogs";
 import { useTabsLayoutCaps } from "../hooks/useTabsLayoutCaps";
 import { shortTeamName } from "../shared/workspaceTitle";
 import "./ProfilePage.css";
@@ -67,6 +68,7 @@ export default function ProfilePage() {
   const t = useT();
   const navigate = useNavigate();
   const { user: authUser, setUser } = useAuth();
+  const { confirm, dialogs } = useAppDialogs();
   const [profile, setProfile] = useState<UserInfo | null>(null);
   const [version, setVersion] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
@@ -222,6 +224,29 @@ export default function ProfilePage() {
     }
   }
 
+  async function onDeleteTeam(team: TeamIndexEntry) {
+    const name = teamLabel(team);
+    if (!(await confirm(t("profile.deleteTeamConfirm", { name })))) return;
+    const activeId = (setup?.active_team_id ?? setup?.activeTeamId ?? "").trim();
+    const wasActive = team.id === activeId;
+    setBusy(true);
+    setError(null);
+    try {
+      await hostApi.removeLocalTeam(team.id);
+      if (wasActive) {
+        setUser(null);
+        navigate("/login", { replace: true, state: { gate: "hub" } });
+        return;
+      }
+      const s = await hostApi.authSetupStatus().catch(() => null);
+      if (s) setSetup(s);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBusy(false);
+    }
+  }
+
   if (!profile && !error) {
     return <div className="profile-page muted">{t("common.loadingProfile")}</div>;
   }
@@ -305,16 +330,26 @@ export default function ProfilePage() {
                       <span className="muted">{t("profile.currentTeam")}</span>
                     ) : null}
                   </div>
-                  {!active ? (
+                  <div className="profile-team-actions">
+                    {!active ? (
+                      <button
+                        type="button"
+                        className="btn btn-outline btn-sm"
+                        disabled={busy}
+                        onClick={() => void onSwitchTeam(team.id)}
+                      >
+                        {busy ? t("profile.switchTeamBusy") : t("profile.switchTeam")}
+                      </button>
+                    ) : null}
                     <button
                       type="button"
-                      className="btn btn-outline btn-sm"
+                      className="btn btn-danger btn-sm"
                       disabled={busy}
-                      onClick={() => void onSwitchTeam(team.id)}
+                      onClick={() => void onDeleteTeam(team)}
                     >
-                      {busy ? t("profile.switchTeamBusy") : t("profile.switchTeam")}
+                      {t("profile.deleteTeam")}
                     </button>
-                  ) : null}
+                  </div>
                 </li>
               );
             })}
@@ -396,6 +431,7 @@ export default function ProfilePage() {
           {t("profile.logout")}
         </button>
       </div>
+      {dialogs}
     </div>
   );
 }

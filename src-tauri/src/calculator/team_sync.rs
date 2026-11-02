@@ -29,6 +29,10 @@ fn emit_applied(entry: &TeamConfigEntry) {
 
 /// Прочитать назначение пользователя и при необходимости записать локальный профиль.
 /// Возвращает `true`, если профиль обновили.
+///
+/// Admin: если локально ещё нет stamp (новая команда / пустой слот) и в CalcTeam есть
+/// конфигурации — подтянуть default. Иначе Admin правит локально сам (таймер не затирает).
+/// Участник: назначенная в Users конфигурация (или default).
 pub async fn sync_assigned_config(
     sa: &GoogleSheetsClient,
     workspace_id: &str,
@@ -36,17 +40,31 @@ pub async fn sync_assigned_config(
     access_level: &str,
     log: &AppLog,
 ) -> Result<bool, String> {
-    // Admin сам переключает сохранённые снимки; таймер его локальный профиль не затирает.
+    let catalog = team_config::load_catalog(sa).await?;
+
     if crate::core::access::is_admin_role(access_level) {
-        return Ok(false);
+        let stamp = team_config::load_stamp();
+        if !stamp.config_id.trim().is_empty() {
+            return Ok(false);
+        }
+        let Some(entry) = team_config::resolve_entry(&catalog, "").cloned() else {
+            return Ok(false);
+        };
+        team_config::apply_entry_locally(&entry)?;
+        emit_applied(&entry);
+        log.info(tf(
+            "log.calc.teamPulledNamed",
+            &[("name", &entry.name), ("id", &entry.id)],
+        ));
+        return Ok(true);
     }
+
     if row_index < 2 {
         return Ok(false);
     }
     let assigned = crate::auth::sheets_users::read_user_calc_config(sa, workspace_id, row_index)
         .await
         .unwrap_or_default();
-    let catalog = team_config::load_catalog(sa).await?;
     let entry = if assigned.trim().is_empty() {
         team_config::resolve_entry(&catalog, "").cloned()
     } else {
