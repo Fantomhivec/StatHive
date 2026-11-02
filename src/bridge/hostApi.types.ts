@@ -116,6 +116,7 @@ export type UpdateInfo = {
   status?: string;
   releases_text?: string;
   asset_digest?: string;
+  asset_size?: number;
 };
 
 export type EnvKeyRow = {

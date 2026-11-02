@@ -1,4 +1,4 @@
-import { invoke } from "@tauri-apps/api/core";
+import { Channel, invoke } from "@tauri-apps/api/core";
 import type {
   EnvKeyRow,
   EnvKeysSnapshot,
@@ -136,8 +136,20 @@ export const hostApi = {
   /** `verbose: true` — кнопка «Проверить» (логи процесса). Авто/профиль — без verbose (только ошибки). */
   updatesCheck: (verbose = false) =>
     invoke<UpdateInfo>("updates_check", { args: { verbose } }),
-  updatesDownloadInstall: () =>
-    invoke<{ success: boolean; message: string }>("updates_download_install"),
+  /** `onProgress` — проценты 0…100 во время скачивания (Channel, не event). */
+  updatesDownloadInstall: (onProgress?: (percent: number) => void) => {
+    const onProgressCh = new Channel<number>();
+    if (onProgress) {
+      onProgressCh.onmessage = (percent) => {
+        if (typeof percent === "number" && Number.isFinite(percent)) {
+          onProgress(percent);
+        }
+      };
+    }
+    return invoke<{ success: boolean; message: string }>("updates_download_install", {
+      onProgress: onProgressCh,
+    });
+  },
   /** Имена кабинетов без секретов (шаблоны при scripts+OAuth без keysCheck). */
   envListCabinetNames: () => invoke<EnvKeysSnapshot>("env_list_cabinet_names"),
   envSaveRows: (rows: EnvKeyRow[]) =>

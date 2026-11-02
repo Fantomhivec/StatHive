@@ -27,6 +27,9 @@ pub struct UpdateInfo {
     /// GitHub asset digest (`sha256:…`), если API отдал — проверка после скачивания.
     #[serde(default)]
     pub asset_digest: String,
+    /// Размер zip из Releases API — fallback для прогресса, если нет Content-Length.
+    #[serde(default)]
+    pub asset_size: u64,
 }
 
 #[derive(Deserialize)]
@@ -115,6 +118,7 @@ impl UpdateChecker {
                 status: "У вас установлена последняя версия.".into(),
                 releases_text,
                 asset_digest: String::new(),
+                asset_size: 0,
             });
         }
         if !res.status().is_success() {
@@ -156,6 +160,7 @@ impl UpdateChecker {
         let asset_digest = asset
             .map(|a| a.digest.trim().to_string())
             .unwrap_or_default();
+        let asset_size = asset.map(|a| a.size).unwrap_or(0);
         // Публичный репозиторий: browser_download_url, иначе API url.
         let download_url = match asset {
             Some(a) => {
@@ -221,6 +226,7 @@ impl UpdateChecker {
             status,
             releases_text,
             asset_digest,
+            asset_size,
         })
     }
 

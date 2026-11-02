@@ -8,7 +8,8 @@ use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use tauri::{AppHandle, Emitter};
+use tauri::AppHandle;
+use tauri::ipc::Channel;
 
 #[cfg(windows)]
 use std::os::windows::process::CommandExt;
@@ -17,9 +18,10 @@ use std::os::windows::process::CommandExt;
 const CREATE_NO_WINDOW: u32 = 0x0800_0000;
 
 pub async fn download_and_schedule_install(
-    app: &AppHandle,
+    _app: &AppHandle,
     info: &UpdateInfo,
     log: &AppLog,
+    on_progress: Channel<f64>,
 ) -> Result<String, String> {
     if info.download_url.is_empty() {
         let msg = "Нет URL загрузки (в релизе нет подходящего zip или не выбран asset).";
@@ -40,9 +42,10 @@ pub async fn download_and_schedule_install(
         zip_path.display()
     ));
 
-    let app_emit = app.clone();
+    // Channel — стрим прогресса внутри invoke (событие updates.progress в модалке часто не доходит).
+    let ch = on_progress.clone();
     let progress_cb: Box<dyn FnMut(f64) + Send> = Box::new(move |pct: f64| {
-        let _ = app_emit.emit("updates.progress", serde_json::json!({ "percent": pct }));
+        let _ = ch.send(pct);
     });
 
     // Сбой загрузки → текущая версия не трогается.
@@ -51,6 +54,7 @@ pub async fn download_and_schedule_install(
         &zip_path,
         Some(log),
         Some(progress_cb),
+        info.asset_size,
     )
     .await
     .map_err(|e| {
@@ -81,7 +85,7 @@ pub async fn download_and_schedule_install(
         e
     })?;
 
-    let _ = app.emit("updates.progress", serde_json::json!({ "percent": 100.0 }));
+    let _ = on_progress.send(100.0);
     let msg = "Обновление скачано. Приложение будет перезапущено.".to_string();
     log.info(&msg);
     Ok(msg)

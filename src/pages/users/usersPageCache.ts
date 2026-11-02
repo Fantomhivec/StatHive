@@ -5,6 +5,7 @@ import {
   type TeamConfigListItem,
   type TeamUserRow,
 } from "../../bridge/hostApi";
+import { clearTeamOauthSnap } from "./teamOauthTabCache";
 
 /** Лист команды сериализуется в camelCase. */
 export function normalizeTeamRow(raw: TeamUserRow): TeamUserRow {
@@ -56,6 +57,8 @@ export let usersPageSnap: UsersPageSnap | null = null;
 
 export function clearUsersPageSnap() {
   usersPageSnap = null;
+  // TeamOAuth tab cache (Sheets) — сброс при logout / force reload Users.
+  clearTeamOauthSnap();
 }
 
 export function setUsersPageSnap(snap: UsersPageSnap | null) {

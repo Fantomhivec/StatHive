@@ -5,7 +5,6 @@ import {
   ensureAppVersion,
   ensureUpdatesCheckQuiet,
   hostApi,
-  onEvent,
   type AuthSetupStatus,
   type TeamIndexEntry,
   type UpdateInfo,
@@ -117,11 +116,6 @@ export default function ProfilePage() {
     void ensureUpdatesCheckQuiet()
       .then(setUpdate)
       .catch(() => undefined);
-
-    return onEvent<{ percent?: number }>("updates.progress", (payload) => {
-      const p = payload?.percent;
-      if (typeof p === "number") setProgress(Math.max(0, Math.min(100, p)));
-    });
   }, []);
 
   async function onChangePassword() {
@@ -162,10 +156,14 @@ export default function ProfilePage() {
     setError(null);
     setProgress(0);
     try {
-      const res = await hostApi.updatesDownloadInstall();
+      const res = await hostApi.updatesDownloadInstall((pct) => {
+        setProgress(Math.max(0, Math.min(100, pct)));
+      });
       if (!res.success) {
         setError(res.message || t("profile.updateInstallFail"));
         setProgress(null);
+      } else {
+        setProgress(100);
       }
     } catch (e) {
       // Tauri обычно кладёт текст Err(String) в message — показываем как есть (детали также в Логах).

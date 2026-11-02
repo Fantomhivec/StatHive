@@ -193,6 +193,7 @@ export default function UsersPage() {
 
         {m.tab === "oauth" && m.isMainAdmin ? (
           <UsersOauthTab
+            workspaceId={m.workspaceId ?? ""}
             busy={m.busy}
             withBusy={m.withBusy}
             setError={m.setError}

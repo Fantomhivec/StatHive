@@ -57,11 +57,13 @@ fn github_download_host_ok(url: &str) -> bool {
 }
 
 /// Скачать asset (публичный browser URL или API octet-stream без токена).
+/// `expected_size` — размер из GitHub Releases API, если ответ без Content-Length.
 pub async fn download_github_asset(
     url: &str,
     dest: &Path,
     log: Option<&AppLog>,
     mut on_progress: Option<Box<dyn FnMut(f64) + Send>>,
+    expected_size: u64,
 ) -> Result<(), String> {
     let url = url.trim();
     if url.is_empty() {
@@ -100,7 +102,6 @@ pub async fn download_github_asset(
             "*/*"
         },
     );
-
     let res = req.send().await.map_err(|e| {
         let msg = format!("Сеть при загрузке обновления: {e}");
         if let Some(l) = log {
@@ -126,22 +127,37 @@ pub async fn download_github_asset(
         return Err(msg);
     }
 
-    let total = res.content_length().unwrap_or(0);
+    let header_len = res.content_length().unwrap_or(0);
+    let total = if header_len > 0 {
+        header_len
+    } else {
+        expected_size
+    };
     if let Some(l) = log {
         if total > 0 {
+            let src = if header_len > 0 {
+                "Content-Length"
+            } else {
+                "GitHub asset size"
+            };
             l.info(format!(
-                "Размер обновления: {:.1} МБ",
+                "Размер обновления: {:.1} МБ ({src})",
                 total as f64 / (1024.0 * 1024.0)
             ));
         } else {
-            l.info("Размер обновления: неизвестен (нет Content-Length)");
+            l.info("Размер обновления: неизвестен (нет Content-Length и asset size)");
         }
+    }
+
+    if let Some(ref mut cb) = on_progress {
+        cb(0.0);
     }
 
     let mut stream = res.bytes_stream();
     let mut file = File::create(dest).map_err(|e| format!("Не удалось создать файл: {e}"))?;
     let mut done = 0u64;
     let mut last_pct = -1i32;
+    let mut last_bytes_emit = 0u64;
     while let Some(chunk) = stream.next().await {
         let chunk = chunk.map_err(|e| format!("Обрыв загрузки: {e}"))?;
         file.write_all(&chunk)
@@ -155,6 +171,13 @@ pub async fn download_github_asset(
                 if let Some(ref mut cb) = on_progress {
                     cb(pct);
                 }
+            }
+        } else if let Some(ref mut cb) = on_progress {
+            // Нет размера: двигаем бар условно (каждые ~512 КБ), чтобы не залипать на 0%.
+            if done.saturating_sub(last_bytes_emit) >= 512 * 1024 {
+                last_bytes_emit = done;
+                let soft = (done as f64 / (12.0 * 1024.0 * 1024.0) * 90.0).clamp(1.0, 90.0);
+                cb(soft);
             }
         }
     }

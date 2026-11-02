@@ -4,11 +4,10 @@ import {
   ensureAppVersion,
   ensureUpdatesCheckQuiet,
   hostApi,
-  onEvent,
   UpdateInfo,
 } from "../bridge/hostApi";
 
-/** Диалог обновления: загрузка в UI с прогрессом, без console updater. */
+/** Диалог обновления: загрузка в UI с прогрессом через Channel (не event). */
 export default function UpdateAvailableDialog({ autoCheck = true }: { autoCheck?: boolean }) {
   const t = useT();
   const [info, setInfo] = useState<UpdateInfo | null>(null);
@@ -34,13 +33,6 @@ export default function UpdateAvailableDialog({ autoCheck = true }: { autoCheck?
     })();
   }, [autoCheck]);
 
-  useEffect(() => {
-    return onEvent<{ percent?: number }>("updates.progress", (payload) => {
-      const p = payload?.percent;
-      if (typeof p === "number") setProgress(Math.max(0, Math.min(100, p)));
-    });
-  }, []);
-
   if (!info?.is_newer) return null;
 
   const notes = (info.body ?? "").trim();
@@ -51,8 +43,21 @@ export default function UpdateAvailableDialog({ autoCheck = true }: { autoCheck?
     setStatus(t("updates.downloading"));
     setProgress(0);
     try {
-      const res = await hostApi.updatesDownloadInstall();
+      // Как в Профиле: свежий check → last_update + asset_size для прогресса.
+      const fresh = await hostApi.updatesCheck(false);
+      if (!fresh.is_newer || !(fresh.download_url ?? "").trim()) {
+        setErr(t("updates.errorSeeLogs"));
+        setProgress(null);
+        setStatus(null);
+        return;
+      }
+      setInfo(fresh);
+
+      const res = await hostApi.updatesDownloadInstall((pct) => {
+        setProgress(Math.max(0, Math.min(100, pct)));
+      });
       if (res.success) {
+        setProgress(100);
         setStatus(res.message || t("updates.downloadedRestart"));
         return;
       }
@@ -93,6 +98,8 @@ export default function UpdateAvailableDialog({ autoCheck = true }: { autoCheck?
           <div
             className="progress-track update-progress"
             role="progressbar"
+            aria-valuemin={0}
+            aria-valuemax={100}
             aria-valuenow={Math.round(progress)}
           >
             <div

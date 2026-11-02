@@ -40,6 +40,7 @@ fn soft_skip(current: &str, status: impl Into<String>) -> UpdateInfo {
         status: status.into(),
         releases_text: String::new(),
         asset_digest: String::new(),
+        asset_size: 0,
     }
 }
 
@@ -138,11 +139,12 @@ pub async fn updates_check(
     }
 }
 
-/// Скачать zip в UI с прогрессом и перезапустить через скрипт (; без console updater).
+/// Скачать zip в UI с прогрессом (Channel f64 0..100) и перезапустить через скрипт.
 #[tauri::command]
 pub async fn updates_download_install(
     app: tauri::AppHandle,
     state: State<'_, Arc<AppState>>,
+    on_progress: tauri::ipc::Channel<f64>,
 ) -> Result<serde_json::Value, String> {
     let _ = crate::templates::access_gate::require_user(&state)?;
     let info = state
@@ -157,11 +159,14 @@ pub async fn updates_download_install(
         state.log.error(msg);
         return Err(msg.into());
     }
-    match crate::updates::download_and_schedule_install(&app, &info, &state.log).await {
+    match crate::updates::download_and_schedule_install(&app, &info, &state.log, on_progress)
+        .await
+    {
         Ok(msg) => {
             let app2 = app.clone();
             tauri::async_runtime::spawn(async move {
-                tokio::time::sleep(std::time::Duration::from_millis(900)).await;
+                // Дать UI отрисовать 100% до выхода.
+                tokio::time::sleep(std::time::Duration::from_millis(1400)).await;
                 app2.exit(0);
             });
             Ok(serde_json::json!({ "success": true, "message": msg }))
