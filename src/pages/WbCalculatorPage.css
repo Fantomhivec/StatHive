@@ -475,6 +475,14 @@
 }
 
 .calc-triggers-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
   margin-bottom: 0;
+}
+
+.calc-triggers-toggle .toggle-track {
+  flex-shrink: 0;
 }
 

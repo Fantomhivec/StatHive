@@ -74,7 +74,7 @@
 .wb-calc-header-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 10px;
   align-items: center;
   /* Одна линия с полем имени (без подписи «Файл:»). */
   margin-top: 0;
