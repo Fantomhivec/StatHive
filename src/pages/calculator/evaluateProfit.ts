@@ -86,14 +86,90 @@ export function evaluateProfit(
 
   const cleaned = expr.replace(/[^0-9+\-*/().,\s]/g, '').replace(/,/g, '.').trim()
   if (!cleaned) return null
-  try {
-    // Expression is sanitized to digits and arithmetic ops only (same idea as DataTable.Compute).
-    // eslint-disable-next-line no-new-func -- local calculator, not user HTML
-    const result = Function(`"use strict"; return (${cleaned})`)() as unknown
-    return typeof result === 'number' && Number.isFinite(result) ? result : null
-  } catch {
-    return null
+  // Не Function()/eval: CSP script-src без unsafe-eval в WebView блокирует → прибыль «—».
+  return evalArith(cleaned)
+}
+
+/** Рекурсивный спуск + − * / ( ), паритет `calculator/profit.rs` eval_arith. */
+function evalArith(input: string): number | null {
+  const chars = [...input].filter((c) => !/\s/.test(c))
+  let i = 0
+
+  const peek = () => chars[i]
+  const next = () => chars[i++]
+
+  function parseExpr(): number | null {
+    let left = parseTerm()
+    if (left == null) return null
+    while (i < chars.length) {
+      const op = peek()
+      if (op === '+') {
+        next()
+        const r = parseTerm()
+        if (r == null) return null
+        left += r
+      } else if (op === '-') {
+        next()
+        const r = parseTerm()
+        if (r == null) return null
+        left -= r
+      } else break
+    }
+    return left
   }
+
+  function parseTerm(): number | null {
+    let left = parseFactor()
+    if (left == null) return null
+    while (i < chars.length) {
+      const op = peek()
+      if (op === '*') {
+        next()
+        const r = parseFactor()
+        if (r == null) return null
+        left *= r
+      } else if (op === '/') {
+        next()
+        const r = parseFactor()
+        if (r == null || r === 0) return null
+        left /= r
+      } else break
+    }
+    return left
+  }
+
+  function parseFactor(): number | null {
+    if (i >= chars.length) return null
+    if (peek() === '(') {
+      next()
+      const v = parseExpr()
+      if (v == null || peek() !== ')') return null
+      next()
+      return v
+    }
+    if (peek() === '+') {
+      next()
+      return parseFactor()
+    }
+    if (peek() === '-') {
+      next()
+      const v = parseFactor()
+      return v == null ? null : -v
+    }
+    return parseNum()
+  }
+
+  function parseNum(): number | null {
+    const start = i
+    while (i < chars.length && /[0-9.]/.test(chars[i]!)) i += 1
+    if (i === start) return null
+    const n = Number(chars.slice(start, i).join(''))
+    return Number.isFinite(n) ? n : null
+  }
+
+  const result = parseExpr()
+  if (result == null || i !== chars.length) return null
+  return Number.isFinite(result) ? result : null
 }
 
 /** Mirror CalculatorCardReader.ComputeOrderCost: A/O; if O=0 → A if A>0 else 0. */

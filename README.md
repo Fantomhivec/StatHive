@@ -4,6 +4,8 @@
 
 Приложение можно скачивать и использовать бесплатно. Исходный код — под [MIT License](LICENSE).
 
+Сообщество и поддержка: [Discord StatHive](https://discord.gg/BGY9tYHM7f).
+
 ## Скачать
 
 Публичные сборки появятся в [Releases](https://github.com/Fantomhivec/StatHive/releases) репозитория **StatHive** (после публикации). Пока репозиторий готовится — собирайте локально (`.\build.ps1`) или берите zip у команды.
