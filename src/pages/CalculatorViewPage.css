@@ -1,0 +1,384 @@
+.calc-refresh-data {
+  flex: 0 0 auto;
+  align-self: stretch;
+  white-space: nowrap;
+}
+
+.calc-lookup-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.calc-lookup-bar .btn {
+  flex: 0 0 auto;
+}
+
+/* Chrome: .badge in controls/chrome.css */
+.calc-market-badge {
+  align-self: stretch;
+}
+
+.calc-article-input {
+  min-width: 200px;
+  flex: 1;
+  max-width: 360px;
+  min-height: var(--btn-md-min-h);
+}
+
+.calc-banner {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.calc-card-grid {
+  display: grid;
+  grid-template-columns: minmax(240px, 280px) 1fr;
+  gap: 12px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .calc-card-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.calc-card-aside {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.calc-card-photo {
+  min-height: 260px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.calc-photo-img {
+  max-width: 100%;
+  max-height: 340px;
+  object-fit: contain;
+  border-radius: var(--control-radius);
+}
+
+.calc-photo-placeholder {
+  color: var(--muted);
+  padding: 48px 16px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.calc-card-main {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+/* Chrome: .calc-section in controls/chrome.css — accent variants only. */
+.calc-section--params {
+  --calc-sec-accent: var(--calc-sec-params);
+}
+
+.calc-section--id {
+  --calc-sec-accent: var(--calc-sec-id);
+}
+
+.calc-section--stock {
+  --calc-sec-accent: var(--calc-sec-stock);
+}
+
+.calc-section--funnel {
+  --calc-sec-accent: var(--calc-sec-funnel);
+}
+
+.calc-section--price {
+  --calc-sec-accent: var(--calc-sec-price);
+}
+
+.calc-section--cost {
+  --calc-sec-accent: var(--calc-sec-cost);
+}
+
+.calc-section--docs {
+  --calc-sec-accent: var(--calc-sec-docs);
+}
+
+.calc-section--success {
+  --calc-sec-accent: var(--ok);
+  border-left-color: var(--ok);
+}
+
+.calc-section--success .calc-section-title {
+  color: var(--ok);
+}
+
+.calc-section--success .calc-docs-value {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--ok) 30%, var(--border));
+  background: color-mix(in srgb, var(--ok) 8%, var(--panel));
+}
+
+.calc-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--calc-sec-accent);
+  margin-bottom: 10px;
+}
+
+/* Chrome: .plate.plate--tint; here spacing only. */
+.calc-aside-plate {
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
+.calc-aside-plate-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.calc-aside-plate-value {
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  word-break: break-word;
+}
+
+.calc-docs-values {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-bottom: 8px;
+}
+
+/* Base face: .plate.plate--tint; typography here. */
+.calc-docs-value {
+  color: var(--text);
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  word-break: break-word;
+  line-height: 1.35;
+}
+
+/* 5 показателей: 3+2 в двух строках (aside узкий — в 1 ряд обрезался «Объём»). */
+.calc-params-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+/* Tint: .plate--tint; padding-right for tip. */
+.calc-params-grid .calc-metric {
+  min-height: 48px;
+  min-width: 0;
+  padding: 6px 8px;
+  padding-right: 22px;
+}
+
+.calc-params-grid .calc-metric-label {
+  font-size: 9px;
+  text-transform: uppercase;
+}
+
+.calc-params-grid .calc-metric-value {
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.calc-card-top,
+.calc-metrics-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.calc-card-top {
+  grid-template-columns:
+    minmax(6.5rem, 9rem)
+    minmax(7rem, 13rem)
+    minmax(0, 1.35fr)
+    minmax(0, 1.35fr);
+}
+
+.calc-metrics-row--category-name {
+  grid-template-columns: minmax(10rem, 1fr) minmax(0, 3fr);
+}
+
+.calc-metrics-row--costs5 {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+}
+
+@media (max-width: 1100px) {
+  .calc-metrics-row,
+  .calc-card-top,
+  .calc-metrics-row--costs5 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .calc-metrics-row--category-name {
+    grid-template-columns: 1fr;
+  }
+
+  .calc-params-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.calc-metric {
+  position: relative;
+  min-height: 56px;
+}
+
+.calc-metric-tip {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  z-index: 5;
+}
+
+/* Open tip: выше соседних «?» (иначе fixed-popover в stacking context z=5 оказывается под ними). */
+.calc-metric-tip--open {
+  z-index: 200;
+}
+
+/* Tip button chrome: .btn-tip in controls/buttons.css */
+
+.calc-metric-tip-popover {
+  /* chrome: .popover .popover--pad */
+  position: fixed;
+  z-index: 1;
+  min-width: 220px;
+  max-width: min(420px, calc(100vw - 16px));
+  text-align: left;
+}
+
+.calc-metric-tip-popover--formula {
+  min-width: min(420px, calc(100vw - 16px));
+  max-width: min(720px, calc(100vw - 16px));
+}
+
+.calc-metric-tip-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 6px;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.calc-metric-tip-lines {
+  margin: 0;
+  padding-left: 1.1em;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.calc-metric-tip-lines li {
+  margin-bottom: 2px;
+}
+
+.calc-metric-tip-lines--formula {
+  list-style: none;
+  padding-left: 0;
+}
+
+.calc-metric-tip-lines--formula li {
+  margin-bottom: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  font-variant-numeric: tabular-nums;
+}
+
+.calc-metric-label {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.calc-metric-value {
+  font-weight: 600;
+  word-break: break-word;
+}
+
+.calc-metric-value--num {
+  font-variant-numeric: tabular-nums;
+}
+
+.calc-metric--editable {
+  display: flex;
+  flex-direction: column;
+  cursor: text;
+}
+
+/* Dirty chrome: .plate--dirty in controls/chrome.css */
+
+/* Chrome: .input-plain in controls/fields.css */
+
+.calc-name-block {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 56px;
+}
+
+.calc-name-value {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+/* chrome: .section-tint */
+.calc-profit-row--quad {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+@media (max-width: 900px) {
+  .calc-profit-row--quad {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.calc-profit-block {
+  /* padding: .plate */
+  position: relative;
+}
+
+.calc-profit-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.calc-profit-value {
+  font-size: 1.15rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}

@@ -1,0 +1,147 @@
+.profile-page {
+  padding: 20px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.profile-group {
+  margin: 0 0 16px;
+}
+
+.profile-group legend {
+  padding: 0 6px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.profile-grid {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  gap: 8px 12px;
+  align-items: center;
+}
+
+.profile-label {
+  color: var(--muted);
+}
+
+.profile-google-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.profile-google-cell > span {
+  min-width: 0;
+}
+
+.profile-field {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  gap: 8px 12px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.profile-password-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.profile-password-row .input-sm {
+  flex: 1;
+}
+
+.profile-releases-label {
+  margin: 8px 0 6px;
+  color: var(--muted);
+}
+
+/* Chrome: .mono-panel; here max height for releases list. */
+.profile-releases {
+  max-height: 220px;
+}
+
+.profile-logout {
+  margin-top: 8px;
+}
+
+.profile-team-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.profile-team-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+}
+
+.profile-team-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.profile-team-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile-team-row .btn {
+  flex-shrink: 0;
+}
+
+.profile-page .muted {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.profile-page .ok-text {
+  font-size: 13px;
+  margin: 8px 0 12px;
+}
+
+.profile-page .progress-label {
+  margin: 8px 0 4px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* Chrome: .progress-track / .progress-fill; here thin bar. */
+.profile-page .progress {
+  height: 8px;
+}
+
+.profile-team-list {
+  margin: 12px 0 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.profile-page .mono {
+  word-break: break-all;
+}

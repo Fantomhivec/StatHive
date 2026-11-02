@@ -1,0 +1,67 @@
+/* Layout / chrome specifics — shared .overlay / .dialog-panel in controls.css */
+
+.app-win-backdrop--max {
+  padding: var(--overlay-pad-sm);
+}
+
+.app-win--max {
+  width: min(960px, calc(100vw - 32px));
+  height: min(720px, calc(100vh - 32px));
+  max-width: none;
+  max-height: none;
+}
+
+/* Header chrome: .app-win-header in controls/menus.css */
+.app-win--info .app-win-header {
+  border-bottom-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+}
+
+.app-win--success .app-win-header {
+  border-bottom-color: color-mix(in srgb, var(--ok) 55%, var(--border));
+}
+
+.app-win--warning .app-win-header {
+  border-bottom-color: color-mix(in srgb, var(--warn) 55%, var(--border));
+}
+
+.app-win--error .app-win-header {
+  border-bottom-color: color-mix(in srgb, var(--danger) 55%, var(--border));
+}
+
+/* Body chrome: .app-win-body in controls/menus.css */
+/* Footer chrome: .dialog-footer in controls/menus.css */
+
+.app-msg-text {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  color: var(--text);
+}
+
+.app-prompt-label {
+  display: block;
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.app-prompt-input {
+  width: 100%;
+  min-width: 0;
+}
+
+.app-prompt-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.app-prompt-row .app-prompt-input {
+  flex: 1;
+}
+
+.app-prompt-browse {
+  flex-shrink: 0;
+  white-space: nowrap;
+}

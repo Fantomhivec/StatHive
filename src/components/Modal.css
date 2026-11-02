@@ -1,0 +1,18 @@
+/* Layout / chrome specifics — shared .overlay / .dialog-panel in controls.css */
+
+/* Titlebar chrome: .app-modal-titlebar in controls/menus.css */
+
+.app-modal-title {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Close chrome: .btn-modal-close in controls/buttons.css */
+
+/* Body chrome: .app-modal-body in controls/menus.css */
+/* Footer chrome: .dialog-footer in controls/menus.css */

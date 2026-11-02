@@ -1,0 +1,47 @@
+/* Shared control metrics — colors stay in app.css :root / data-theme. */
+:root {
+  --control-radius-sm: 4px;
+  --control-radius-md: 6px;
+  --control-radius: 8px;
+  --control-radius-lg: 10px;
+  --control-radius-xl: 12px;
+  --control-radius-pill: 999px;
+  --control-radius-circle: 50%;
+  --control-pad-y: 10px;
+  --control-pad-x: 12px;
+  --control-btn-pad-x: 14px;
+  --control-height: 36px;
+  --control-height-sm: 32px;
+  --control-font: 13px;
+  --btn-sm-pad-y: 4px;
+  --btn-sm-pad-x: 8px;
+  --btn-sm-font: 0.8rem;
+  /* Same as --control-height-sm so row controls (btn / input / combo) align. */
+  --btn-sm-min-h: 32px;
+  --btn-md-pad-y: 8px;
+  --btn-md-pad-x: 12px;
+  --btn-md-font: 0.9rem;
+  --btn-md-min-h: 38px;
+  --btn-card-pad-y: 6px;
+  --btn-card-pad-x: 10px;
+  --btn-card-font: 12px;
+  --input-compact-pad-x: 7px;
+  --input-compact-font: 0.85rem;
+  /* Card / plate / popover pads — same values as before (single edit point). */
+  --card-pad: 12px;
+  --card-pad-sm: 10px 12px;
+  /* Header / footer / tpl body: top-bottom 12, left-right 16. */
+  --card-pad-yx: 12px 16px;
+  --card-stack-pad: 12px 16px 16px;
+  --popover-pad: 12px;
+  --popover-pad-sm: 6px;
+  --overlay-bg: color-mix(in srgb, var(--scrim) 55%, transparent);
+  --overlay-bg-soft: color-mix(in srgb, var(--scrim) 45%, transparent);
+  --overlay-pad: 24px;
+  --overlay-pad-sm: 16px;
+  /* Floating panels: combo, menus, tips, date popover — edit once. */
+  --shadow-popover: 0 8px 24px color-mix(in srgb, var(--scrim) 35%, transparent);
+  --shadow-popover-lg: 0 12px 32px color-mix(in srgb, var(--scrim) 45%, transparent);
+  --shadow-dialog: 0 8px 32px color-mix(in srgb, var(--scrim) 35%, transparent);
+  --shadow-dialog-win: 0 12px 40px color-mix(in srgb, var(--scrim) 40%, transparent);
+}

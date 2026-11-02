@@ -1,0 +1,418 @@
+/* Cards, plates, data tables, toolbars, toggles */
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--control-radius-lg);
+}
+
+.card--md {
+  border-radius: var(--control-radius);
+}
+
+.card--xl {
+  border-radius: var(--control-radius-xl);
+}
+
+/* Section panels (Users / Profile) — same face as .card, square corners + inner stack. */
+.card--flush {
+  border-radius: 0;
+}
+
+.card--stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: var(--card-stack-pad);
+}
+
+/* Inner padding without changing flex (calc / templates / keys cards). */
+.card--pad {
+  padding: var(--card-pad);
+}
+
+.card--pad-sm {
+  padding: var(--card-pad-sm);
+}
+
+/* Shorthand: template dialog section (was card card--md card--bg card--stack). */
+.tpl-dialog-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--control-radius);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: var(--card-stack-pad);
+  margin: 0;
+}
+
+/* Shorthand: calculator card (was card card--md card--pad-sm). */
+.wb-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--control-radius);
+  padding: var(--card-pad-sm);
+  overflow: visible;
+}
+
+/* Shared CTA / button row under forms. */
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.form-actions--end {
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.ok-text {
+  color: var(--ok);
+}
+
+/* Accent-tinted section (Templates groups / calc view). */
+.section-tint,
+.calc-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: var(--card-pad);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--plate-tint, var(--calc-sec-accent, var(--accent)));
+  border-radius: var(--control-radius-lg);
+  background: color-mix(
+    in srgb,
+    var(--plate-tint, var(--calc-sec-accent, var(--accent))) 7%,
+    var(--panel)
+  );
+}
+
+/* Calculator card sections — slightly thicker accent bar. */
+.calc-section {
+  --calc-sec-accent: var(--accent);
+  border-left-width: 4px;
+  border-radius: var(--control-radius-xl);
+  padding: 12px 12px 4px;
+}
+
+/* Marketplace tables plaque (WB / Ozon). */
+.wb-tables-plaque {
+  --plaque-accent: var(--mp-wb);
+  padding: 10px 12px;
+  overflow: visible;
+  border: 1px solid color-mix(in srgb, var(--plaque-accent) 45%, var(--control-border));
+  border-radius: var(--control-radius-lg);
+  background: color-mix(in srgb, var(--plaque-accent) 12%, var(--panel));
+  box-shadow:
+    inset 3px 0 0 0 var(--plaque-accent),
+    inset 0 0 0 1px color-mix(in srgb, var(--plaque-accent) 20%, transparent);
+}
+
+.wb-tables-plaque--ozon {
+  --plaque-accent: var(--mp-ozon);
+}
+
+.wb-tables-plaque-refresh {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  --btn-primary-face: color-mix(in srgb, var(--plaque-accent) 62%, var(--shade));
+  --btn-primary-face-hover: color-mix(in srgb, var(--plaque-accent) 78%, var(--shade));
+  --btn-primary-border: color-mix(in srgb, var(--plaque-accent) 70%, var(--control-border));
+  --btn-primary-text: color-mix(in srgb, var(--on-strong) 92%, var(--plaque-accent));
+}
+
+.wb-tables-plaque--ozon .wb-tables-plaque-refresh {
+  --btn-primary-text: color-mix(in srgb, var(--on-strong) 92%, var(--plaque-accent));
+}
+
+html[data-theme="light"] .wb-tables-plaque-refresh {
+  --btn-primary-face: var(--plaque-accent);
+  --btn-primary-face-hover: color-mix(in srgb, var(--plaque-accent) 82%, var(--shade));
+  --btn-primary-border: color-mix(in srgb, var(--plaque-accent) 70%, var(--shade));
+  --btn-primary-text: var(--on-strong);
+}
+
+.wb-tables-plaque-meta {
+  margin-left: auto;
+  min-width: 1.6em;
+  padding: 2px 8px;
+  border-radius: var(--control-radius-pill);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text);
+  background: color-mix(in srgb, var(--panel) 70%, var(--bg));
+  border: 1px solid color-mix(in srgb, var(--plaque-accent) 40%, var(--control-border));
+  text-align: center;
+}
+
+.wb-tables-plaque-title {
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.wb-tables-plaque-chevron {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.page-heading {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.panel-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.data-table--top td {
+  vertical-align: top;
+}
+
+/* Metric / name / docs plates (calc view). */
+.plate {
+  border: 1px solid var(--border);
+  border-radius: var(--control-radius);
+  padding: 8px 10px;
+  background: var(--bg);
+}
+
+.plate--pad {
+  padding: var(--card-pad);
+}
+
+.plate--dirty {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 45%, transparent);
+  background: color-mix(in srgb, var(--accent) 8%, var(--bg));
+}
+
+/* Compact bordered row (calc triggers) — layout flex stays in page CSS. */
+.plate--row {
+  padding: 8px;
+  background: transparent;
+}
+
+/* Manual-fields table header strip. */
+.plate-head--accent {
+  font-size: 0.75rem;
+  color: var(--muted);
+  padding: 6px 6px 8px;
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 28%, var(--control-border));
+  background: color-mix(in srgb, var(--accent) 8%, var(--panel));
+  border-radius: var(--control-radius-md) var(--control-radius-md) 0 0;
+}
+
+/* Sticky page header under HostTitleBar (calc tables). */
+.sticky-page-header {
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 6px 12px -8px color-mix(in srgb, var(--scrim) 55%, transparent);
+}
+
+.sticky-page-header::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 100%;
+  height: 24px;
+  background: var(--bg);
+  pointer-events: none;
+}
+
+/* Host titlebar chrome (layout rows stay in HostTitleBar.css). */
+.host-titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 40px;
+  padding: 0 0 0 10px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.host-titlebar--login {
+  border-bottom: none;
+}
+
+/* Monospace log / release text panels. */
+.mono-panel {
+  font-family: ui-monospace, Consolas, "Courier New", monospace;
+  font-size: 12px;
+  border: 1px solid var(--border);
+  white-space: pre-wrap;
+  overflow: auto;
+  color: var(--text);
+  margin: 0;
+  box-sizing: border-box;
+}
+
+.mono-panel--on-panel {
+  background: var(--panel);
+  border-radius: var(--control-radius-lg);
+  padding: var(--card-pad);
+}
+
+.mono-panel--on-bg {
+  background: var(--bg);
+  padding: 8px;
+}
+
+.mono-panel--scroll-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent) var(--panel);
+}
+
+.mono-panel--scroll-thin::-webkit-scrollbar {
+  width: 10px;
+}
+
+.mono-panel--scroll-thin::-webkit-scrollbar-track {
+  background: var(--panel);
+  border-radius: var(--control-radius);
+}
+
+.mono-panel--scroll-thin::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--accent) 55%, var(--control-border));
+  border-radius: var(--control-radius);
+  border: 2px solid var(--panel);
+}
+
+/* Progress track + fill (update dialog / profile). */
+.progress-track {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.progress-fill {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+}
+
+/* Section-tinted plate — --plate-tint or parent --calc-sec-accent. */
+.plate--tint {
+  border-color: color-mix(
+    in srgb,
+    var(--plate-tint, var(--calc-sec-accent, var(--accent))) 35%,
+    var(--border)
+  );
+  background: color-mix(
+    in srgb,
+    var(--plate-tint, var(--calc-sec-accent, var(--accent))) 12%,
+    var(--bg)
+  );
+}
+
+/* Static market / status badge (not a button). */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-height: var(--btn-md-min-h);
+  padding: 8px 14px;
+  border-radius: var(--control-radius);
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--accent);
+  cursor: default;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.data-table th,
+.data-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.data-table th {
+  color: var(--muted);
+  font-weight: 600;
+  background: var(--panel);
+}
+
+.data-table--head-bg th {
+  background: var(--bg);
+}
+
+.data-table--no-last-border tr:last-child td {
+  border-bottom: 0;
+}
+
+.toolbar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.toggle-switch {
+  display: inline-flex;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+}
+
+.toggle-switch input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-track {
+  width: 40px;
+  height: 21px;
+  border-radius: calc(var(--control-radius-xl) + 1px);
+  background: var(--border);
+  border: 1px solid var(--border);
+  position: relative;
+  display: inline-block;
+  transition: background 0.15s ease;
+}
+
+.toggle-track::after {
+  content: "";
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-radius: calc(var(--control-radius-xl) - 1px);
+  background: var(--panel);
+  top: 2px;
+  left: 2px;
+  transition: left 0.15s ease;
+}
+
+.toggle-switch input:checked + .toggle-track,
+.tpl-picker-check:checked + .toggle-track {
+  background: var(--ok);
+  border-color: var(--ok);
+}
+
+.toggle-switch input:checked + .toggle-track::after,
+.tpl-picker-check:checked + .toggle-track::after {
+  left: 22px;
+}

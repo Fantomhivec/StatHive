@@ -1,0 +1,85 @@
+.drp {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+/* Label chrome: .field.field-flush; here flex sizing. */
+.drp-field {
+  position: relative;
+  flex: 1 1 140px;
+  min-width: 140px;
+}
+
+/* Chrome via .input-trigger in controls/fields.css */
+
+.drp-trigger-value {
+  flex: 1;
+  min-width: 0;
+}
+
+.drp-trigger-value.is-empty {
+  color: var(--muted);
+}
+
+.drp-trigger-icon {
+  flex-shrink: 0;
+  opacity: 0.7;
+  font-size: 14px;
+  line-height: 1;
+}
+
+/* Portal → body + fixed (JS). Не absolute внутри overflow диалога — иначе обрезается. */
+.drp-popover {
+  /* chrome: .popover .popover--lg .popover--pad */
+  position: fixed;
+  z-index: 10050;
+  min-width: 280px;
+  box-sizing: border-box;
+}
+
+.drp-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.drp-nav-title {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.drp-weekdays,
+.drp-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 2px;
+  width: 100%;
+}
+
+.drp-weekdays span {
+  text-align: center;
+  font-size: 11px;
+  color: var(--muted);
+  padding: 4px 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.drp-grid .cal-day {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+/* day chrome: .cal-day in controls/buttons.css */
+
+.drp-hint {
+  margin: 8px 0 0;
+  font-size: 11px;
+  color: var(--muted);
+}

@@ -1,0 +1,243 @@
+/* Menu rows, pick lists, overlays, dialog panels */
+
+.menu-item {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  padding: 8px 12px;
+  border-radius: var(--control-radius-md);
+  cursor: pointer;
+  font: inherit;
+  font-size: var(--control-font);
+}
+
+.menu-item:hover {
+  background: var(--accent-soft);
+}
+
+.menu-item--accent:hover {
+  color: var(--accent);
+}
+
+.pick-item {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: var(--control-radius);
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.pick-item:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.pick-item--placeholder,
+.tpl-picker-item--placeholder {
+  opacity: 1;
+  min-height: 34px;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  border: 1px dashed color-mix(in srgb, var(--accent) 55%, transparent);
+  color: transparent;
+  box-shadow: none;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.overlay--modal {
+  background: var(--overlay-bg);
+  padding: var(--overlay-pad-sm);
+  z-index: 1100;
+}
+
+.overlay--win {
+  background: var(--overlay-bg-soft);
+  padding: var(--overlay-pad);
+  z-index: 1000;
+}
+
+.overlay--nested {
+  z-index: 1100;
+}
+
+.dialog-panel {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  color: var(--text);
+  overflow: hidden;
+}
+
+.dialog-panel--modal {
+  background: var(--bg);
+  border-radius: var(--control-radius-lg);
+  box-shadow: var(--shadow-dialog);
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 32px);
+}
+
+.dialog-panel--win {
+  background: var(--panel);
+  border-radius: var(--control-radius-xl);
+  box-shadow: var(--shadow-dialog-win);
+  max-width: calc(100vw - 48px);
+  max-height: calc(100vh - 48px);
+}
+
+/* Shared floating panel chrome — position/size stay on page classes. */
+.popover {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--control-radius);
+  color: var(--text);
+  box-shadow: var(--shadow-popover);
+  box-sizing: border-box;
+}
+
+.popover--lg {
+  border-radius: var(--control-radius-xl);
+  box-shadow: var(--shadow-popover-lg);
+}
+
+.popover--pad {
+  padding: var(--popover-pad);
+}
+
+.popover--pad-sm {
+  padding: var(--popover-pad-sm);
+}
+
+/* Shared dialog body — page classes are aliases (keep classNames in TSX). */
+/* Canon: .dialog-body; aliases keep existing classNames / pads. */
+.dialog-body,
+.app-modal-body,
+.app-win-body,
+.tpl-modal-body,
+.calc-dialog-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  box-sizing: border-box;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.app-win-body {
+  padding: 16px;
+}
+
+.app-modal-body {
+  padding: var(--card-pad);
+}
+
+.tpl-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: var(--card-pad-yx);
+}
+
+.calc-dialog-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 18px 0;
+}
+
+/* Shared dialog / window header (win / modal). Templates use .dialog-header in TSX. */
+.dialog-header,
+.app-win-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: var(--card-pad-yx);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.dialog-header h2,
+.app-win-header h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.app-win-header {
+  background: var(--bg);
+}
+
+/* Compact titlebar (Modal) — same border, shorter. */
+.app-modal-titlebar {
+  display: flex;
+  align-items: center;
+  height: 36px;
+  flex-shrink: 0;
+  padding: 0 0 0 12px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  user-select: none;
+}
+
+/* Shared dialog / window footer — padding modifiers only differ. */
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  flex-shrink: 0;
+  padding: var(--card-pad-yx);
+  border-top: 1px solid var(--border);
+  margin-top: auto;
+}
+
+.dialog-footer--pad-sm {
+  padding: var(--card-pad-sm);
+}
+
+.dialog-footer--pad-lg {
+  padding: 14px 18px 16px;
+  gap: 10px;
+}
+
+.dialog-footer--surface {
+  background: var(--panel);
+}
+
+/* Soft list rows (template picker, users presets) — hover/active fill. */
+.pick-row {
+  border-radius: var(--control-radius);
+  color: var(--text);
+}
+
+.pick-row:hover {
+  background: var(--accent-soft);
+}
+
+.pick-row--active {
+  background: var(--accent-soft);
+}
+
+/* Drag ghost chrome (layout grid stays in page CSS). */
+.pick-drag-float {
+  border-radius: var(--control-radius);
+  border: 1px solid var(--accent);
+  background: var(--panel);
+  color: var(--text);
+  box-shadow: var(--shadow-popover-lg);
+  opacity: 0.97;
+}

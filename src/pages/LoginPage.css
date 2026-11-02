@@ -1,0 +1,188 @@
+.login-card--wide {
+  max-width: 440px;
+}
+
+.login-card--oauth {
+  max-width: 560px;
+  max-height: calc(100vh - 48px);
+  overflow: auto;
+}
+
+.login-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.login-welcome {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.35;
+}
+
+.login-stack--oauth {
+  gap: 12px;
+}
+
+.login-oauth-guide-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: min(38vh, 260px);
+  overflow: auto;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--control-radius);
+  background: color-mix(in srgb, var(--control-face) 55%, var(--panel));
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.login-oauth-guide-head {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.login-oauth-guide-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.login-oauth-guide-lead,
+.login-oauth-guide-scopes {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.login-oauth-guide-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.login-oauth-guide-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.login-oauth-guide-num {
+  flex-shrink: 0;
+  box-sizing: border-box;
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--ink);
+  background: color-mix(in srgb, var(--accent) 78%, var(--shade));
+}
+
+.login-oauth-guide-text {
+  flex: 1;
+  min-width: 0;
+  color: var(--text);
+}
+
+.login-oauth-footer {
+  margin-top: 2px;
+}
+
+.login-oauth-current {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--control-radius);
+  background: var(--panel);
+  font-size: 12px;
+}
+
+/* Face: .input; here only size. */
+.login-oauth-json {
+  min-height: 96px;
+}
+
+.login-mode-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.login-google-ok {
+  margin: 0;
+}
+
+.login-google-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.login-google-row .btn {
+  flex-shrink: 0;
+}
+
+.login-oauth-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.login-oauth-actions .btn {
+  flex-shrink: 0;
+}
+
+.login-team-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.login-team-row {
+  margin: 0;
+}
+
+.login-team-pick {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  text-align: left;
+}
+
+.login-team-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.login-team-badge {
+  flex-shrink: 0;
+  font-size: 12px;
+}

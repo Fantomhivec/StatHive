@@ -1,0 +1,147 @@
+.tpl-page-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 0;
+}
+
+.tpl-market-strip {
+  display: flex;
+  gap: 0;
+  margin: 2px 0 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.tpl-tabs-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin: 8px 0 14px;
+}
+
+.tpl-toolbar {
+  margin-bottom: 14px;
+}
+
+.tpl-groups,
+.tpl-standalone {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Chrome: .section-tint; here margin only. */
+.tpl-groups-block {
+  margin: 12px 0 8px;
+}
+
+.tpl-groups-block .tpl-section-label {
+  margin: 0;
+}
+
+.tpl-section-label {
+  margin: 16px 0 8px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text);
+}
+
+/* padding: .card--pad */
+
+.tpl-card-row {
+  display: grid;
+  gap: 10px;
+  align-items: center;
+}
+
+.tpl-card-row--4 {
+  grid-template-columns: auto 1fr auto auto;
+}
+
+.tpl-card-row--3 {
+  grid-template-columns: auto 1fr auto;
+}
+
+.tpl-reorder {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Expand chrome: .btn-expand in controls/buttons.css */
+
+.tpl-card-name {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.tpl-card-title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+}
+
+.tpl-card-meta {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+.tpl-status.is-ok {
+  color: var(--ok);
+}
+
+.tpl-status.is-err {
+  color: var(--danger);
+}
+
+.tpl-period {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* actions: .form-actions.form-actions--end */
+
+.tpl-nested {
+  margin-top: 10px;
+  padding-left: 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tpl-nested-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.tpl-ctx-menu {
+  /* chrome: .popover */
+  position: fixed;
+  z-index: 2000;
+  min-width: 180px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.tpl-pick-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}

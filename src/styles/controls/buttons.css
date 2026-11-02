@@ -1,0 +1,436 @@
+/* Buttons: edit once, applies app-wide. */
+
+.btn {
+  appearance: none;
+  box-sizing: border-box;
+  border: 1px solid var(--control-border);
+  border-radius: var(--control-radius);
+  padding: var(--control-pad-y) var(--control-btn-pad-x);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: var(--control-font);
+  background: var(--btn-face);
+  color: var(--text);
+}
+
+.btn:hover:not(:disabled) {
+  background: var(--btn-face-hover);
+  border-color: color-mix(in srgb, var(--muted) 55%, var(--control-border));
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* Tertiary: без заливки — не конкурирует с primary/outline. */
+.btn-ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--muted);
+}
+
+.btn-ghost:hover:not(:disabled) {
+  background: var(--accent-soft);
+  border-color: transparent;
+  color: var(--text);
+}
+
+/* Destructive CTA: заливка + светлый текст (WCAG), не tint+tint. */
+.btn-danger {
+  background: var(--btn-danger-face);
+  border-color: var(--btn-danger-border);
+  color: var(--btn-danger-text);
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: var(--btn-danger-face-hover);
+  border-color: var(--btn-danger-face-hover);
+}
+
+/* Primary CTA — один главный акцент на экране. */
+.btn-primary {
+  background: var(--btn-primary-face);
+  border-color: var(--btn-primary-border);
+  color: var(--btn-primary-text);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--btn-primary-face-hover);
+  border-color: var(--accent);
+}
+
+/* Secondary: мягкая заливка + читаемый текст (не muted — иначе «неактивна»). */
+.btn-outline {
+  background: var(--btn-outline-face);
+  border-color: var(--btn-outline-border);
+  color: var(--btn-outline-text);
+}
+
+.btn-outline:hover:not(:disabled) {
+  background: var(--btn-outline-face-hover);
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--btn-outline-border));
+  color: var(--btn-outline-text);
+}
+
+.btn-sm {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: var(--btn-sm-pad-y) var(--btn-sm-pad-x);
+  font-size: var(--btn-sm-font);
+  min-height: var(--btn-sm-min-h);
+  height: var(--btn-sm-min-h);
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+/* CTA / footer min width (tabs settings, calc header). */
+.btn-minw {
+  min-width: 4.5rem;
+}
+
+.btn-minw--md {
+  min-width: 7.5rem;
+}
+
+.btn-minw--lg {
+  min-width: 8.75rem;
+}
+
+/* Lookup / toolbar medium (calc header). */
+.btn-md {
+  padding: var(--btn-md-pad-y) var(--btn-md-pad-x);
+  font-size: var(--btn-md-font);
+  min-height: var(--btn-md-min-h);
+  max-height: var(--btn-md-min-h);
+  line-height: 1.2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+/* Compact actions on template cards. */
+.btn-card {
+  padding: var(--btn-card-pad-y) var(--btn-card-pad-x);
+  font-size: var(--btn-card-font);
+  line-height: 1.2;
+}
+
+/* Icon-only (password eye, etc.). */
+.btn-icon {
+  min-width: 40px;
+  height: 32px;
+  padding: 0 8px;
+}
+
+/* Square icon (date nav month arrows). */
+.btn-square {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  padding: 0;
+  font-size: 16px;
+  line-height: 1;
+  background: color-mix(in srgb, var(--text) 6%, transparent);
+  border-color: var(--border);
+}
+
+.btn-square:hover:not(:disabled) {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+/* Titlebar login name: horizontal pad only (layout/ellipsis stay in HostTitleBar.css). */
+.btn-host-username {
+  padding: 0 10px;
+}
+
+/* Compact gear / chrome icon in titlebar. */
+.btn-chrome-sm {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  padding: 0;
+  border: none;
+  border-radius: var(--control-radius-sm);
+  background: transparent;
+  color: var(--accent);
+}
+
+.btn-chrome-sm:hover:not(:disabled) {
+  background: var(--accent-soft);
+  border-color: transparent;
+  color: var(--accent);
+}
+
+/* Native window controls (min / max / close). */
+.btn-win {
+  appearance: none;
+  box-sizing: border-box;
+  width: 46px;
+  height: 100%;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 400;
+}
+
+.btn-win:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  border-color: transparent;
+}
+
+.btn-win-close:hover:not(:disabled) {
+  background: var(--danger);
+  color: var(--on-strong);
+}
+
+/* Modal titlebar close (danger glyph, soft hover). */
+.btn-modal-close {
+  width: 40px;
+  height: 30px;
+  margin: 3px 3px 3px 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--danger);
+  font-size: 14px;
+  font-weight: 400;
+  cursor: pointer;
+}
+
+.btn-modal-close:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  border-color: transparent;
+  color: var(--danger);
+}
+
+/* Compact tip «?» on calculator metrics. */
+.btn-tip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  padding: 0;
+  border-radius: var(--control-radius-circle);
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.btn-tip:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--panel);
+}
+
+/* Compact square expand/collapse (+/− on template groups). */
+.btn-expand {
+  appearance: none;
+  box-sizing: border-box;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--control-radius-md);
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.btn-expand:hover:not(:disabled) {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+/* Narrow column (manual table «Открыть»). */
+.btn-pad-x-tight {
+  padding-left: 0.35rem;
+  padding-right: 0.35rem;
+}
+
+/* Date preset / filter: active = ok accent. */
+.btn.btn-active-ok {
+  border-color: var(--ok);
+  color: var(--ok);
+}
+
+/* Market strip (WB / Ozon) — underline tabs, not .btn chrome. */
+.btn-market {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  padding: 8px 16px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  border-radius: 0;
+}
+
+.btn-market.is-active {
+  color: var(--text);
+  border-bottom-color: var(--accent);
+}
+
+/* Template / settings chip tabs. */
+.btn-tab {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text);
+  padding: 6px 12px;
+  border-radius: var(--control-radius);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.btn-tab.is-active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  font-weight: 600;
+}
+
+/* Segment / entity list: accent border+text without soft fill (Users, Login mode). */
+.btn-segment.is-active {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--border));
+}
+
+.btn-tab-add {
+  color: var(--muted);
+}
+
+/* Up/down reorder on cards and tabs settings. */
+.reorder-arrow {
+  appearance: none;
+  width: 25px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--control-radius-sm);
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 11px;
+  line-height: 1;
+}
+
+.reorder-arrow:hover:not(:disabled) {
+  background: var(--accent-soft);
+}
+
+.reorder-arrow:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* Colored token / formula chips (calculator formula editor). */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: var(--control-radius-pill);
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--on-strong);
+  background: color-mix(in srgb, var(--chip-color, var(--accent)) 82%, var(--shade));
+  border: 1px solid color-mix(in srgb, var(--chip-color, var(--accent)) 60%, var(--on-strong) 20%);
+}
+
+.chip-btn {
+  cursor: pointer;
+  opacity: 0.95;
+}
+
+.chip-btn:hover:not(:disabled) {
+  opacity: 1;
+  filter: brightness(1.08);
+}
+
+.chip-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Calendar day cell (DateRangePicker). */
+.cal-day {
+  aspect-ratio: 1;
+  min-height: 32px;
+  border: none;
+  border-radius: var(--control-radius);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0;
+}
+
+.cal-day:hover:not(:disabled):not(.is-outside) {
+  background: var(--accent-soft);
+}
+
+.cal-day.is-outside {
+  color: var(--muted);
+  opacity: 0.45;
+}
+
+.cal-day.is-today:not(.is-selected):not(.is-in-range) {
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+.cal-day.is-selected {
+  background: var(--btn-primary-face);
+  color: var(--btn-primary-text);
+  font-weight: 600;
+}
+
+.cal-day.is-in-range:not(.is-selected) {
+  background: var(--accent-soft);
+  border-radius: 0;
+}
+
+.cal-day.is-range-start {
+  border-radius: var(--control-radius) 0 0 var(--control-radius);
+}
+
+.cal-day.is-range-end {
+  border-radius: 0 var(--control-radius) var(--control-radius) 0;
+}
+
+.cal-day.is-range-start.is-range-end {
+  border-radius: var(--control-radius);
+}
+
+.cal-day:disabled {
+  opacity: 0.35;
+  cursor: default;
+}

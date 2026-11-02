@@ -1,0 +1,62 @@
+.env-keys-root {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 320px;
+}
+
+.env-keys-hint {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text);
+}
+
+.env-keys-hint-path {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 12px;
+  word-break: break-all;
+}
+
+.env-keys-info {
+  max-height: 140px;
+}
+
+.env-keys-scroll {
+  flex: 1;
+  min-height: 200px;
+  max-height: 420px;
+  overflow: auto;
+}
+
+.env-keys-table th {
+  position: sticky;
+  top: 0;
+}
+
+.env-keys-table tr.selected td {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+.env-keys-table tbody tr {
+  cursor: pointer;
+}
+
+.env-keys-empty {
+  color: var(--muted);
+  text-align: center !important;
+}
+
+.env-keys-actions {
+  gap: 6px;
+}
+
+.env-keys-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* .field margin / overflow: controls/fields.css */

@@ -1,0 +1,346 @@
+@import "./tokens.css";
+@import "./controls.css";
+
+:root {
+  color-scheme: dark;
+  /*
+   * Dark = Tokyo Night Storm (https://tokyonight.org/palette/):
+   * глубокий indigo-фон, чёткие слои elevation, акцент teal `#73daca`
+   * (не синий light/Ozon, не magenta WB). Не pure black.
+   */
+  --bg: #1a1b26;
+  --panel: #24283b;
+  --border: #3b4261;
+  /* Ярче Storm fg — иначе body/meta сливаются с panel. */
+  --text: #e8eaf8;
+  --muted: #c2c8e0;
+  --accent: #73daca;
+  --danger: #f7768e;
+  --ok: #9ece6a;
+  --warn: #e0af68;
+  --accent-soft: color-mix(in srgb, var(--accent) 22%, transparent);
+  /* Mix bases + text on saturated fills (hex only here). */
+  --shade: #16161e;
+  /* Светлый на тёмных/затемнённых заливках (chips, plaque CTA). */
+  --on-strong: #c0caf5;
+  /* Тёмный ink на ярком teal/coral — иначе «Запустить»/«Удалить» нечитаемы. */
+  --ink: #1a1b26;
+  --scrim: #000000;
+  /* Лицо контролов светлее панели — комбо/инпуты/кнопки читаются на тёмном фоне. */
+  --control-face: #2f3549;
+  /* Hover лица поля ≠ линия бордера (раньше оба #3b4261). */
+  --control-face-hover: color-mix(in srgb, var(--btn-face-hover) 70%, var(--control-face));
+  --control-border: #565f89;
+  --btn-face: #363d59;
+  --btn-face-hover: #414868;
+  /* Primary CTA: яркий teal + тёмный текст (WCAG на светлой заливке). */
+  --btn-primary-face: var(--accent);
+  --btn-primary-face-hover: color-mix(in srgb, var(--accent) 88%, var(--text));
+  --btn-primary-border: color-mix(in srgb, var(--accent) 70%, var(--control-border));
+  --btn-primary-text: var(--ink);
+  /* Danger: яркий coral + тёмный текст. */
+  --btn-danger-face: var(--danger);
+  --btn-danger-face-hover: color-mix(in srgb, var(--danger) 88%, var(--text));
+  --btn-danger-border: color-mix(in srgb, var(--danger) 65%, var(--control-border));
+  --btn-danger-text: var(--ink);
+  /* Outline: активный secondary — лицо/текст как у .btn, не muted (muted = «disabled»). */
+  --btn-outline-face: var(--btn-face);
+  --btn-outline-face-hover: var(--btn-face-hover);
+  --btn-outline-border: var(--control-border);
+  --btn-outline-text: var(--text);
+  /* Площадки: узнаваемые бренд-акценты (на dark — светлее/мягче, не pure neon). */
+  --mp-wb: #e056c8;
+  --mp-ozon: #4d8fff;
+  /* Calc section accents (card chrome). */
+  --calc-sec-params: #6a9fb5;
+  --calc-sec-id: #5b8def;
+  --calc-sec-stock: #3dba8a;
+  --calc-sec-funnel: #c9a227;
+  --calc-sec-price: #9b7bde;
+  --calc-sec-cost: #e07a5f;
+  --calc-sec-docs: #7a8a99;
+  /* Formula token chips (same hue both themes). */
+  --formula-chip-price: #3b82f6;
+  --formula-chip-fbs: #f59e0b;
+  --formula-chip-fbo: #eab308;
+  --formula-chip-extra: #a855f7;
+  --formula-chip-acquiring: #22c55e;
+  --formula-chip-ads: #ec4899;
+  --formula-chip-logistics: #14b8a6;
+  --formula-chip-tax: #ef4444;
+  --formula-chip-purchase: #8b5cf6;
+  --nav-w: 200px;
+  font-family: "Segoe UI", system-ui, sans-serif;
+}
+
+/*
+ * Light = Tokyo Night Day (пара к Storm):
+ * https://github.com/folke/tokyonight.nvim — bg `#e1e2e7`, cyan CTA `#007197`
+ * (не Ozon blue). Текст/ink тёмные для AA; primary/danger = solid + `--on-strong`.
+ */
+html[data-theme="light"] {
+  color-scheme: light;
+  --bg: #e1e2e7;
+  --panel: #ffffff;
+  --border: #b4b5b9;
+  --text: #1a1b26;
+  --muted: #545c7a;
+  --accent: #007197;
+  --danger: #f52a65;
+  --ok: #587539;
+  --warn: #8c6c3e;
+  --accent-soft: color-mix(in srgb, var(--accent) 14%, transparent);
+  --shade: #000000;
+  --on-strong: #ffffff;
+  --ink: #1a1b26;
+  --scrim: #000000;
+  --control-face: #ffffff;
+  --control-face-hover: #e9e9ed;
+  --control-border: #a1a6c5;
+  --btn-face: #e9e9ed;
+  --btn-face-hover: #d5d6db;
+  --btn-primary-face: var(--accent);
+  --btn-primary-face-hover: #005a7a;
+  --btn-primary-border: #005a7a;
+  --btn-primary-text: var(--on-strong);
+  --btn-danger-face: var(--danger);
+  --btn-danger-face-hover: #d42055;
+  --btn-danger-border: #d42055;
+  --btn-danger-text: var(--on-strong);
+  --btn-outline-face: #e9e9ed;
+  --btn-outline-face-hover: #d5d6db;
+  --btn-outline-border: #a1a6c5;
+  --btn-outline-text: var(--text);
+  /* Бренд площадок на light — как в гайдах, чуть мягче для плашек. */
+  --mp-wb: #c218a8;
+  --mp-ozon: #005bff;
+  --calc-sec-params: #6a9fb5;
+  --calc-sec-id: #5b8def;
+  --calc-sec-stock: #3dba8a;
+  --calc-sec-funnel: #c9a227;
+  --calc-sec-price: #9b7bde;
+  --calc-sec-cost: #e07a5f;
+  --calc-sec-docs: #7a8a99;
+  --formula-chip-price: #3b82f6;
+  --formula-chip-fbs: #f59e0b;
+  --formula-chip-fbo: #eab308;
+  --formula-chip-extra: #a855f7;
+  --formula-chip-acquiring: #22c55e;
+  --formula-chip-ads: #ec4899;
+  --formula-chip-logistics: #14b8a6;
+  --formula-chip-tax: #ef4444;
+  --formula-chip-purchase: #8b5cf6;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+}
+
+a {
+  color: var(--accent);
+}
+
+.app-frame {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.app-body {
+  flex: 1;
+  min-height: 0;
+}
+
+.shell {
+  display: flex;
+  height: 100%;
+}
+
+.shell-nav {
+  width: var(--nav-w);
+  background: var(--panel);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: 12px 0;
+}
+
+.shell-nav a {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  color: var(--muted);
+  text-align: left;
+  padding: 10px 16px;
+  cursor: pointer;
+  font-size: 14px;
+  text-decoration: none;
+  display: block;
+}
+
+.shell-nav a:hover {
+  color: var(--text);
+  background: color-mix(in srgb, var(--text) 6%, transparent);
+}
+
+.shell-nav a.active {
+  color: var(--text);
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  border-right: 2px solid var(--accent);
+}
+
+.shell-main {
+  flex: 1;
+  overflow: auto;
+  padding: 20px 24px;
+}
+
+/* Tables sticky toolbar: no shell padding — otherwise rows peek in the gap above sticky. */
+.shell-main:has(.calc-tables) {
+  padding: 0;
+}
+
+.page-title {
+  margin: 0 0 8px;
+  font-size: 22px;
+}
+
+.page-sub {
+  margin: 0 0 20px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.stub-card {
+  color: var(--muted);
+}
+
+.stub-card--text {
+  color: var(--text);
+}
+
+.login-page {
+  height: 100%;
+  overflow: auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+.login-page > .login-card {
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 380px;
+}
+
+.login-card h1 {
+  margin: 0 0 6px;
+  font-size: 22px;
+}
+
+.login-card .sub {
+  margin: 0 0 20px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.error {
+  color: var(--danger);
+  font-size: 13px;
+  margin: 8px 0 12px;
+}
+
+/* Chrome: .mono-panel; here page height for logs. */
+.logs {
+  max-height: calc(100vh - 160px);
+}
+
+.logs .warn {
+  color: var(--warn);
+}
+.logs .error {
+  color: var(--danger);
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.mono {
+  font-family: ui-monospace, Consolas, "Courier New", monospace;
+  font-size: 12px;
+}
+
+.u-m-0 {
+  margin: 0;
+}
+
+.u-mt-0 {
+  margin-top: 0;
+}
+
+.u-mt-6 {
+  margin-top: 6px;
+}
+
+.u-mt-8 {
+  margin-top: 8px;
+}
+
+.update-dialog {
+  padding: 22px 20px;
+}
+
+.update-dialog h2 {
+  margin: 0 0 8px;
+  font-size: 18px;
+}
+
+/* Chrome: .mono-panel.mono-panel--on-bg; here height + muted. */
+.update-dialog-body {
+  max-height: 160px;
+  color: var(--muted);
+}
+
+.update-dialog-actions {
+  margin-top: 16px;
+}
+
+/* Chrome: .progress-track / .progress-fill; here dialog size + label. */
+.update-progress {
+  position: relative;
+  margin-top: 12px;
+  height: 22px;
+  border-radius: var(--control-radius);
+}
+
+.update-progress-bar {
+  transition: width 0.15s ease;
+}
+
+.update-progress-label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: var(--text);
+}

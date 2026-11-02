@@ -1,0 +1,430 @@
+.users-page {
+  padding: 20px;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.users-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.users-header-actions {
+  flex-shrink: 0;
+}
+
+.users-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.users-inline-combo {
+  max-width: 200px;
+  min-width: 140px;
+}
+
+.users-preset-cell {
+  overflow: visible;
+  position: relative;
+  z-index: 1;
+}
+
+.users-preset-cell:focus-within,
+.users-preset-cell:has(.app-combo.open) {
+  z-index: 5;
+}
+
+.users-entity-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.users-entity-list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.users-presets-panel {
+  margin: 0;
+}
+
+.users-presets-toolbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.users-presets-toolbar-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  flex: 1;
+}
+
+.users-presets-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.users-presets-row--bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--control-radius);
+  background: var(--control-face);
+}
+
+.users-presets-row-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.users-presets-title {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.users-presets-id {
+  font-size: 12px;
+}
+
+.users-presets-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.users-presets-empty {
+  margin: 0;
+  padding: 8px 4px;
+}
+
+.users-subhead {
+  margin: 8px 0 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.users-access-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.users-access-editor .field {
+  margin-bottom: 0;
+}
+
+.users-scripts-block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.users-scripts-hint {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.users-scripts-bulk {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.users-check-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+  line-height: 1.35;
+  min-width: 0;
+}
+
+.users-check-row > input {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.users-check-row > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* Calc / app flags — compact grid, no inner scroll. */
+.users-flag-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 12px;
+}
+
+.users-flag-grid--app {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  max-width: 420px;
+}
+
+/* Script catalog — own scroll area so dialog footer stays visible. */
+.users-script-catalog {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: min(240px, 32vh);
+  overflow: auto;
+  min-width: 0;
+}
+
+/* Legacy alias if referenced elsewhere */
+.users-script-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 6px 12px;
+}
+
+/* Face: .input.input-mono; here layout only. */
+.users-code-ta {
+  word-break: break-all;
+  font-size: 11px;
+}
+
+.users-lead {
+  margin: 0;
+  font-size: 13px;
+  max-width: 720px;
+}
+
+.users-invite-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 100%;
+}
+
+.users-team-toolbar {
+  margin: 0;
+}
+
+.users-team-toolbar-row,
+.users-sa-compact-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.users-team-toolbar-meta,
+.users-sa-compact-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.users-team-toolbar-label,
+.users-sa-compact-label {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.users-team-toolbar-name {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.users-sa-compact-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.users-sa-compact {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 4px;
+  border-top: 1px solid var(--border);
+}
+
+.users-sa-manual {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.users-sa-manual .field {
+  margin-bottom: 0;
+}
+
+.users-table-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.users-dialog-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+/* Invite dialog: combo dropdown must not clip. */
+.users-dialog-body {
+  overflow: visible;
+}
+
+/* Preset dialog: body scrolls; footer pinned by dialog-panel flex. */
+.users-preset-dialog-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  overflow: auto;
+  min-height: 0;
+}
+
+.users-preset-id-line {
+  font-size: 12px;
+}
+
+.users-form-actions {
+  margin-top: 0;
+}
+
+/* .field margin / overflow: .field-flush + .combo-clip-ok on form */
+
+.users-table-wrap {
+  overflow: visible;
+}
+
+.users-page .mono {
+  word-break: break-all;
+}
+
+/* Layout only — color/size from global .error */
+.users-page .error {
+  margin: 0;
+}
+
+.users-page .ok-text {
+  font-size: 13px;
+  margin: 0;
+}
+
+/* Layout only — chrome у .btn / .toggle-* из controls. */
+.users-oauth-tab {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.users-oauth-intro {
+  margin: 0;
+}
+
+.users-oauth-status {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.users-oauth-status-text {
+  margin: 0;
+}
+
+.users-oauth-grants {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.users-oauth-grants-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.users-oauth-grant-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.users-oauth-grant-item {
+  margin: 0;
+}
+
+/* Как .tpl-toggle-row: track слева в колонку, без justify center. */
+.users-oauth-grant-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0;
+  cursor: pointer;
+}
+
+.users-oauth-grant-row .toggle-track {
+  flex-shrink: 0;
+}
+
+.users-oauth-grant-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.users-oauth-grant-row input:disabled {
+  cursor: default;
+}
+

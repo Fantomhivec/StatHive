@@ -1,0 +1,132 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            artifact: StatHive-win-x64.zip
+            platform: windows
+          - os: ubuntu-22.04
+            artifact: StatHive-linux-x64.zip
+            platform: linux
+          - os: macos-latest
+            artifact: StatHive-macos-aarch64.zip
+            platform: macos
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Sync version from git tag
+        shell: bash
+        run: |
+          export VER="${GITHUB_REF_NAME#v}"
+          echo "VER=$VER" >> "$GITHUB_ENV"
+          python3 <<'PY'
+          import json, os, re
+          ver = os.environ["VER"].lstrip("vV").strip()
+          # Cargo/npm/tauri: первые 3 сегмента (semver). Полная версия — файл VERSION.
+          parts = ver.split(".")
+          while len(parts) < 3:
+              parts.append("0")
+          cargo_ver = ".".join(parts[:3])
+          open("VERSION", "w", encoding="utf-8", newline="\n").write(ver + "\n")
+          with open("package.json", encoding="utf-8") as f:
+              pkg = json.load(f)
+          pkg["version"] = cargo_ver
+          with open("package.json", "w", encoding="utf-8") as f:
+              json.dump(pkg, f, indent=2)
+              f.write("\n")
+          cargo = open("src-tauri/Cargo.toml", encoding="utf-8").read()
+          cargo_new, n = re.subn(r'(?m)^version\s*=\s*"[^"]+"', f'version = "{cargo_ver}"', cargo, count=1)
+          assert n == 1, "Cargo.toml version not found"
+          open("src-tauri/Cargo.toml", "w", encoding="utf-8").write(cargo_new)
+          with open("src-tauri/tauri.conf.json", encoding="utf-8") as f:
+              conf = json.load(f)
+          conf["version"] = cargo_ver
+          with open("src-tauri/tauri.conf.json", "w", encoding="utf-8") as f:
+              json.dump(conf, f, indent=2)
+              f.write("\n")
+          print("VERSION=", ver, "cargo/npm/tauri=", cargo_ver)
+          PY
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+          shared-key: release-${{ matrix.platform }}
+          cache-targets: true
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Linux WebKit deps
+        if: matrix.platform == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - run: npm ci
+
+      # tauri (main) + отдельный crate updater/ (без линковки app-lib).
+      # Windows runners ~7 GB: параллельный rustc release → OOM; jobs=2 — компромисс.
+      - name: Build frontend + Tauri + updater
+        shell: bash
+        env:
+          CARGO_BUILD_JOBS: ${{ matrix.platform == 'windows' && '2' || '4' }}
+        run: |
+          set -euo pipefail
+          echo "CARGO_BUILD_JOBS=${CARGO_BUILD_JOBS}"
+          npm run tauri build
+          cargo build -p stathive_updater --release --manifest-path src-tauri/Cargo.toml
+
+      - name: Pack Windows zip
+        if: matrix.platform == 'windows'
+        shell: pwsh
+        run: |
+          $out = "dist-release"
+          New-Item -ItemType Directory -Force -Path $out | Out-Null
+          $tauri = Get-ChildItem -Recurse "src-tauri/target/release" -Filter "stathive.exe" |
+            Where-Object { $_.FullName -notmatch '\\deps\\' } |
+            Select-Object -First 1
+          if (-not $tauri) { throw "stathive.exe not found" }
+          Copy-Item $tauri.FullName "$out/StatHive.exe"
+          Copy-Item "src-tauri/target/release/stathive_updater.exe" "$out/StatHive.Updater.exe"
+          Compress-Archive -Path "$out/*" -DestinationPath "${{ matrix.artifact }}" -Force
+
+      - name: Pack Unix zip
+        if: matrix.platform != 'windows'
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT=dist-release
+          mkdir -p "$OUT"
+          BIN=$(find src-tauri/target/release -maxdepth 1 -type f -name stathive | head -n1)
+          UPD=src-tauri/target/release/stathive_updater
+          test -n "$BIN" && test -f "$UPD"
+          cp "$BIN" "$OUT/StatHive"
+          cp "$UPD" "$OUT/StatHive.Updater"
+          chmod +x "$OUT/StatHive" "$OUT/StatHive.Updater"
+          (cd "$OUT" && zip -r "../${{ matrix.artifact }}" .)
+
+      - name: Upload Release assets
+        uses: softprops/action-gh-release@v3
+        with:
+          files: ${{ matrix.artifact }}
+          fail_on_unmatched_files: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

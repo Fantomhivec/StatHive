@@ -1,0 +1,73 @@
+.tabs-settings-body-wrap {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.tabs-settings-inner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  color: var(--text);
+}
+
+.tabs-settings-body {
+  flex: 1;
+  margin: 12px;
+  overflow: auto;
+  min-height: 0;
+}
+
+.tabs-settings-hint {
+  margin: 0 0 10px;
+  color: var(--muted);
+}
+
+.tabs-settings-mode-row {
+  display: grid;
+  grid-template-columns: 1fr 90px;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.tabs-settings-mode-title {
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.tabs-settings-list {
+  padding: 0;
+}
+
+.tabs-settings-row {
+  display: grid;
+  grid-template-columns: 60px 1fr 90px;
+  align-items: center;
+  gap: 0;
+  margin: 0 0 8px;
+}
+
+.tabs-settings-arrows {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+}
+
+.tabs-settings-name {
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-right: 8px;
+}
+
+.tabs-settings-footer {
+  padding: 8px 12px 12px;
+  flex-shrink: 0;
+}
+
+/* CTA min-width: .btn-minw / .btn-minw--lg in controls/buttons.css */

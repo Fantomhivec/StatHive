@@ -1,0 +1,6 @@
+/* Shared controls — edit once, applies app-wide. Layout-only rules stay in page CSS. */
+@import "./controls/fields.css";
+@import "./controls/buttons.css";
+@import "./controls/menus.css";
+@import "./controls/chrome.css";
+@import "./controls/combo.css";

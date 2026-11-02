@@ -1,0 +1,480 @@
+/* Plaque chrome: .wb-tables-plaque* in controls/chrome.css — layout only here. */
+.wb-tables-plaque-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px;
+}
+
+.wb-tables-plaque-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1 1 220px;
+  min-width: 0;
+  margin: 0;
+  justify-content: flex-start;
+}
+
+.wb-tables-plaque--collapsed {
+  padding-bottom: 10px;
+}
+
+.wb-tables-plaque--collapsed .wb-tables-plaque-bar {
+  margin-bottom: 0;
+}
+
+.calc-hint {
+  margin: 0 0 8px;
+  font-size: 0.8rem;
+}
+
+.calc-subhead {
+  margin: 12px 0 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.calc-field-row {
+  display: grid;
+  grid-template-columns: 7.5rem minmax(200px, 280px);
+  gap: 10px 12px;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.calc-field-label {
+  font-size: 0.9rem;
+  color: var(--text);
+}
+
+.calc-field-control {
+  min-width: 0;
+}
+
+.wb-cabinets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+}
+
+.wb-cabinet-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.85rem;
+}
+
+.wb-cabinet-chip--missing,
+.wb-cabinet-chip--missing span {
+  color: var(--danger);
+}
+
+.wb-cabinets-missing {
+  margin: 0 0 8px;
+  color: var(--danger);
+  font-size: 0.9rem;
+}
+
+.wb-table-row {
+  display: grid;
+  grid-template-columns: minmax(0, 140px) minmax(0, 1fr) max-content;
+  gap: 6px 8px;
+  align-items: center;
+  padding: 6px 4px;
+  border-bottom: 1px solid var(--control-border);
+  min-height: calc(var(--control-height-sm) + 12px);
+}
+
+.wb-table-row:last-child {
+  border-bottom: 1px solid var(--control-border);
+}
+
+.wb-table-row--modes {
+  position: relative;
+  z-index: 1;
+  /* label (≥ «Обновлено: dd.MM.yyyy HH:mm:ss») | mode (≥ «Ручной»+chevron) | url | actions */
+  grid-template-columns: minmax(12.25rem, 13.5rem) 6.75rem minmax(0, 1fr) max-content;
+  overflow: visible;
+}
+
+/* Open combo must lift the whole row above following siblings */
+.wb-table-row--modes:has(.app-combo.open) {
+  z-index: 200;
+}
+
+.wb-table-label {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1px;
+  min-width: 0;
+  font-weight: 600;
+  font-size: 0.85rem;
+  line-height: 1.25;
+}
+
+.wb-table-label-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wb-table-mode {
+  position: relative;
+  z-index: 1;
+  /* 13px «Ручной» ≈50px + pad 20 + arrow 30 + border ≈ 6.75rem */
+  width: 6.75rem;
+  min-width: 6.75rem;
+  max-width: 6.75rem;
+}
+
+.wb-table-mode .app-combo {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+}
+
+.wb-table-mode-static {
+  display: inline-flex;
+  align-items: center;
+  height: var(--control-height-sm);
+  font-size: 0.8rem;
+}
+
+.wb-table-mode .app-combo.open {
+  z-index: 210;
+}
+
+.wb-table-mode .app-combo-dropdown {
+  z-index: 220;
+}
+
+.wb-tables {
+  position: relative;
+  overflow: visible;
+}
+
+.wb-table-field {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  width: 100%;
+}
+
+.wb-table-actions {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+  flex: 0 0 auto;
+  width: max-content;
+  min-width: 14.5rem; /* Открыть + Изменить + Обновить — одна колонка у всех строк */
+}
+
+.wb-table-updated {
+  font-size: 0.72rem;
+  font-weight: 400;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wb-manual-head,
+.wb-manual-row {
+  display: grid;
+  /* label | Открыть | url | лист | колонка | артикул
+     колонка «Открыть» — фиксированная: в шапке пустой span, в строке кнопка;
+     `auto` схлопывал шапку и съезжали «Лист/Колонка/Артикул». */
+  grid-template-columns: minmax(72px, 100px) 4.75rem minmax(160px, 1.6fr) minmax(64px, 0.55fr) minmax(72px, 0.6fr) minmax(72px, 0.6fr);
+  gap: 6px;
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.wb-manual-row > .btn {
+  width: 100%;
+  min-width: 0;
+  justify-self: stretch;
+}
+
+/* Chrome: .plate-head--accent in controls/chrome.css */
+.wb-manual-head {
+  margin-bottom: 0;
+}
+
+.wb-manual-row {
+  padding: 8px 6px;
+  border-bottom: 1px solid var(--control-border);
+}
+
+.wb-manual-row:last-child {
+  border-bottom: 1px solid var(--control-border);
+}
+
+.wb-manual-row .wb-manual-sheet,
+.wb-manual-row .wb-manual-col,
+.wb-manual-row .wb-manual-article {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Правила КГТ: метка | сравнение (тянется) | символ | порог — на всю ширину карточки */
+.kgt-rules-list {
+  display: grid;
+  gap: 6px;
+  width: 100%;
+}
+
+.kgt-rule-row {
+  display: grid;
+  grid-template-columns: 10.5rem minmax(0, 1fr) 1.5rem 5.5rem;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+  min-height: calc(var(--control-height-sm) + 12px);
+  padding: 6px 10px;
+  box-sizing: border-box;
+}
+
+.kgt-rule-row--bonus .kgt-rule-bonus-spacer {
+  grid-column: 2 / 4;
+}
+
+.kgt-rule-label {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 6px;
+  align-items: center;
+  min-width: 0;
+  line-height: 1.25;
+}
+
+.kgt-rule-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kgt-rule-unit {
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+
+.kgt-rule-cmp {
+  min-width: 0;
+  width: 100%;
+  margin: 0;
+}
+
+.kgt-rule-sym {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--control-height-sm);
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.kgt-rule-value {
+  width: 100%;
+  min-width: 0;
+  text-align: right;
+}
+
+@media (max-width: 640px) {
+  .kgt-rule-row {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .kgt-rule-row--bonus .kgt-rule-bonus-spacer,
+  .kgt-rule-sym {
+    display: none;
+  }
+
+  .kgt-rule-row--bonus .kgt-rule-bonus-spacer {
+    grid-column: auto;
+  }
+}
+
+.wb-settings-grid {
+  display: grid;
+  /* 4 настройки (налог / эквайринг / реклама / доп. расходы) — равная ширина WB и Ozon */
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px 12px;
+  margin-bottom: 10px;
+  align-items: start;
+}
+
+.wb-settings-field {
+  display: grid;
+  /* Подпись одной высоты → поля % в один ряд */
+  grid-template-rows: 2.5rem auto;
+  gap: 4px;
+  min-width: 0;
+  font-size: 0.85rem;
+}
+
+.wb-settings-label {
+  display: flex;
+  align-items: flex-end;
+  line-height: 1.25;
+}
+
+/* width/box-sizing: .input-compact */
+
+.wb-formula-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 0;
+}
+
+.wb-formula-editor {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.wb-formula-input {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 0.8rem;
+}
+
+/* Face: .input; chips: .chip / .chip-btn in controls. */
+.wb-formula-colored {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  min-height: 40px;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.wb-formula-op {
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 0.9rem;
+  color: var(--text);
+  white-space: pre-wrap;
+}
+
+.wb-token-block {
+  display: grid;
+  gap: 8px;
+  margin-top: 4px;
+  font-size: 0.85rem;
+}
+
+.wb-token-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+/* Body chrome: .calc-dialog-body in controls/menus.css */
+
+.calc-logs-hint {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+/* Chrome: .mono-panel.mono-panel--on-panel.mono-panel--scroll-thin; layout only. */
+.calc-run-log {
+  flex: 1 1 auto;
+  min-height: 240px;
+  max-height: min(60vh, 520px);
+  word-break: break-word;
+  line-height: 1.5;
+}
+
+/* Flush margins only — border from .dialog-footer */
+.calc-dialog-footer {
+  margin: 4px -18px 0;
+}
+
+.team-configs-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 4px 2px 8px;
+}
+
+/* .field margin: controls/fields.css; actions: .form-actions */
+
+/* Paste calculator config dialog — theme via canonical tokens */
+.calc-import-hint {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+/* Face: .input.input-mono + .mono-panel--scroll-thin; here size only. */
+.calc-import-textarea {
+  display: block;
+  min-height: 280px;
+  max-height: min(50vh, 420px);
+  margin: 0;
+}
+
+/* Calc auto-table triggers dialog (layout only; chrome via .input / .toggle-switch). */
+.wb-triggers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 55vh;
+  overflow: auto;
+  margin: 10px 0;
+}
+
+/* Chrome: .plate.plate--row in controls/chrome.css */
+.wb-trigger-row {
+  display: grid;
+  grid-template-columns: minmax(100px, 0.9fr) minmax(140px, 1.2fr) minmax(120px, 1fr) auto;
+  gap: 8px 12px;
+  align-items: center;
+}
+
+.wb-trigger-name {
+  min-width: 0;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.wb-trigger-summary {
+  min-width: 0;
+  font-size: 0.85rem;
+}
+
+.wb-trigger-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.wb-trigger-num {
+  width: 56px;
+  flex-shrink: 0;
+}
+
+.calc-triggers-toggle {
+  margin-bottom: 0;
+}
+

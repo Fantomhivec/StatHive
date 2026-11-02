@@ -1,0 +1,173 @@
+/* Fields, inputs (native <select> chrome removed — use AppComboBox; lesson 111) */
+
+.field {
+  margin-bottom: 14px;
+}
+
+.theme-field {
+  max-width: 280px;
+}
+
+.settings-page-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* In a flex/gap stack: zero .field margin (put .field-flush on stack or on .field). */
+.settings-page-stack .field,
+.field-flush.field,
+.field-flush .field {
+  margin-bottom: 0;
+}
+
+/* Open AppComboBox must not clip (lesson 111). Put on form / panel / row. */
+.combo-clip-ok,
+.combo-clip-ok .field {
+  overflow: visible;
+}
+
+.field label {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+/* Shared face — sizes/padding stay on modifiers. */
+.input,
+.field input,
+.field textarea,
+textarea.input,
+.input-sm,
+.input-compact {
+  width: 100%;
+  border-radius: var(--control-radius);
+  border: 1px solid var(--control-border);
+  background: var(--control-face);
+  color: var(--text);
+  color-scheme: inherit;
+  box-sizing: border-box;
+  font: inherit;
+  font-size: var(--control-font);
+}
+
+.input,
+.field input,
+.field textarea,
+textarea.input {
+  padding: var(--control-pad-y) var(--control-pad-x);
+}
+
+.input:hover:not(:disabled),
+.field input:hover:not(:disabled),
+.field textarea:hover:not(:disabled),
+textarea.input:hover:not(:disabled),
+.input-sm:hover:not(:disabled),
+.input-compact:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--muted) 50%, var(--control-border));
+}
+
+.input:focus,
+.field input:focus,
+.field textarea:focus,
+textarea.input:focus,
+.input-sm:focus,
+.input-compact:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+/* Monospace JSON / team code / import blobs — face from .input. */
+.input-mono {
+  font-family: ui-monospace, Consolas, "Courier New", monospace;
+  font-size: 12px;
+  line-height: 1.45;
+  resize: vertical;
+}
+
+.input-sm {
+  height: var(--control-height-sm);
+  padding: 0 10px;
+}
+
+.input-compact {
+  min-width: 0;
+  height: var(--control-height-sm);
+  min-height: var(--control-height-sm);
+  padding: 0 var(--input-compact-pad-x);
+  font-size: var(--input-compact-font);
+  line-height: 1.2;
+}
+
+/* Date trigger / face-like button — same tokens as .input. */
+.input-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: var(--control-radius);
+  border: 1px solid var(--control-border);
+  background: var(--control-face);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--control-font);
+  cursor: pointer;
+  text-align: left;
+  box-sizing: border-box;
+}
+
+.input-trigger:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--muted) 50%, var(--control-border));
+  background: var(--control-face-hover);
+}
+
+.input-trigger:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+.input-trigger:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.input-trigger.is-open {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+/* Marketplace plaque head — reads --plaque-accent from parent. */
+.input-trigger--plaque {
+  min-height: var(--control-height-sm);
+  border-color: color-mix(in srgb, var(--plaque-accent, var(--accent)) 55%, var(--control-border));
+  background: color-mix(in srgb, var(--plaque-accent, var(--accent)) 24%, var(--panel));
+}
+
+.input-trigger--plaque:hover:not(:disabled) {
+  border-color: var(--plaque-accent, var(--accent));
+  background: color-mix(in srgb, var(--plaque-accent, var(--accent)) 34%, var(--panel));
+}
+
+/* Naked field face inside .plate / metric (no own border). */
+.input-plain {
+  width: 100%;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.input-plain::placeholder {
+  color: var(--muted);
+  opacity: 0.7;
+}

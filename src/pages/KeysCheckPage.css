@@ -1,0 +1,171 @@
+.keys-check-page {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.keys-check-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+@media (max-width: 1100px) {
+  .keys-check-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.keys-check-col h2 {
+  margin: 0 0 10px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* padding: .card--stack */
+
+/* WB block: stack with even gaps (hint / path / actions). */
+.keys-check-wb {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.keys-check-oauth-paste {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.keys-check-oauth-paste > h3 {
+  margin: 0;
+}
+
+.keys-check-oauth-paste .field {
+  margin-bottom: 0;
+}
+
+.keys-check-wb > h3 {
+  margin: 0;
+}
+
+/* Chrome: .plate / .plate--pad; here spacing + type size. */
+.keys-check-hint {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.keys-check-hint-title {
+  font-weight: 650;
+  color: var(--muted);
+  margin: 0;
+}
+
+.keys-check-hint p {
+  margin: 0;
+}
+
+.keys-check-hint code {
+  font-family: Consolas, "Courier New", monospace;
+  font-weight: 650;
+}
+
+.muted-note {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.keys-check-gs-details {
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+/* Path + pick: one line, button never shrinks. */
+.keys-check-env-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.keys-check-env-row .input {
+  flex: 1;
+  min-width: 0;
+}
+
+.keys-check-env-pick {
+  flex-shrink: 0;
+}
+
+.keys-check-warn {
+  color: var(--warn);
+  font-size: 11px;
+  margin: 0 0 8px;
+}
+
+.keys-check-lines {
+  display: grid;
+  gap: 4px;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.keys-check-line.tone-personal {
+  color: var(--accent);
+}
+
+.keys-check-line.tone-basic {
+  color: var(--muted);
+}
+
+.keys-check-line.tone-warning {
+  color: var(--warn);
+}
+
+.keys-check-line.tone-danger {
+  color: var(--danger);
+}
+
+.keys-check-line.tone-normal {
+  color: var(--text);
+}
+
+.keys-check-sep {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin: 16px 0;
+}
+
+.keys-check-keys-heading {
+  margin: 0 0 8px !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+}
+
+.keys-check-gs-status {
+  font-weight: 650;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+/* color: .ok-text in controls/chrome.css */
+
+.keys-check-gs-status.danger {
+  color: var(--danger);
+}
+
+.keys-check-gs-status.info {
+  color: var(--accent);
+}
+
+.keys-check-col h3 {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 600;
+}

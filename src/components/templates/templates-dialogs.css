@@ -1,0 +1,462 @@
+/* Template dialog layout — chrome via .overlay / .dialog-panel in controls. */
+
+.tpl-dialog {
+  width: min(560px, 100%);
+  max-height: min(80vh, 720px);
+}
+
+.tpl-dialog--wide {
+  width: min(640px, 100%);
+}
+
+.tpl-dialog--picker {
+  width: min(640px, 100%);
+  height: min(560px, 85vh);
+  max-height: min(560px, 85vh);
+}
+
+/* Header chrome: .dialog-header in controls/menus.css */
+/* Body chrome: .tpl-modal-body in controls/menus.css */
+/* Footer chrome: .dialog-footer in controls/menus.css */
+
+.tpl-field-selector-footer .tpl-hide-toggle {
+  margin-right: auto;
+  width: auto;
+  flex: 0 1 auto;
+  max-width: min(280px, 100%);
+  align-items: center;
+}
+
+.tpl-field-selector-footer .tpl-hide-toggle .toggle-track {
+  margin-top: 0;
+}
+
+.tpl-field-selector-footer .tpl-hide-toggle .tpl-toggle-label {
+  flex: 0 1 auto;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.tpl-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.tpl-picker-hint {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 8px 16px 0;
+}
+
+.tpl-picker-list {
+  position: relative;
+  flex: 1 1 auto;
+  overflow: auto;
+  padding: 8px 12px;
+  min-height: 0;
+}
+
+.tpl-picker-list--fill {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.tpl-picker-list--dragging {
+  cursor: grabbing;
+}
+
+.tpl-picker-list--dragging .tpl-picker-item {
+  cursor: grabbing;
+  will-change: transform;
+}
+
+body.tpl-picker-dragging,
+body.tpl-picker-dragging * {
+  cursor: grabbing !important;
+  user-select: none !important;
+}
+
+/* Chrome hover: .pick-row in controls/menus.css */
+.tpl-picker-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: 40px 8px minmax(0, 1fr);
+  column-gap: 0;
+  align-items: center;
+  width: 100%;
+  margin: 2px 0;
+  padding: 6px;
+  box-sizing: border-box;
+  cursor: pointer;
+  text-align: left;
+  user-select: none;
+}
+
+.tpl-picker-item--sortable {
+  cursor: grab;
+  touch-action: none;
+}
+
+.tpl-picker-item--static {
+  cursor: pointer;
+}
+
+/* Placeholder chrome: .pick-item--placeholder in controls/menus.css */
+.tpl-picker-item--placeholder {
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.tpl-picker-item--placeholder .toggle-track,
+.tpl-picker-item--placeholder .tpl-picker-label {
+  visibility: hidden;
+}
+
+.tpl-picker-check {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  margin: 0;
+}
+
+.tpl-picker-item .toggle-track {
+  grid-column: 1;
+  display: block;
+  flex-shrink: 0;
+}
+
+.tpl-picker-label {
+  grid-column: 3;
+  min-width: 0;
+  font-size: 13px;
+  line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Chrome: .pick-drag-float in controls/menus.css */
+.tpl-picker-drag-float {
+  position: fixed;
+  z-index: 100000;
+  display: grid;
+  grid-template-columns: 40px 8px minmax(0, 1fr);
+  column-gap: 0;
+  align-items: center;
+  box-sizing: border-box;
+  padding: 6px 12px;
+  margin: 0;
+  pointer-events: none;
+  transform: rotate(-2deg) scale(1.02);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.tpl-picker-drag-float .tpl-picker-check {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.tpl-picker-drag-float .toggle-track {
+  grid-column: 1;
+}
+
+.tpl-picker-drag-float .tpl-picker-label {
+  grid-column: 3;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Script combo label accent; chrome via .app-combo--emphasis */
+.tpl-field-script > label {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.tpl-script-combo {
+  margin-bottom: 0;
+}
+
+.tpl-ed-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+}
+
+.tpl-ed-section-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.tpl-ed-section-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tpl-ed-section-stack .tpl-dialog-card {
+  margin-bottom: 0;
+}
+
+.tpl-triggers-table-wrap {
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--control-radius);
+  margin-bottom: 8px;
+}
+
+.tpl-triggers-table {
+  font-size: 12px;
+}
+
+/* .tpl-dialog-card chrome: controls/chrome.css */
+
+.tpl-excel-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.tpl-dialog-card-header {
+  margin: 0 0 12px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.tpl-section-title {
+  font-size: 13px;
+  font-weight: 600;
+  margin: 4px 0 0;
+  color: var(--muted);
+}
+
+.tpl-info {
+  margin: 0 0 10px;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.tpl-date-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.tpl-subtitle--ranges {
+  margin-top: 12px;
+  margin-bottom: 8px;
+}
+
+.tpl-check--stack {
+  display: flex;
+  margin-bottom: 8px;
+}
+
+.tpl-trigger-heading-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  margin: 0 0 8px;
+}
+
+.tpl-trigger-heading-row--actions {
+  margin-top: 0;
+}
+
+.tpl-trigger-heading {
+  font-size: 14px;
+  margin: 0;
+}
+
+.tpl-trigger-actions {
+  gap: 4px;
+  margin: 0;
+}
+
+.tpl-trigger-edit-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.tpl-trigger-edit-title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  margin: 0 0 16px;
+}
+
+.tpl-trigger-edit-title {
+  margin: 0;
+  font-size: 15px;
+}
+
+.tpl-trigger-edit-title-row .toggle-switch {
+  flex-shrink: 0;
+}
+
+.tpl-trigger-edit-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.tpl-trigger-edit-stack .field {
+  width: 100%;
+}
+
+.tpl-trigger-edit-stack .drp,
+.tpl-trigger-edit-stack .drp-field {
+  width: 100%;
+}
+
+.tpl-interval-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0;
+  width: 100%;
+}
+
+.tpl-interval-row .field {
+  flex: 1;
+  min-width: 140px;
+}
+
+.tpl-gs-title {
+  font-weight: 500;
+  color: var(--text);
+}
+
+/* ExportSettingsDialog — только layout (flex/gap/margin/padding контейнеров) */
+.tpl-export-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.tpl-export-body > .tpl-trigger-edit-title {
+  margin-bottom: 0;
+}
+
+.tpl-export-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.tpl-filters-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tpl-write-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.tpl-write-field {
+  flex: 1 1 200px;
+  min-width: 0;
+  margin-bottom: 0;
+}
+
+.tpl-write-field--dir {
+  flex: 0 1 180px;
+}
+
+.tpl-write-clear-toggle {
+  margin-top: 4px;
+}
+
+.tpl-toggle-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.tpl-toggle-row .toggle-track {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.tpl-toggle-label {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text);
+}
+
+.tpl-export-hint {
+  margin: 0;
+  padding-left: 52px; /* track 40 + gap 12 */
+  line-height: 1.45;
+}
+
+.tpl-export-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 0;
+  box-sizing: border-box;
+  /* padding: .card--stack */
+}
+
+.tpl-export-card-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.tpl-export-card-hint {
+  margin: 0;
+  line-height: 1.45;
+}
+
+/* .tpl-export-card .field margin: controls/fields.css */
+
+.tpl-export-key2-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.tpl-export-key2-combo {
+  flex: 1;
+  min-width: 0;
+}
+
+.tpl-export-key2-row > .btn {
+  flex-shrink: 0;
+}
+
+.tpl-export-delete-toggle {
+  margin-top: 8px;
+  padding-top: 8px;
+}
