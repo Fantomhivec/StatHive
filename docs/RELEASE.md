@@ -24,6 +24,8 @@
 
 Матрица: Windows / Linux / macOS → zip в GitHub Releases.
 
+Workflow включает `generate_release_notes: true` — в теле GitHub Release попадают автозаметки (коммиты/PR между тегами). Это же поле `body` показывает диалог обновления при старте приложения («Что нового»).
+
 Updater: `cargo build -p stathive_updater --release` в `src-tauri`.
 
 In-app обновления ходят в публичный GitHub API **без** токена. Пока репозиторий private, «Проверить обновления» в клиенте не увидит релизы — раздавайте zip вручную. Подробнее: [UPDATE_SYSTEM.md](./UPDATE_SYSTEM.md).

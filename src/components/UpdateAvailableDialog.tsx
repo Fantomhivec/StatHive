@@ -43,6 +43,8 @@ export default function UpdateAvailableDialog({ autoCheck = true }: { autoCheck?
 
   if (!info?.is_newer) return null;
 
+  const notes = (info.body ?? "").trim();
+
   async function install() {
     setBusy(true);
     setErr(null);
@@ -76,11 +78,16 @@ export default function UpdateAvailableDialog({ autoCheck = true }: { autoCheck?
             latest: info.version,
           })}
         </p>
-        {info.body ? (
-          <pre className="mono-panel mono-panel--on-bg update-dialog-body">
-            {info.body.slice(0, 800)}
-          </pre>
-        ) : null}
+        <div className="update-dialog-notes">
+          <h3 className="update-dialog-notes-title">{t("updates.whatsNew")}</h3>
+          {notes ? (
+            <pre className="mono-panel mono-panel--on-bg mono-panel--scroll-thin update-dialog-body">
+              {notes}
+            </pre>
+          ) : (
+            <p className="muted update-dialog-notes-empty">{t("updates.notesEmpty")}</p>
+          )}
+        </div>
         {status && !err ? <p className="page-sub">{status}</p> : null}
         {progress != null && (
           <div

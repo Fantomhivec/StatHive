@@ -128,5 +128,7 @@ jobs:
         with:
           files: ${{ matrix.artifact }}
           fail_on_unmatched_files: true
+          # Notes for in-app update dialog (GitHub API → UpdateInfo.body).
+          generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
