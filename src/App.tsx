@@ -25,7 +25,7 @@ import type { CalcAccessDto, TabLayoutItem } from "./bridge/hostApi.types";
 import { isMainAdminRole } from "./bridge/accessRole";
 import { AuthProvider, useAuth } from "./auth/AuthContext";
 import HostTitleBar from "./components/HostTitleBar";
-import { FAIL_CLOSED_TABS_LAYOUT } from "./hooks/useTabsLayoutCaps";
+import { FAIL_CLOSED_TABS_LAYOUT } from "./bridge/useTabsLayoutCaps";
 import { useT } from "./i18n";
 import "./styles/app.css";
 

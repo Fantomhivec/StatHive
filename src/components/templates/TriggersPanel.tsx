@@ -15,7 +15,7 @@
 import { useState } from "react";
 import type { TimeTriggerDto } from "../../bridge/hostApi";
 import { t as tr, useT } from "../../i18n";
-import TimeTriggerEditorDialog from "./TimeTriggerEditorDialog";
+import TimeTriggerEditorDialog from "./dialogs/TimeTriggerEditorDialog";
 import "./templates-dialogs.css";
 
 type Props = {

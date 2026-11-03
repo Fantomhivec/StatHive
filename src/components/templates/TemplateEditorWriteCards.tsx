@@ -15,7 +15,7 @@
 import { useMemo } from "react";
 import type { TemplateDto, TimeTriggerDto } from "../../bridge/hostApi";
 import AppComboBox from "../AppComboBox";
-import type { ScriptVisibility } from "./scriptVisibility";
+import type { ScriptVisibility } from "./visibility/scriptVisibility";
 import TriggersPanel from "./TriggersPanel";
 import { useT } from "../../i18n";
 

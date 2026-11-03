@@ -86,8 +86,6 @@ export type AccessMatrixDto = {
   keys: string[];
 };
 
-export type CalcAccessFlag = "view" | "settings" | "tables" | "kgt" | "excel";
-
 export type CalcAccessDto = {
   view: boolean;
   settings: boolean;
@@ -95,8 +93,6 @@ export type CalcAccessDto = {
   kgt: boolean;
   excel: boolean;
 };
-
-export type AppAccessFlag = "keysCheck" | "users";
 
 export type AccessPresetDto = {
   id: string;
@@ -167,11 +163,6 @@ export type KeyCheckResult = {
   warnings: string[];
   /** false если файла .env нет по path */
   exists?: boolean;
-};
-
-export type DestinationConfig = {
-  spreadsheet_id: string;
-  sheet_name: string;
 };
 
 export type TemplateField = {
@@ -362,11 +353,3 @@ export type TabsLayoutResult = {
   items: TabLayoutItem[];
 };
 
-export type ExcelSheetPreview = {
-  path: string;
-  sheet_name: string;
-  sheet_names: string[];
-  headers: string[];
-  rows: string[][];
-  row_count: number;
-};

@@ -22,9 +22,11 @@ import type {
   TeamUserRow,
   UserInfo,
 } from "./hostApi.types";
-import { clearCalculatorSnapCaches } from "./calcSnapCache";
-import { clearTemplatesSnapCache } from "./templatesSnapCache";
-import { clearUsersPageSnap } from "./usersPageSnapCache";
+import {
+  clearCalculatorSnapCaches,
+  clearTemplatesSnapCache,
+  clearUsersPageSnap,
+} from "./snapCache";
 
 function clearTeamScopedUiCaches() {
   clearTemplatesSnapCache();
@@ -275,5 +277,3 @@ export function createAuthApi(deps: AuthApiDeps) {
       }),
   };
 }
-
-export type HostApiAuth = ReturnType<typeof createAuthApi>;

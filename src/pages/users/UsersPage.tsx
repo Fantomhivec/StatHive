@@ -15,7 +15,7 @@
 import { useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { openUrl } from "../../bridge/hostApi";
-import { shortTeamName } from "../../shared/workspaceTitle";
+import { shortTeamName } from "../../bridge/workspaceTitle";
 import "../UsersPage.css";
 import UsersInviteDialog from "./UsersInviteDialog";
 import UsersOauthTab from "./UsersOauthTab";

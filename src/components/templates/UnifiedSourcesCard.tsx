@@ -19,7 +19,7 @@ import { useT } from "../../i18n";
 import {
   hasUnifiedSources,
   type ScriptVisibility,
-} from "./scriptVisibility";
+} from "./visibility/scriptVisibility";
 
 type Props = {
   visibility: ScriptVisibility;

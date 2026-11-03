@@ -119,8 +119,8 @@
   flex-shrink: 0;
 }
 
+/* Color: global .muted; here type size for profile body. */
 .profile-page .muted {
-  color: var(--muted);
   font-size: 13px;
 }
 

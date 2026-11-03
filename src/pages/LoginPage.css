@@ -104,28 +104,17 @@
   margin-top: 2px;
 }
 
+/* Face: .wb-card; here layout + type size. */
 .login-oauth-current {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 10px 12px;
-  border: 1px solid var(--border);
-  border-radius: var(--control-radius);
-  background: var(--panel);
   font-size: 12px;
 }
 
 /* Face: .input; here only size. */
 .login-oauth-json {
   min-height: 96px;
-}
-
-.login-mode-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 4px;
 }
 
 .login-google-ok {
@@ -140,17 +129,6 @@
 }
 
 .login-google-row .btn {
-  flex-shrink: 0;
-}
-
-.login-oauth-actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-}
-
-.login-oauth-actions .btn {
   flex-shrink: 0;
 }
 

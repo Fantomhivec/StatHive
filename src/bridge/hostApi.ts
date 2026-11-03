@@ -35,7 +35,6 @@ export type {
   AccessMatrixDto,
   AccessPresetDto,
   CalcAccessDto,
-  CalcAccessFlag,
   AuthSetupStatus,
   SwitchTeamResult,
   TeamIndexEntry,

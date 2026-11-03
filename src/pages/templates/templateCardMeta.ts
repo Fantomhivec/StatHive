@@ -15,7 +15,7 @@
 import type { TemplateDto } from "../../bridge/hostApi";
 import { formatDisplayDate } from "../../components/dateIso";
 import { calculateDateRangeFromTemplate, DATE_TEMPLATES } from "../../components/templates/dateTemplates";
-import { visibilityForScript } from "../../components/templates/scriptVisibility";
+import { visibilityForScript } from "../../components/templates/visibility/scriptVisibility";
 import { t as tr } from "../../i18n";
 
 /** ISO `yyyy-MM-dd` → `dd.MM.yyyy` (как sheet_dates). */

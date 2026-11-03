@@ -24,7 +24,7 @@ import {
 import {
   shortTeamName,
   WORKSPACE_TITLE_CHANGED,
-} from "../../shared/workspaceTitle";
+} from "../../bridge/workspaceTitle";
 import {
   emptyPreset,
   normalizeTeamRow,

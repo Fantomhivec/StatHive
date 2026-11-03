@@ -15,7 +15,7 @@
 import { FormEvent } from "react";
 import AppCustomWindow from "../../components/AppCustomWindow";
 import { useT } from "../../i18n";
-import { shortTeamName } from "../../shared/workspaceTitle";
+import { shortTeamName } from "../../bridge/workspaceTitle";
 
 const FORM_ID = "users-team-name-dialog-form";
 

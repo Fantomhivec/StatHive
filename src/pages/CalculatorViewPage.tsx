@@ -14,7 +14,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { hostApi } from "../bridge/hostApi";
-import { useTabsLayoutCaps } from "../hooks/useTabsLayoutCaps";
+import { useTabsLayoutCaps } from "../bridge/useTabsLayoutCaps";
 import { useAppDialogs } from "../components/useAppDialogs";
 import { CalculatorCardBody, isProfitDirty } from "./calculator/CalculatorCardBody";
 import {
@@ -24,7 +24,7 @@ import type { CardResult } from "./calculator/calculatorTypes";
 import {
   exportExcelAction,
   openExternalUrlAction,
-} from "./calculator/calculatorTablesActions";
+} from "./calculator/tables/calculatorTablesActions";
 import {
   computeOrderCost,
   formatProfitRu,

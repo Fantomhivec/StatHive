@@ -56,6 +56,11 @@
   overflow: visible;
 }
 
+/* Same chrome as .wb-card, control-face fill (preset rows / raised bars). */
+.wb-card--control {
+  background: var(--control-face);
+}
+
 /* Shared CTA / button row under forms. */
 .form-actions {
   display: flex;
@@ -81,11 +86,11 @@
   gap: 10px;
   padding: var(--card-pad);
   border: 1px solid var(--border);
-  border-left: 3px solid var(--plate-tint, var(--calc-sec-accent, var(--accent)));
+  border-left: 3px solid var(--calc-sec-accent, var(--accent));
   border-radius: var(--control-radius-lg);
   background: color-mix(
     in srgb,
-    var(--plate-tint, var(--calc-sec-accent, var(--accent))) 7%,
+    var(--calc-sec-accent, var(--accent)) 7%,
     var(--panel)
   );
 }
@@ -301,16 +306,16 @@ html[data-theme="light"] .wb-tables-plaque-refresh {
   background: var(--accent);
 }
 
-/* Section-tinted plate — --plate-tint or parent --calc-sec-accent. */
+/* Section-tinted plate — parent --calc-sec-accent (calc sections). */
 .plate--tint {
   border-color: color-mix(
     in srgb,
-    var(--plate-tint, var(--calc-sec-accent, var(--accent))) 35%,
+    var(--calc-sec-accent, var(--accent)) 35%,
     var(--border)
   );
   background: color-mix(
     in srgb,
-    var(--plate-tint, var(--calc-sec-accent, var(--accent))) 12%,
+    var(--calc-sec-accent, var(--accent)) 12%,
     var(--bg)
   );
 }

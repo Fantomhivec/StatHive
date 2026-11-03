@@ -14,18 +14,18 @@
 
 import { lazy, Suspense } from "react";
 import SpreadsheetIdField from "../components/templates/SpreadsheetIdField";
-import { CalculatorTablesBody } from "./calculator/CalculatorTablesBody";
-import { useCalculatorTablesController } from "./calculator/useCalculatorTablesController";
+import { CalculatorTablesBody } from "./calculator/tables/CalculatorTablesBody";
+import { useCalculatorTablesController } from "./calculator/tables/useCalculatorTablesController";
 import "./WbCalculatorLayout.css";
 import "./WbCalculatorPage.css";
 
 const CalculatorRunLogsDialog = lazy(() =>
-  import("./calculator/CalculatorRunLogsDialog").then((m) => ({
+  import("./calculator/dialogs/CalculatorRunLogsDialog").then((m) => ({
     default: m.CalculatorRunLogsDialog,
   })),
 );
 const CalculatorTriggersDialog = lazy(() =>
-  import("./calculator/CalculatorTriggersDialog").then((m) => ({
+  import("./calculator/dialogs/CalculatorTriggersDialog").then((m) => ({
     default: m.CalculatorTriggersDialog,
   })),
 );

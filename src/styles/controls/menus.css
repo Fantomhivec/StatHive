@@ -228,10 +228,6 @@
   background: var(--accent-soft);
 }
 
-.pick-row--active {
-  background: var(--accent-soft);
-}
-
 /* Drag ghost chrome (layout grid stays in page CSS). */
 .pick-drag-float {
   border-radius: var(--control-radius);

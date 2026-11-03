@@ -23,7 +23,7 @@ import {
   getTemplatesSnapCache,
   setTemplatesSnapCache,
   type TemplatesMarket,
-} from "../../bridge/templatesSnapCache";
+} from "../../bridge/snapCache";
 import { t as tr } from "../../i18n";
 
 export type { TemplatesMarket };

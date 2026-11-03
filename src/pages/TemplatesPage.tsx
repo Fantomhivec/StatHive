@@ -21,11 +21,11 @@ import "./TemplatesPage.css";
 
 export { clearTemplatesSnapCache };
 
-const TemplateEditorDialog = lazy(() => import("../components/templates/TemplateEditorDialog"));
+const TemplateEditorDialog = lazy(() => import("../components/templates/dialogs/TemplateEditorDialog"));
 const TemplateGroupEditorDialog = lazy(
-  () => import("../components/templates/TemplateGroupEditorDialog"),
+  () => import("../components/templates/dialogs/TemplateGroupEditorDialog"),
 );
-const GroupPickDialog = lazy(() => import("../components/templates/GroupPickDialog"));
+const GroupPickDialog = lazy(() => import("../components/templates/dialogs/GroupPickDialog"));
 
 function isSystemTab(name: string, t: (key: string) => string): boolean {
   const n = name.trim();

@@ -32,21 +32,6 @@
   min-width: 0;
 }
 
-.keys-check-oauth-paste {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  min-width: 0;
-}
-
-.keys-check-oauth-paste > h3 {
-  margin: 0;
-}
-
-.keys-check-oauth-paste .field {
-  margin-bottom: 0;
-}
-
 .keys-check-wb > h3 {
   margin: 0;
 }

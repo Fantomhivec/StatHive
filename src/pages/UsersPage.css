@@ -42,22 +42,6 @@
   z-index: 5;
 }
 
-.users-entity-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.users-entity-list li {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-}
-
 .users-presets-panel {
   margin: 0;
 }
@@ -87,16 +71,13 @@
   gap: 8px;
 }
 
+/* Face: .wb-card.wb-card--control; here flex row layout. */
 .users-presets-row--bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
   min-width: 0;
-  padding: 10px 12px;
-  border: 1px solid var(--border);
-  border-radius: var(--control-radius);
-  background: var(--control-face);
 }
 
 .users-presets-row-meta {
@@ -129,12 +110,6 @@
 .users-presets-empty {
   margin: 0;
   padding: 8px 4px;
-}
-
-.users-subhead {
-  margin: 8px 0 0;
-  font-size: 14px;
-  font-weight: 600;
 }
 
 .users-access-editor {
@@ -208,13 +183,6 @@
   max-height: min(240px, 32vh);
   overflow: auto;
   min-width: 0;
-}
-
-/* Legacy alias if referenced elsewhere */
-.users-script-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 6px 12px;
 }
 
 /* Face: .input.input-mono; here layout only. */

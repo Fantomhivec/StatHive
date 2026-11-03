@@ -17,7 +17,7 @@ import type { TemplateDto } from "../../bridge/hostApi";
 import type { SubjectsListFiltersDto } from "../../bridge/hostApi.types";
 import AppComboBox from "../AppComboBox";
 import AppCustomWindow from "../AppCustomWindow";
-import type { ScriptVisibility } from "./scriptVisibility";
+import type { ScriptVisibility } from "./visibility/scriptVisibility";
 import { useT } from "../../i18n";
 
 const REPORT_PERIOD_OPTS = [

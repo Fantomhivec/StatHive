@@ -21,7 +21,7 @@ import SpreadsheetIdField from "./SpreadsheetIdField";
 import {
   hasUnifiedSources,
   type ScriptVisibility,
-} from "./scriptVisibility";
+} from "./visibility/scriptVisibility";
 import TemplateDateRangeCard from "./TemplateDateRangeCard";
 import TemplateEditorWriteCards from "./TemplateEditorWriteCards";
 import UnifiedSourcesCard from "./UnifiedSourcesCard";

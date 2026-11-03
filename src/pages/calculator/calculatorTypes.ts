@@ -177,10 +177,6 @@ export const MODE_OPTS = [
   { value: 'Weekly', label: t("calculator.triggerMode.weekly") },
   { value: 'Interval', label: t("calculator.triggerMode.interval") },
 ]
-export const TIME_OPTS = Array.from({ length: 24 }, (_, i) => {
-  const t = `${String(i).padStart(2, '0')}:00`
-  return { value: t, label: t }
-})
 export const MARKETPLACE_OPTS = [
   { value: 'wb', label: t("calculator.marketplace.wb") },
   { value: 'ozon', label: t("calculator.marketplace.ozon") },

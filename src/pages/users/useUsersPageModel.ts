@@ -27,7 +27,7 @@ import { useAuth } from "../../auth/AuthContext";
 import { useAppDialogs } from "../../components/useAppDialogs";
 import { useBusyState } from "../../components/useBusyState";
 import { useT } from "../../i18n";
-import { shortTeamName } from "../../shared/workspaceTitle";
+import { shortTeamName } from "../../bridge/workspaceTitle";
 import {
   clearUsersPageSnap,
   emptyPreset,

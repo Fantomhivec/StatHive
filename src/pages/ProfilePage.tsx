@@ -27,8 +27,8 @@ import {
 import { useAuth } from "../auth/AuthContext";
 import { IconEye } from "../components/icons";
 import { useAppDialogs } from "../components/useAppDialogs";
-import { useTabsLayoutCaps } from "../hooks/useTabsLayoutCaps";
-import { shortTeamName } from "../shared/workspaceTitle";
+import { useTabsLayoutCaps } from "../bridge/useTabsLayoutCaps";
+import { shortTeamName } from "../bridge/workspaceTitle";
 import "./ProfilePage.css";
 import { useT } from "../i18n";
 

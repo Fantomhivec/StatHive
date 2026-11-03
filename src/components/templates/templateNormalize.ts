@@ -14,7 +14,7 @@
 
 import type { TemplateDto } from "../../bridge/hostApi";
 import { calculateDateRangeFromTemplate } from "./dateTemplates";
-import { visibilityForScript } from "./scriptVisibility";
+import { visibilityForScript } from "./visibility/scriptVisibility";
 
 export type FieldRow = { name: string; title: string; selected: boolean };
 

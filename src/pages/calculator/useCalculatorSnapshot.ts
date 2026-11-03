@@ -18,7 +18,7 @@ import {
   getCalculatorSnapCache,
   setCalculatorSnapCache,
   type CalcSnapshotView,
-} from "../../bridge/calcSnapCache";
+} from "../../bridge/snapCache";
 import { hostApi, onEvent } from "../../bridge/hostApi";
 import {
   invalidateCalculatorLookupCaches,

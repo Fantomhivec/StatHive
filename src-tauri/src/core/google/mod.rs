@@ -20,7 +20,6 @@ pub mod iam_sa;
 pub mod oauth;
 pub mod service_account;
 pub mod sheets;
-mod sheets_incremental;
-mod sheets_normalize;
-pub(crate) mod sheets_symbols;
-mod sheets_write;
+
+/// Совместимый путь `crate::core::google::sheets_symbols`.
+pub(crate) use sheets::symbols as sheets_symbols;

@@ -75,7 +75,7 @@ export default function UsersPresetsTab({
             <li className="muted users-presets-empty">{t("users.noPresetsList")}</li>
           ) : (
             presets.map((p) => (
-              <li key={p.id} className="users-presets-row users-presets-row--bar">
+              <li key={p.id} className="wb-card wb-card--control users-presets-row users-presets-row--bar">
                 <div className="users-presets-row-meta">
                   <span className="users-presets-title">{p.title || p.id}</span>
                   <span className="muted users-presets-id">

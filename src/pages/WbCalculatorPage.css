@@ -469,11 +469,6 @@
   justify-content: flex-end;
 }
 
-.wb-trigger-num {
-  width: 56px;
-  flex-shrink: 0;
-}
-
 .calc-triggers-toggle {
   display: inline-flex;
   align-items: center;

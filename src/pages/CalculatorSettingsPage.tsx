@@ -16,7 +16,7 @@ import { lazy, Suspense, useMemo, useState } from "react";
 import { useAuth } from "../auth/AuthContext";
 import { isMainAdminRole } from "../bridge/accessRole";
 import { hostApi, hostDialogs } from "../bridge/hostApi";
-import { useTabsLayoutCaps } from "../hooks/useTabsLayoutCaps";
+import { useTabsLayoutCaps } from "../bridge/useTabsLayoutCaps";
 import AppComboBox from "../components/AppComboBox";
 import AppMessageBox from "../components/AppMessageBox";
 import { useAppDialogs } from "../components/useAppDialogs";
@@ -30,15 +30,15 @@ import {
   buildCabinetChips,
   chipMarketplace,
   SettingsCabinetsBlock,
-} from "./calculator/SettingsCabinetsBlock";
-import { SettingsImportDialog } from "./calculator/SettingsImportDialog";
-import { SettingsRatesFormulaCard } from "./calculator/SettingsRatesFormulaCard";
+} from "./calculator/settings/SettingsCabinetsBlock";
+import { SettingsImportDialog } from "./calculator/settings/SettingsImportDialog";
+import { SettingsRatesFormulaCard } from "./calculator/settings/SettingsRatesFormulaCard";
 import { useCalculatorSnapshot } from "./calculator/useCalculatorSnapshot";
 import "./WbCalculatorLayout.css";
 import "./WbCalculatorPage.css";
 import { useT } from "../i18n";
 
-const TeamConfigsDialog = lazy(() => import("./calculator/TeamConfigsDialog"));
+const TeamConfigsDialog = lazy(() => import("./calculator/dialogs/TeamConfigsDialog"));
 
 export default function CalculatorSettingsPage() {
   const t = useT();

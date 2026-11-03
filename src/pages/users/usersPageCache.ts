@@ -23,7 +23,7 @@ import {
   clearUsersPageSnap as clearUsersPageSnapStore,
   getUsersPageSnap,
   setUsersPageSnap as setUsersPageSnapStore,
-} from "../../bridge/usersPageSnapCache";
+} from "../../bridge/snapCache";
 import { clearTeamOauthSnap } from "./teamOauthTabCache";
 
 /** Лист команды сериализуется в camelCase. */
@@ -54,7 +54,7 @@ export function sheetsUrl(spreadsheetId: string) {
 export {
   DISCORD_COMMUNITY_NAME,
   DISCORD_INVITE_URL,
-} from "../../shared/community";
+} from "../login/community";
 
 /** Снимок вкладки между remount (lazy route). Sheets/SA — только при первом заходе или force. */
 export type UsersPageSnap = {

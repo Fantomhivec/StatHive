@@ -21,7 +21,7 @@ import {
   setAuthStatusCache,
 } from "../bridge/hostApi";
 import { useAuth } from "../auth/AuthContext";
-import { useTabsLayoutCaps } from "../hooks/useTabsLayoutCaps";
+import { useTabsLayoutCaps } from "../bridge/useTabsLayoutCaps";
 import "./KeysCheckPage.css";
 import { useT } from "../i18n";
 
