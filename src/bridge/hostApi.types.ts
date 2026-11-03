@@ -17,6 +17,8 @@ export type UserInfo = {
   display_name: string;
   is_authorized: boolean;
   access_level?: string;
+  /** Preset title for UI; empty for Admin. */
+  access_level_title?: string;
   row_index?: number;
   session_id?: string | null;
   birth_date?: string;

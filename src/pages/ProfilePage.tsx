@@ -283,7 +283,11 @@ export default function ProfilePage() {
             <span className="profile-label">{t("profile.login")}</span>
             <span>{profile.login || "—"}</span>
             <span className="profile-label">{t("profile.accessLevel")}</span>
-            <span>{profile.access_level || "—"}</span>
+            <span>
+              {isAdmin
+                ? t("users.adminRole")
+                : profile.access_level_title?.trim() || profile.access_level || "—"}
+            </span>
             <span className="profile-label">Google:</span>
             <span className="profile-google-cell">
               <span>{profile.google_email || setup?.google_email || "—"}</span>

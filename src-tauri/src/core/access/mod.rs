@@ -87,6 +87,17 @@ pub fn find_preset(access_level: &str) -> Option<PresetDef> {
         .find(|p| p.id.eq_ignore_ascii_case(id))
 }
 
+/// Название пресета для UI (Admin → пусто, локализует фронт).
+pub fn access_level_title(access_level: &str) -> String {
+    if is_admin_role(access_level) {
+        return String::new();
+    }
+    find_preset(access_level)
+        .map(|p| p.title.trim().to_string())
+        .filter(|t| !t.is_empty())
+        .unwrap_or_default()
+}
+
 /// Builtin Admin (или legacy «Админ»).
 pub fn is_admin_role(raw: &str) -> bool {
     let t = raw.trim();

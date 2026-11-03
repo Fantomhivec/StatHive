@@ -5,8 +5,10 @@
   max-height: min(80vh, 720px);
 }
 
+/* Редактор шаблона: +5% width / +15% height от прежних 640×720 / 80vh. */
 .tpl-dialog--wide {
-  width: min(640px, 100%);
+  width: min(672px, 100%);
+  max-height: min(92vh, 828px);
 }
 
 .tpl-dialog--picker {

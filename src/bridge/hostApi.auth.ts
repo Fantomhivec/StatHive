@@ -30,6 +30,15 @@ function clearTeamScopedUiCaches() {
   clearTemplatesSnapCache();
   clearCalculatorSnapCaches();
   clearUsersPageSnap();
+  // RAM-логи бэкенда чистятся в clear_local_session; здесь — сброс UI LogsPage.
+  void invoke<void>("logs_clear").catch(() => {
+    /* no session yet / deny */
+  });
+  try {
+    window.dispatchEvent(new CustomEvent("stathive-logs-cleared"));
+  } catch {
+    /* ignore */
+  }
 }
 
 /** Session auth — RequireAuth / title bar / profile share one IPC. */

@@ -88,6 +88,9 @@ pub struct UserInfo {
     pub is_authorized: bool,
     #[serde(default)]
     pub access_level: String,
+    /// Название пресета (не id); у Admin пусто.
+    #[serde(default)]
+    pub access_level_title: String,
     #[serde(default)]
     pub row_index: u32,
     #[serde(default)]
@@ -235,11 +238,14 @@ impl AuthService {
             let _ = Self::write_session_file(&raw);
         }
         if let Ok(s) = serde_json::from_str::<SessionFile>(&raw) {
+            let access_level = s.access_level;
+            let access_level_title = access::access_level_title(&access_level);
             let user = UserInfo {
                 login: s.login,
                 display_name: s.display_name,
                 is_authorized: true,
-                access_level: s.access_level,
+                access_level,
+                access_level_title,
                 row_index: s.row_index,
                 session_id: s.session_id,
                 birth_date: s.birth_date,
@@ -275,6 +281,11 @@ impl AuthService {
             Ok(list) => {
                 let n = list.len().to_string();
                 self.log.info(tf("log.auth.presetsReloaded", &[("count", &n)]));
+                if let Ok(mut g) = self.current.lock() {
+                    if let Some(u) = g.as_mut() {
+                        u.access_level_title = access::access_level_title(&u.access_level);
+                    }
+                }
             }
             Err(e) => {
                 self.log.warn(tf(

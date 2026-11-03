@@ -393,6 +393,9 @@ impl AuthService {
             *g = None;
         }
         crate::calculator::article_index::clear();
+        // Логи процесса и журнал калькулятора — не тащить между командами.
+        self.log.clear();
+        crate::calculator::run_log::clear();
     }
 
     /// Хаб: выбрать команду без входа (сессия в RAM сбрасывается, файл другой команды не трогаем).
@@ -479,6 +482,7 @@ pub(crate) fn user_from_sheet(found: &SheetUser, session_id: String) -> UserInfo
         display_name: found.display_name(),
         is_authorized: true,
         access_level: found.access_level.clone(),
+        access_level_title: access::access_level_title(&found.access_level),
         row_index: found.row_index,
         session_id: Some(session_id),
         birth_date: String::new(),

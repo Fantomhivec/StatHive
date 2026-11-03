@@ -55,11 +55,19 @@ export default function LogsPage() {
       delayRef.current = POLL_MIN_MS;
       void refresh(true);
     };
+    const onTeamClear = () => {
+      revisionRef.current = 0;
+      setLines([]);
+      delayRef.current = POLL_MIN_MS;
+      void refresh(true);
+    };
     document.addEventListener("visibilitychange", onVis);
+    window.addEventListener("stathive-logs-cleared", onTeamClear);
     return () => {
       cancelled = true;
       if (timerRef.current) clearTimeout(timerRef.current);
       document.removeEventListener("visibilitychange", onVis);
+      window.removeEventListener("stathive-logs-cleared", onTeamClear);
     };
   }, [refresh]);
 

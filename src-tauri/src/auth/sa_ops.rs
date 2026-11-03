@@ -234,6 +234,8 @@ impl AuthService {
             &sa_raw,
         )?;
         google_sa::clear_token_cache();
+        self.log.clear();
+        crate::calculator::run_log::clear();
         self.log.info(tf(
             "log.auth.teamCodeApplied",
             &[("workspaceId", &payload.workspace_id)],
