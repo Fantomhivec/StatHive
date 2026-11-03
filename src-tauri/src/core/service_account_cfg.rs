@@ -22,6 +22,7 @@ use std::path::PathBuf;
 const ATREST_PREFIX: &str = "STATHIVE_ATREST_V1.";
 
 fn path() -> PathBuf {
+    crate::core::team_profile::absorb_legacy_root_file("service_account.json");
     crate::core::team_profile::active_dir().join("service_account.json")
 }
 

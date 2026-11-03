@@ -53,6 +53,7 @@ export default function UsersSaPanel({
           ) : (
             <span className="error u-m-0">{t("users.serviceAccountMissing")}</span>
           )}
+          <p className="muted calc-hint u-m-0">{t("users.serviceAccountPerTeamHint")}</p>
         </div>
         <div className="users-sa-compact-actions">
           {!saConfigured ? (

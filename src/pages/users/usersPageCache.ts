@@ -19,6 +19,11 @@ import {
   type TeamConfigListItem,
   type TeamUserRow,
 } from "../../bridge/hostApi";
+import {
+  clearUsersPageSnap as clearUsersPageSnapStore,
+  getUsersPageSnap,
+  setUsersPageSnap as setUsersPageSnapStore,
+} from "../../bridge/usersPageSnapCache";
 import { clearTeamOauthSnap } from "./teamOauthTabCache";
 
 /** Лист команды сериализуется в camelCase. */
@@ -54,6 +59,8 @@ export {
 /** Снимок вкладки между remount (lazy route). Sheets/SA — только при первом заходе или force. */
 export type UsersPageSnap = {
   login: string;
+  /** Слот команды — иначе SA/список «переезжают» между командами. */
+  activeTeamId: string;
   team: TeamUserRow[];
   presets: AccessPresetDto[];
   catalog: ScriptCatalogItem[];
@@ -67,16 +74,18 @@ export type UsersPageSnap = {
   teamCatDefaultId: string;
 };
 
-export let usersPageSnap: UsersPageSnap | null = null;
+export function peekUsersPageSnap(): UsersPageSnap | null {
+  return getUsersPageSnap<UsersPageSnap>();
+}
 
 export function clearUsersPageSnap() {
-  usersPageSnap = null;
+  clearUsersPageSnapStore();
   // TeamOAuth tab cache (Sheets) — сброс при logout / force reload Users.
   clearTeamOauthSnap();
 }
 
 export function setUsersPageSnap(snap: UsersPageSnap | null) {
-  usersPageSnap = snap;
+  setUsersPageSnapStore(snap);
 }
 
 const emptyMatrix = { all: false, keys: [] as string[] };
@@ -93,15 +102,19 @@ export const emptyPreset = (): AccessPresetDto => ({
 /** Загрузка dashboard + catalog + calc configs → snap (и кэш сессии). */
 export async function fetchUsersPageSnap(
   loginKey: string,
+  activeTeamId: string,
   force = false,
 ): Promise<UsersPageSnap> {
+  const teamKey = activeTeamId.trim();
+  const cached = peekUsersPageSnap();
   if (
     !force &&
-    usersPageSnap &&
-    usersPageSnap.login === loginKey &&
+    cached &&
+    cached.login === loginKey &&
+    cached.activeTeamId === teamKey &&
     loginKey
   ) {
-    return usersPageSnap;
+    return cached;
   }
   if (force) {
     clearUsersPageSnap();
@@ -128,6 +141,7 @@ export async function fetchUsersPageSnap(
     (dash.serviceAccountEmail ?? dash.service_account_email)?.trim() || null;
   const snap: UsersPageSnap = {
     login: loginKey,
+    activeTeamId: teamKey,
     team,
     presets,
     catalog: c,

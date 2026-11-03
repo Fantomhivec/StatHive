@@ -425,7 +425,8 @@
     "serviceAccountJson": "Или вставить готовый Service Account JSON",
     "serviceAccountSave": "Сохранить JSON вручную",
     "serviceAccountOk": "Service Account настроен: {email}",
-    "serviceAccountMissing": "Service Account ещё не сохранён — приглашения и код команды недоступны.",
+    "serviceAccountMissing": "Service Account ещё не сохранён для этой команды — приглашения и код команды недоступны.",
+    "serviceAccountPerTeamHint": "Service Account привязан к текущей команде на этом ПК. После смены команды нужен SA этой команды (создать или код приглашения).",
     "serviceAccountSaved": "Service Account сохранён ({email}), доступ к таблице команды выдан.",
     "inviteNeedsSa": "Сначала создайте или сохраните Service Account — иначе приглашение потребует Drive-доступ участнику.",
     "access": {

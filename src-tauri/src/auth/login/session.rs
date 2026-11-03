@@ -50,7 +50,20 @@ impl AuthService {
             "log.auth.loginStart",
             &[("login", login), ("workspaceId", &sid)],
         ));
-        let client = auth_client().await?;
+        let client = match auth_client().await {
+            Ok(c) => c,
+            Err(e) => {
+                self.log.warn(tf(
+                    "log.auth.loginCredentialsFailed",
+                    &[("error", &e)],
+                ));
+                return Err(if is_sheets_transport_error(&e) {
+                    t("errors.auth.sheetsUnavailable")
+                } else {
+                    t("errors.auth.rejected")
+                });
+            }
+        };
         // Один GET A2:J1000: credentials + email Admin (раньше find + list_users).
         let (found, admin_mail, needs_rehash) =
             find_user_by_credentials_scan(&client, &sid, login, password)
@@ -60,7 +73,12 @@ impl AuthService {
                         "log.auth.loginCredentialsFailed",
                         &[("error", &e.to_string())],
                     ));
-                    e
+                    // Не светить userNotFound / детали — credential oracle.
+                    if is_sheets_transport_error(&e) {
+                        t("errors.auth.sheetsUnavailable")
+                    } else {
+                        t("errors.auth.rejected")
+                    }
                 })?;
         if needs_rehash {
             let _ = write_password(&client, &sid, found.row_index, password).await;
@@ -80,10 +98,7 @@ impl AuthService {
                 "log.auth.loginGoogleMismatch",
                 &[("oauthEmail", entered), ("expected", expected)],
             ));
-            return Err(tf(
-                "errors.auth.googleEmailMismatch",
-                &[("oauthEmail", entered), ("expected", expected)],
-            ));
+            return Err(t("errors.auth.rejected"));
         }
         // Вход сверяет Users через SA. Браузер Google — только Admin на ПК,
         // где команда создана (не joined_by_code). Участнику OAuth не нужен для входа.
@@ -144,10 +159,7 @@ impl AuthService {
                     "log.auth.loginGoogleMismatch",
                     &[("oauthEmail", &oauth_email), ("expected", expected)],
                 ));
-                return Err(tf(
-                    "errors.auth.googleEmailMismatch",
-                    &[("oauthEmail", &oauth_email), ("expected", expected)],
-                ));
+                return Err(t("errors.auth.rejected"));
             }
             if !expected.is_empty() {
                 self.log.info(tf(
@@ -167,7 +179,20 @@ impl AuthService {
         let now = Utc::now();
         let session_id = format!("{}_{}", Uuid::new_v4(), machine);
         let user = user_from_sheet(&found, session_id.clone());
-        write_session(client, sid, found.row_index, &session_id, now).await?;
+        if let Err(e) = write_session(client, sid, found.row_index, &session_id, now).await {
+            self.log.warn(tf(
+                "log.auth.loginSessionWriteFailed",
+                &[("error", &e), ("attempt", "1")],
+            ));
+            tokio::time::sleep(std::time::Duration::from_millis(400)).await;
+            if let Err(e2) = write_session(client, sid, found.row_index, &session_id, now).await {
+                self.log.warn(tf(
+                    "log.auth.loginSessionWriteFailed",
+                    &[("error", &e2), ("attempt", "2")],
+                ));
+                return Err(t("errors.auth.sheetsUnavailable"));
+            }
+        }
         let _ = write_last_login(client, sid, found.row_index, now).await;
         if self.session_gen.load(Ordering::SeqCst) != gen {
             return Err(t("errors.auth.userNotAuthorized"));
@@ -534,4 +559,16 @@ pub(crate) fn machine_id() -> String {
     );
     let hash = Sha256::digest(info.as_bytes());
     hex::encode(&hash[..8])
+}
+
+/// Transport / timeout Sheets — не credential; UI без URL.
+fn is_sheets_transport_error(err: &str) -> bool {
+    let e = err.to_ascii_lowercase();
+    e.contains("error sending request for url")
+        || e.contains("error trying to connect")
+        || e.contains("timed out")
+        || e.contains("connection reset")
+        || e.contains("connection refused")
+        || e.contains("dns error")
+        || e.contains("failed to lookup")
 }

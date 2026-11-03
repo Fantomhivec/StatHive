@@ -275,6 +275,7 @@ fn invalidate_runtime_caches() {
     google_oauth::invalidate_token_mem();
     google_sa::clear_token_cache();
     crate::core::access::clear_presets_cache();
+    crate::core::access::invalidate_users_ui_cache();
     crate::core::oauth_config::clear_check_google_cap();
     crate::templates::store::invalidate_cache();
     crate::calculator::article_index::clear();

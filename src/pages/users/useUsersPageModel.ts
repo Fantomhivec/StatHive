@@ -16,6 +16,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { isMainAdminRole } from "../../bridge/accessRole";
 import {
   ensureTabsLayout,
+  hostApi,
   peekTabsLayout,
   type AccessPresetDto,
   type ScriptCatalogItem,
@@ -117,7 +118,11 @@ export function useUsersPageModel() {
   const loadAll = useCallback(
     async (force = false) => {
       const loginKey = (me?.login ?? "").trim().toLowerCase();
-      applySnap(await fetchUsersPageSnap(loginKey, force));
+      const setup = await hostApi.authSetupStatus().catch(() => null);
+      const teamId = String(
+        setup?.active_team_id ?? setup?.activeTeamId ?? "",
+      ).trim();
+      applySnap(await fetchUsersPageSnap(loginKey, teamId, force));
     },
     [applySnap, me?.login],
   );

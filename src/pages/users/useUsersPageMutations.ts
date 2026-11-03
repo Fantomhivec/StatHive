@@ -28,9 +28,9 @@ import {
 import {
   emptyPreset,
   normalizeTeamRow,
+  peekUsersPageSnap,
   setUsersPageSnap,
   sheetsUrl,
-  usersPageSnap,
 } from "./usersPageCache";
 
 type TFn = (key: string, params?: Record<string, string | number>) => string;
@@ -144,16 +144,17 @@ export function createUsersPageMutations(a: UsersPageMutationsArgs) {
       }
       return [...prev, row];
     });
-    if (usersPageSnap) {
-      const exists = usersPageSnap.team.some(
+    const snap = peekUsersPageSnap();
+    if (snap) {
+      const exists = snap.team.some(
         (u) =>
           u.row_index === row.row_index ||
           u.login.toLowerCase() === row.login.toLowerCase(),
       );
       if (!exists) {
         setUsersPageSnap({
-          ...usersPageSnap,
-          team: [...usersPageSnap.team, row],
+          ...snap,
+          team: [...snap.team, row],
         });
       }
     }
@@ -208,10 +209,11 @@ export function createUsersPageMutations(a: UsersPageMutationsArgs) {
           : u,
       ),
     );
-    if (usersPageSnap) {
+    const snap = peekUsersPageSnap();
+    if (snap) {
       setUsersPageSnap({
-        ...usersPageSnap,
-        team: usersPageSnap.team.map((u) =>
+        ...snap,
+        team: snap.team.map((u) =>
           u.row_index === rowIndex
             ? { ...u, calc_config_id: nextId, calcConfigId: nextId }
             : u,
@@ -308,8 +310,9 @@ export function createUsersPageMutations(a: UsersPageMutationsArgs) {
       const full = await hostApi.renameWorkspace(a.teamNameDraft.trim());
       a.setWorkspaceTitle(full);
       a.setTeamNameDraft(shortTeamName(full));
-      if (usersPageSnap) {
-        setUsersPageSnap({ ...usersPageSnap, workspaceTitle: full });
+      const snap = peekUsersPageSnap();
+      if (snap) {
+        setUsersPageSnap({ ...snap, workspaceTitle: full });
       }
       window.dispatchEvent(new CustomEvent(WORKSPACE_TITLE_CHANGED, { detail: full }));
       a.setOk(a.t("users.teamNameSaved"));

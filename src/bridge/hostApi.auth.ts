@@ -24,10 +24,12 @@ import type {
 } from "./hostApi.types";
 import { clearCalculatorSnapCaches } from "./calcSnapCache";
 import { clearTemplatesSnapCache } from "./templatesSnapCache";
+import { clearUsersPageSnap } from "./usersPageSnapCache";
 
 function clearTeamScopedUiCaches() {
   clearTemplatesSnapCache();
   clearCalculatorSnapCaches();
+  clearUsersPageSnap();
 }
 
 /** Session auth — RequireAuth / title bar / profile share one IPC. */
