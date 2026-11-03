@@ -27,6 +27,7 @@ import { hostApiTemplates } from "./hostApi.templates";
 import {
   clearTabsLayoutCache,
   getTabsLayout,
+  refreshTabsLayout,
   saveTabsLayout,
 } from "./hostApi.layout";
 
@@ -130,7 +131,7 @@ export function ensureUpdatesCheckQuiet(): Promise<UpdateInfo> {
 export { getLocale, setLocale } from "./hostApi.i18n";
 import { getLocale, setLocale } from "./hostApi.i18n";
 
-const hostApiAuth = createAuthApi({ clearTabsLayoutCache });
+const hostApiAuth = createAuthApi({ clearTabsLayoutCache, refreshTabsLayout });
 
 export const hostApi = {
   version: () => invoke<string>("app_version"),

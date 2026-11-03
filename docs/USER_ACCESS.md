@@ -134,6 +134,7 @@ IPC отвергает Google write шаблонов и мутации табл�
 - ACL: `core/access/mod.rs`, `core/access/store.rs`
 - Layout caps: `core/tabs_layout.rs` (`canKeysCheck`, `canUsersTab`, `hasOauth`, `hasEnvKeys`, `canLogs`, `canTablesTab`, `templatesExcelOnly`, `tablesCanMutate`, `isMainAdmin`)
 - **Вкладки Шаблоны / Логи / Таблицы (calc):** не показываются, пока в `.env` нет хотя бы одного действующего ключа (WB не просрочен или OZON с value). Проверка ключей / выбор `.env` / сохранение редактора → `tabsLayout.changed`.
+- **Переключение команды** (`switchTeam`): после ok — `refreshTabsLayout` + `tabsLayout.changed`; Shell сбрасывает caps по `session_id`. Force calc-shell **не** пишется в `tabs.layout.json` (только на чтении). Иначе в одной сессии app Admin←calc-only←Admin залипал calc-shell без «Настройки вкладок».
 - OAuth connect / delete user / Drive после пресета: `auth/team.rs` (`resync_drive_for_user_row(old_level)`)
 - Template gate: `templates/access_gate.rs`
 - Tables mutate: `calculator/access_guard.rs` → `require_tables_mutate`

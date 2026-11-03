@@ -279,10 +279,29 @@ pub fn auth_remove_local_team(
 
 #[tauri::command]
 pub async fn auth_switch_team(
+    app: tauri::AppHandle,
     state: State<'_, Arc<AppState>>,
     args: TeamIdArgs,
 ) -> Result<crate::auth::SwitchTeamResult, String> {
-    state.auth.switch_team(&args.id).await
+    use tauri::Emitter;
+    let result = state.auth.switch_team(&args.id).await?;
+    if let Some(ref user) = result.user {
+        state.auth.ensure_presets_loaded().await;
+        let any_ok =
+            crate::templates::access_gate::any_member_ok_in_scope(&state, &user.access_level);
+        let oauth = crate::core::access::effective_has_oauth(&user.access_level, user.has_oauth);
+        let can_check =
+            crate::core::oauth_config::can_check_google(&user.access_level, &user.login);
+        let layout = crate::core::tabs_layout::get_layout(
+            &user.login,
+            &user.access_level,
+            oauth,
+            any_ok,
+            can_check,
+        );
+        let _ = app.emit("tabsLayout.changed", &layout);
+    }
+    Ok(result)
 }
 
 #[derive(Deserialize)]

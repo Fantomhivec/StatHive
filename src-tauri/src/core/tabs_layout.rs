@@ -214,12 +214,13 @@ pub fn save_layout(
         if want && !can {
             return Err(t("errors.tabs.calculatorModeDenied"));
         }
-        // Принудительный режим: нельзя выключить.
-        let stored = if force { true } else { want && can };
-        file.calculator_mode.insert(login.clone(), stored);
-    } else if force {
-        file.calculator_mode.insert(login.clone(), true);
+        // Force только на чтении в get_layout — не пишем true в stored по login
+        // (иначе после switch с calc-only команды calcMode залипает у Admin).
+        if !force {
+            file.calculator_mode.insert(login.clone(), want && can);
+        }
     }
+    // else if force: не персистить — force вычисляется в get_layout.
 
     save_file(&file)?;
     let can_check = crate::core::oauth_config::can_check_google(access_level, &login);

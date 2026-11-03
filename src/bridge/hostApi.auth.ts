@@ -77,11 +77,12 @@ export function ensureAuthStatus(): Promise<UserInfo | null> {
 
 export type AuthApiDeps = {
   clearTabsLayoutCache: () => void;
+  refreshTabsLayout: () => Promise<unknown>;
 };
 
 /** Auth / team / access-preset invoke helpers for hostApi barrel. */
 export function createAuthApi(deps: AuthApiDeps) {
-  const { clearTabsLayoutCache } = deps;
+  const { clearTabsLayoutCache, refreshTabsLayout } = deps;
   return {
     authStatus: () => invoke<UserInfo | null>("auth_status"),
     authSetupStatus: () => invoke<AuthSetupStatus>("auth_setup_status"),
@@ -160,14 +161,21 @@ export function createAuthApi(deps: AuthApiDeps) {
         clearTabsLayoutCache();
         clearTeamScopedUiCaches();
       }),
-    switchTeam: (id: string) =>
-      invoke<SwitchTeamResult>("auth_switch_team", { args: { id } }).then((r) => {
+    switchTeam: async (id: string) => {
+      const r = await invoke<SwitchTeamResult>("auth_switch_team", { args: { id } });
+      clearTeamScopedUiCaches();
+      if (r.user) {
+        setAuthStatusCache(r.user);
+        // Caps Shell/TitleBar до navigate — иначе calc-only state залипает в одной сессии.
+        await refreshTabsLayout().catch(() => {
+          clearTabsLayoutCache();
+        });
+      } else {
+        clearAuthStatusCache();
         clearTabsLayoutCache();
-        clearTeamScopedUiCaches();
-        if (r.user) setAuthStatusCache(r.user);
-        else clearAuthStatusCache();
-        return r;
-      }),
+      }
+      return r;
+    },
     inviteUser: (args: {
       login: string;
       password: string;

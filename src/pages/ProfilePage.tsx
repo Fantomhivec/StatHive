@@ -218,6 +218,7 @@ export default function ProfilePage() {
     setBusy(true);
     setError(null);
     try {
+      // switchTeam уже await refreshTabsLayout — caps до navigate.
       const res = await hostApi.switchTeam(id);
       if (res.status === "ok" && res.user) {
         setUser(res.user);

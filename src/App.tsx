@@ -190,6 +190,43 @@ function ShellLayout() {
         ? "/logs"
         : "/profile";
 
+  const sessionId = user?.session_id ?? "";
+  const accessLevel = user?.access_level ?? "";
+
+  // Смена команды/сессии в одном процессе: сброс shell до apply нового layout.
+  useEffect(() => {
+    setLayoutReady(false);
+    setCalculatorMode(false);
+    setForceCalculatorMode(false);
+    const peek = peekTabsLayout();
+    if (peek) {
+      applyLayout(
+        peek.items ?? [],
+        !!peek.calculatorMode,
+        peek.canTemplates === true,
+        peek.canLogs === true,
+        peek.canTablesTab === true,
+        !!peek.forceCalculatorMode,
+        peek.calcAccess,
+        !!peek.canKeysCheck || isAdmin,
+        !!peek.canUsersTab || isAdmin,
+      );
+      return;
+    }
+    applyLayout(
+      [],
+      false,
+      false,
+      false,
+      false,
+      false,
+      FAIL_CLOSED_TABS_LAYOUT.calcAccess,
+      isAdmin,
+      isAdmin,
+    );
+    setLayoutReady(false);
+  }, [sessionId, accessLevel, applyLayout, isAdmin]);
+
   useEffect(() => {
     const genAtStart = peekLayoutGen();
     void ensureTabsLayout()
@@ -224,7 +261,7 @@ function ShellLayout() {
           isAdmin,
         ),
       );
-  }, [applyLayout, isAdmin]);
+  }, [applyLayout, isAdmin, sessionId, accessLevel]);
 
   useEffect(() => {
     return onTabsLayoutChanged((res) => {
