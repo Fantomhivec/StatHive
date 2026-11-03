@@ -15,11 +15,8 @@
 import { lazy, Suspense } from "react";
 import { hostApi } from "../bridge/hostApi";
 import { GroupCard, StandaloneCard } from "./templates/TemplateCards";
-import { clearTemplatesSnapCache } from "./templates/templatesPageCache";
 import { useTemplatesActions } from "./templates/useTemplatesActions";
 import "./TemplatesPage.css";
-
-export { clearTemplatesSnapCache };
 
 const TemplateEditorDialog = lazy(() => import("../components/templates/dialogs/TemplateEditorDialog"));
 const TemplateGroupEditorDialog = lazy(

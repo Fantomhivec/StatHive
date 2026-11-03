@@ -44,7 +44,6 @@
     "selectAll": "Отметить все",
     "rename": "Переименовать",
     "copy": "Копировать",
-    "browseFolder": "Папка…",
     "browseFile": "Выбрать файл…",
     "openExplorer": "Открыть проводник",
     "exporting": "Выгрузка…",
@@ -1022,7 +1021,6 @@
     }
   },
   "bridge": {
-    "pickFolderExcel": "Папка выгрузки Excel",
     "pickEnvFile": "Выбрать файл .env",
     "saveEnvFile": "Экспорт файла .env",
     "pickEnvImport": "Импорт файла .env",

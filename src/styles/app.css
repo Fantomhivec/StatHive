@@ -216,7 +216,8 @@ a {
   font-size: 22px;
 }
 
-.page-sub {
+.page-sub,
+.login-card .sub {
   margin: 0 0 20px;
   color: var(--muted);
   font-size: 13px;
@@ -253,12 +254,6 @@ a {
 .login-card h1 {
   margin: 0 0 6px;
   font-size: 22px;
-}
-
-.login-card .sub {
-  margin: 0 0 20px;
-  color: var(--muted);
-  font-size: 13px;
 }
 
 .error {

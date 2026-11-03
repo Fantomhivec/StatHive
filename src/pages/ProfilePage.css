@@ -77,15 +77,6 @@
   margin-top: 8px;
 }
 
-.profile-team-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
 .profile-team-row {
   display: flex;
   align-items: center;
@@ -141,8 +132,9 @@
 }
 
 .profile-team-list {
+  list-style: none;
   margin: 12px 0 0;
-  padding-left: 18px;
+  padding: 0 0 0 18px;
   display: flex;
   flex-direction: column;
   gap: 6px;

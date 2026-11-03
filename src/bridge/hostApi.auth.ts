@@ -18,7 +18,6 @@ import type {
   AuthSetupStatus,
   ScriptCatalogItem,
   SwitchTeamResult,
-  TeamIndexEntry,
   TeamUserRow,
   UserInfo,
 } from "./hostApi.types";
@@ -86,7 +85,6 @@ export type AuthApiDeps = {
 export function createAuthApi(deps: AuthApiDeps) {
   const { clearTabsLayoutCache, refreshTabsLayout } = deps;
   return {
-    authStatus: () => invoke<UserInfo | null>("auth_status"),
     authSetupStatus: () => invoke<AuthSetupStatus>("auth_setup_status"),
     saveOauthClient: (json: string) =>
       invoke<void>("auth_save_oauth_client", { args: { json } }),
@@ -97,7 +95,6 @@ export function createAuthApi(deps: AuthApiDeps) {
     replaceWorkspaceServiceAccount: () =>
       invoke<string>("auth_replace_workspace_service_account"),
     connectGoogle: () => invoke<string>("auth_connect_google"),
-    switchGoogleAccount: () => invoke<string>("auth_switch_google_account"),
     registerAdmin: (args: {
       login: string;
       password: string;
@@ -115,10 +112,6 @@ export function createAuthApi(deps: AuthApiDeps) {
         clearTabsLayoutCache();
         setAuthStatusCache(u);
         return u;
-      }),
-    joinWorkspace: (spreadsheetId: string, title = "") =>
-      invoke<void>("auth_join_workspace", {
-        args: { spreadsheet_id: spreadsheetId, title },
       }),
     renameWorkspace: (title: string) =>
       invoke<string>("auth_rename_workspace", { args: { title } }),
@@ -145,7 +138,6 @@ export function createAuthApi(deps: AuthApiDeps) {
       invoke<void>("auth_team_oauth_set_grants", {
         args: { allowedLogins },
       }),
-    listTeams: () => invoke<TeamIndexEntry[]>("auth_list_teams"),
     beginNewTeam: () =>
       invoke<string>("auth_begin_new_team").then((id) => {
         clearTeamScopedUiCaches();
@@ -200,7 +192,6 @@ export function createAuthApi(deps: AuthApiDeps) {
       invoke<void>("auth_set_user_calc_config", {
         args: { rowIndex, calcConfigId },
       }),
-    listTeam: () => invoke<TeamUserRow[]>("auth_list_team"),
     /** force=true — сброс кэша и чтение Sheets (кнопка «Обновить»). */
     usersDashboard: (force = false) =>
       invoke<{
@@ -215,8 +206,6 @@ export function createAuthApi(deps: AuthApiDeps) {
         serviceAccountEmail?: string | null;
         service_account_email?: string | null;
       }>("auth_users_dashboard", { args: { force } }),
-    invalidateUsersCache: () => invoke<void>("access_invalidate_users_cache"),
-    accessListPresets: () => invoke<AccessPresetDto[]>("access_list_presets"),
     accessSavePreset: (preset: AccessPresetDto) =>
       invoke<AccessPresetDto>("access_save_preset", {
         args: {

@@ -28,12 +28,6 @@ export function defaultExcelFileName(now = new Date()): string {
   return `calculator-${now.getFullYear()}${pad2(now.getMonth() + 1)}${pad2(now.getDate())}-${pad2(now.getHours())}${pad2(now.getMinutes())}.xlsx`;
 }
 
-function joinPath(folder: string, file: string): string {
-  const base = folder.replace(/[\\/]+$/, "");
-  const sep = folder.includes("/") && !folder.includes("\\") ? "/" : "\\";
-  return `${base}${sep}${file}`;
-}
-
 function inTauri(): boolean {
   return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
 }
@@ -97,23 +91,9 @@ export async function openUrl(url: string): Promise<void> {
   await pluginOpenUrl(url);
 }
 
-/** Диалоги проводника (папка / .xlsx / .json). */
+/** Диалоги проводника (.xlsx / .json / .env). */
 export const hostDialogs = {
   openUrl,
-  pickFolder: async (title = t("bridge.pickFolderExcel")): Promise<string | null> => {
-    const selected = await openDialog({
-      directory: true,
-      multiple: false,
-      title,
-    });
-    if (typeof selected !== "string" || !selected.trim()) return null;
-    return selected.trim();
-  },
-  pickExcelPathInFolder: async (): Promise<string | null> => {
-    const folder = await hostDialogs.pickFolder();
-    if (!folder) return null;
-    return joinPath(folder, defaultExcelFileName());
-  },
   pickJsonFile: async (title = t("bridge.pickJsonImport")): Promise<string | null> => {
     const selected = await openDialog({
       multiple: false,

@@ -213,10 +213,6 @@
   border-bottom: 1px solid var(--control-border);
 }
 
-.wb-manual-row:last-child {
-  border-bottom: 1px solid var(--control-border);
-}
-
 .wb-manual-row .wb-manual-sheet,
 .wb-manual-row .wb-manual-col,
 .wb-manual-row .wb-manual-article {
@@ -389,7 +385,8 @@
 
 /* Body chrome: .calc-dialog-body in controls/menus.css */
 
-.calc-logs-hint {
+.calc-logs-hint,
+.calc-import-hint {
   margin: 0;
   font-size: 0.875rem;
   line-height: 1.5;
@@ -417,13 +414,6 @@
 }
 
 /* .field margin: controls/fields.css; actions: .form-actions */
-
-/* Paste calculator config dialog — theme via canonical tokens */
-.calc-import-hint {
-  margin: 0;
-  font-size: 0.875rem;
-  line-height: 1.5;
-}
 
 /* Face: .input.input-mono + .mono-panel--scroll-thin; here size only. */
 .calc-import-textarea {

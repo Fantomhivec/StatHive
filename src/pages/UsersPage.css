@@ -262,10 +262,6 @@
   gap: 12px;
 }
 
-.users-sa-manual .field {
-  margin-bottom: 0;
-}
-
 .users-table-actions {
   display: flex;
   align-items: center;

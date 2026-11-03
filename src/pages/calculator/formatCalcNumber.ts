@@ -65,13 +65,3 @@ export function formatCalcDisplay(
 export function unformatCalcNumber(raw: string): string {
   return raw.replace(/\s/g, '').replace(/\u00a0/g, '')
 }
-
-export function formatVolumeLiters(raw: string | number | undefined | null): string | undefined {
-  if (raw == null || raw === '') return undefined
-  const n = typeof raw === 'number' ? raw : parseLooseNumber(String(raw))
-  if (n == null) return undefined
-  return n.toLocaleString('ru-RU', {
-    maximumFractionDigits: 2,
-    minimumFractionDigits: 0,
-  })
-}
