@@ -307,7 +307,7 @@ export type TemplateGroupDto = {
 
 export type ScriptGroupDto = {
   name: string;
-  scripts: { key: string; title: string; api_method: string }[];
+  scripts: { key: string; title: string; api_method: string; api_updated: string }[];
 };
 
 export type TemplatesSnapshot = {

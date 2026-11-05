@@ -68,18 +68,28 @@ export default function TemplateEditorBody({
 }: TemplateEditorBodyProps) {
   const t = useT();
 
-  const comboGroups: AppComboGroup[] = useMemo(
-    () =>
-      scriptGroups.map((g) => ({
+  const comboGroups: AppComboGroup[] = useMemo(() => {
+    // Group labels often start with emoji (⚠️, ⭐) — sort by first letter/digit, not emoji codepoint.
+    const sortKey = (s: string) => {
+      const m = s.match(/[\p{L}\p{N}].*$/u);
+      return (m ? m[0] : s).trim();
+    };
+    const byRu = (a: string, b: string) =>
+      sortKey(a).localeCompare(sortKey(b), "ru", { sensitivity: "base" });
+    return [...scriptGroups]
+      .map((g) => ({
         label: g.name,
-        options: g.scripts.map((s) => ({
-          value: s.key,
-          label: s.title,
-          secondary: s.api_method || undefined,
-        })),
-      })),
-    [scriptGroups],
-  );
+        options: [...g.scripts]
+          .map((s) => ({
+            value: s.key,
+            label: s.title,
+            secondary:
+              [s.api_method, s.api_updated].filter(Boolean).join(" · ") || undefined,
+          }))
+          .sort((a, b) => byRu(a.label, b.label) || a.value.localeCompare(b.value)),
+      }))
+      .sort((a, b) => byRu(a.label, b.label));
+  }, [scriptGroups]);
 
   const selectedCount = (tpl.selected_fields ?? []).filter((f) => f.selected).length;
   const cabCount = tpl.cabinets?.length ?? 0;

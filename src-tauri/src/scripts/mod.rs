@@ -48,6 +48,7 @@ pub mod wb_commissions;
 pub mod wb_content_media;
 pub mod wb_item_rating;
 pub mod wb_order_feed;
+pub mod wb_supplier_orders;
 pub mod wb_orders_fbs;
 pub mod wb_finance_util;
 pub mod wb_nm_report;
@@ -121,6 +122,7 @@ use crate::scripts::wb_commissions::CommissionsScript;
 use crate::scripts::wb_content_media::ContentMediaSaveScript;
 use crate::scripts::wb_item_rating::ItemRatingScript;
 use crate::scripts::wb_order_feed::OrderFeedScript;
+use crate::scripts::wb_supplier_orders::WbSupplierOrdersScript;
 use crate::scripts::wb_orders_fbs::{OrdersFbsScript, OrdersFbsStatusScript};
 use crate::scripts::wb_nm_report::{
     NmReportDownloadFileScript, NmReportDownloadsAutoScript, NmReportDownloadsListScript,
@@ -165,8 +167,10 @@ use std::sync::Arc;
 
 pub fn build_registry() -> ScriptRegistry {
     let mut reg = ScriptRegistry::new();
-    // MemberOk = экспорт без мутаций маркетплейса (Excel-only без HasOauth).
-    // Без обёртки: write/move/upload/set/create-task на API.
+    // MemberOk = только fetch API маркетплейса, без обязательного чтения Google Sheets.
+    // Без HasOauth результат пишется в Excel. Не оборачивать: мутации API, create-task/auto,
+    // и скрипты с обязательным чтением ID/диапазонов из Sheets (download/status by task,
+    // prices_by_nm, adv stats by id, stocks filters, copy/symbols/cells, ozon by ids, …).
     reg.register(Arc::new(MemberOk(CardsScript)));
     reg.register(Arc::new(MemberOk(CardsTrashScript)));
     reg.register(Arc::new(CardsMoveToTrashScript));
@@ -178,74 +182,73 @@ pub fn build_registry() -> ScriptRegistry {
     reg.register(Arc::new(MemberOk(SubjectsScript)));
     reg.register(Arc::new(MemberOk(WbTnvedScript)));
     reg.register(Arc::new(MemberOk(PricesScript)));
-    reg.register(Arc::new(MemberOk(PricesByNmScript)));
+    reg.register(Arc::new(PricesByNmScript));
     reg.register(Arc::new(PricesUploadScript));
     reg.register(Arc::new(PricesSetScript));
-    // create-task на API — без MemberOk (USER_ACCESS: create-task не для Excel-only).
     reg.register(Arc::new(PricesHistoryTaskScript));
     reg.register(Arc::new(MemberOk(ReportRealizationV5Script)));
     reg.register(Arc::new(MemberOk(SalesReportsListScript)));
     reg.register(Arc::new(PaidStorageCreateTaskScript));
-    reg.register(Arc::new(MemberOk(PaidStorageStatusScript)));
-    reg.register(Arc::new(MemberOk(PaidStorageDownloadScript)));
+    reg.register(Arc::new(PaidStorageStatusScript));
+    reg.register(Arc::new(PaidStorageDownloadScript));
     reg.register(Arc::new(PaidStorageAutoScript));
     reg.register(Arc::new(MemberOk(CommissionsScript)));
     reg.register(Arc::new(MemberOk(BoxTariffsScript)));
     reg.register(Arc::new(MemberOk(AdvCampaignsListScript)));
-    reg.register(Arc::new(MemberOk(AdvCampaignsStatsNewScript)));
-    reg.register(Arc::new(MemberOk(AdvFullstatsScript)));
-    reg.register(Arc::new(MemberOk(AdvNormQueryStatsScript)));
-    reg.register(Arc::new(MemberOk(AdvNormQueryBidsScript)));
-    reg.register(Arc::new(MemberOk(AdvSearchTextsScript)));
-    reg.register(Arc::new(MemberOk(AdvSearchReportMainScript)));
+    reg.register(Arc::new(AdvCampaignsStatsNewScript));
+    reg.register(Arc::new(AdvFullstatsScript));
+    reg.register(Arc::new(AdvNormQueryStatsScript));
+    reg.register(Arc::new(AdvNormQueryBidsScript));
+    reg.register(Arc::new(AdvSearchTextsScript));
+    reg.register(Arc::new(AdvSearchReportMainScript));
     reg.register(Arc::new(MemberOk(AdvUpdExpensesScript)));
     reg.register(Arc::new(MemberOk(WarehouseSelfPurchasesScript)));
     reg.register(Arc::new(MemberOk(GoodsLabelingScript)));
     reg.register(Arc::new(MemberOk(AnalyticsDeductionsScript)));
     reg.register(Arc::new(MemberOk(SalesFunnelProductsScript)));
-    reg.register(Arc::new(MemberOk(SalesFunnelProductsHistoryScript)));
-    reg.register(Arc::new(MemberOk(WbStocksScript)));
-    reg.register(Arc::new(MemberOk(WbStockFboReportScript)));
+    reg.register(Arc::new(SalesFunnelProductsHistoryScript));
+    reg.register(Arc::new(WbStocksScript));
+    reg.register(Arc::new(WbStockFboReportScript));
     reg.register(Arc::new(WarehouseRemainsCreateTaskScript));
-    reg.register(Arc::new(MemberOk(WarehouseRemainsStatusScript)));
-    reg.register(Arc::new(MemberOk(WarehouseRemainsDownloadScript)));
+    reg.register(Arc::new(WarehouseRemainsStatusScript));
+    reg.register(Arc::new(WarehouseRemainsDownloadScript));
     reg.register(Arc::new(WarehouseRemainsAutoScript));
     reg.register(Arc::new(MemberOk(WarehousesScript)));
     reg.register(Arc::new(MemberOk(WbOfficesScript)));
     reg.register(Arc::new(MemberOk(SuppliesScript)));
     reg.register(Arc::new(MemberOk(SuppliesFboScript)));
-    reg.register(Arc::new(MemberOk(SupplyInfoScript)));
-    reg.register(Arc::new(MemberOk(SuppliesGoodsScript)));
+    reg.register(Arc::new(SupplyInfoScript));
+    reg.register(Arc::new(SuppliesGoodsScript));
     reg.register(Arc::new(MemberOk(SuppliesWarehousesScript)));
-    reg.register(Arc::new(MemberOk(CopyDataScript)));
-    reg.register(Arc::new(MemberOk(SymbolsCheckScript)));
-    reg.register(Arc::new(MemberOk(CellsCountScript)));
+    reg.register(Arc::new(CopyDataScript));
+    reg.register(Arc::new(SymbolsCheckScript));
+    reg.register(Arc::new(CellsCountScript));
     reg.register(Arc::new(MemberOk(ItemRatingScript)));
     reg.register(Arc::new(MemberOk(ClaimsScript)));
     reg.register(Arc::new(MemberOk(FeedbacksArchiveScript)));
     reg.register(Arc::new(MemberOk(FeedbacksCountScript)));
     reg.register(Arc::new(MemberOk(PromotionsScript)));
-    reg.register(Arc::new(MemberOk(AcceptanceOptionsScript)));
+    reg.register(Arc::new(AcceptanceOptionsScript));
     reg.register(Arc::new(MemberOk(TransitTariffsScript)));
     reg.register(Arc::new(MemberOk(WbObjectCharcsScript)));
     reg.register(Arc::new(MemberOk(OrderFeedScript)));
+    reg.register(Arc::new(MemberOk(WbSupplierOrdersScript)));
     reg.register(Arc::new(MemberOk(OrdersFbsScript)));
-    reg.register(Arc::new(MemberOk(OrdersFbsStatusScript)));
-    // create-task / auto — без MemberOk (USER_ACCESS).
+    reg.register(Arc::new(OrdersFbsStatusScript));
     reg.register(Arc::new(NmReportDownloadsScript));
     reg.register(Arc::new(MemberOk(NmReportDownloadsListScript)));
-    reg.register(Arc::new(MemberOk(NmReportDownloadFileScript)));
+    reg.register(Arc::new(NmReportDownloadFileScript));
     reg.register(Arc::new(NmReportDownloadsAutoScript));
     reg.register(Arc::new(NmReportStockHistoryAutoScript));
     reg.register(Arc::new(MemberOk(OzonProductListScript)));
-    reg.register(Arc::new(MemberOk(OzonProductInfoScript)));
+    reg.register(Arc::new(OzonProductInfoScript));
     reg.register(Arc::new(MemberOk(OzonProductReportScript)));
-    reg.register(Arc::new(MemberOk(OzonProductPricesScript)));
-    reg.register(Arc::new(MemberOk(OzonCommissionsScript)));
-    reg.register(Arc::new(MemberOk(OzonSubscriptionScript)));
-    reg.register(Arc::new(MemberOk(OzonStocksScript)));
-    reg.register(Arc::new(MemberOk(OzonFbsStocksScript)));
-    reg.register(Arc::new(MemberOk(OzonProductAttributesScript)));
+    reg.register(Arc::new(OzonProductPricesScript));
+    reg.register(Arc::new(OzonCommissionsScript));
+    reg.register(Arc::new(OzonSubscriptionScript));
+    reg.register(Arc::new(OzonStocksScript));
+    reg.register(Arc::new(OzonFbsStocksScript));
+    reg.register(Arc::new(OzonProductAttributesScript));
     reg.register(Arc::new(MemberOk(OzonFboOrdersScript)));
     reg.register(Arc::new(MemberOk(OzonFbsOrdersScript)));
     reg.register(Arc::new(MemberOk(OzonCoinvestScript)));

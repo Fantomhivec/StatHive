@@ -12,8 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import { useMemo, useState } from "react";
 import type { AccessMatrixDto, ScriptCatalogItem } from "../bridge/hostApi";
 import { useT } from "../i18n";
+
+function scriptLabel(s: ScriptCatalogItem): string {
+  return (s.title || s.key).trim();
+}
+
+function compareScripts(a: ScriptCatalogItem, b: ScriptCatalogItem): number {
+  const byTitle = scriptLabel(a).localeCompare(scriptLabel(b), "ru", {
+    sensitivity: "base",
+  });
+  if (byTitle !== 0) return byTitle;
+  return a.key.localeCompare(b.key, "en", { sensitivity: "base" });
+}
 
 const CALC_FLAGS = ["view", "settings", "tables", "kgt", "excel"] as const;
 const APP_FLAGS = ["keysCheck", "users"] as const;
@@ -77,8 +90,24 @@ export default function UsersAccessEditor({
   onChange,
 }: Props) {
   const t = useT();
+  const [scriptQuery, setScriptQuery] = useState("");
   const flags = normalizeFlags(calcAccess, calculator);
   const appFlags = normalizeAppFlags(appAccess);
+
+  const sortedCatalog = useMemo(
+    () => [...catalog].sort(compareScripts),
+    [catalog],
+  );
+
+  const visibleCatalog = useMemo(() => {
+    const q = scriptQuery.trim().toLocaleLowerCase("ru");
+    if (!q) return sortedCatalog;
+    return sortedCatalog.filter((s) => {
+      const title = scriptLabel(s).toLocaleLowerCase("ru");
+      const key = s.key.toLocaleLowerCase("ru");
+      return title.includes(q) || key.includes(q);
+    });
+  }, [sortedCatalog, scriptQuery]);
 
   function emit(p: {
     id?: string;
@@ -251,11 +280,26 @@ export default function UsersAccessEditor({
             </span>
           </div>
         )}
+        <div className="field users-scripts-search">
+          <label htmlFor="access-editor-script-search">{t("users.access.scriptsSearchLabel")}</label>
+          <input
+            id="access-editor-script-search"
+            type="search"
+            className="input"
+            value={scriptQuery}
+            disabled={busy || catalog.length === 0}
+            placeholder={t("users.access.scriptsSearchPlaceholder")}
+            onChange={(e) => setScriptQuery(e.target.value)}
+            autoComplete="off"
+          />
+        </div>
         <div className="plate plate--pad users-script-catalog">
           {catalog.length === 0 ? (
             <p className="muted u-m-0">{t("users.access.catalogEmpty")}</p>
+          ) : visibleCatalog.length === 0 ? (
+            <p className="muted u-m-0">{t("users.access.scriptsNoMatch")}</p>
           ) : (
-            catalog.map((s) => (
+            visibleCatalog.map((s) => (
               <label key={s.key} className="users-check-row">
                 <input
                   type="checkbox"
@@ -264,7 +308,7 @@ export default function UsersAccessEditor({
                   onChange={() => toggleKey(s.key)}
                 />
                 <span title={s.key}>
-                  {s.title || s.key}
+                  {scriptLabel(s)}
                   {s.memberOk ? ` (${t("users.access.memberOkBadge")})` : ""}
                 </span>
               </label>

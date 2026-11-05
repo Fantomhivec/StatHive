@@ -51,7 +51,7 @@
 - Запуск: **пресет ∩ (Admin \| HasOauth \| `memberOk` у скрипта)**.
 - `memberOk` задаётся обёрткой `MemberOk(Script)` при регистрации в `scripts/mod.rs` (по умолчанию без обёртки = **false**). В каталоге пресета помечается «без OAuth».
 
-Новый скрипт: [AddingNewScript.md](./AddingNewScript.md) §2. Экспортные (без мутаций API маркетплейса) регистрируются как `MemberOk(...)` в `scripts/mod.rs` — участник без HasOauth видит их в пресете и запускает **только через шаблоны с Excel**. Мутаторы (upload/set/move/trash/media/create-task, в т.ч. `prices_history_task`) остаются без `MemberOk`. Прямого IPC `scripts_run` нет — только `templates_run*` (без OAuth запись в Google режется).
+Новый скрипт: [AddingNewScript.md](./AddingNewScript.md) §2. `MemberOk(...)` — только fetch с API маркетплейса **без** обязательного чтения Google Sheets; без HasOauth запуск **только Excel**. Без `MemberOk`: мутации API (upload/set/move/trash/media/create-task/auto), скрипты с чтением ID/диапазонов/task id из Sheets, утилиты Sheets. Прямого IPC `scripts_run` нет — только `templates_run*` (без OAuth запись в Google режется).
 
 ### CalcConfig (не часть пресета)
 

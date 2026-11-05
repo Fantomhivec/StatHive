@@ -106,7 +106,7 @@ pub trait Script: Send + Sync {
         Vec::new()
     }
     /// Можно запускать не-админу без своего Google OAuth (по умолчанию нет).
-    /// Экспортные скрипты без мутаций маркетплейса оборачивают в `MemberOk` при регистрации.
+    /// Скрипты только с fetch API (без обязательного чтения Sheets) — `MemberOk` при регистрации.
     fn member_ok(&self) -> bool {
         false
     }
@@ -116,7 +116,7 @@ pub trait Script: Send + Sync {
     ) -> Pin<Box<dyn Future<Output = ScriptResult> + Send + 'a>>;
 }
 
-/// Обёртка: скрипт доступен участнику без HasOauth (Excel-only через шаблоны).
+/// Обёртка: скрипт доступен без HasOauth (результат в Excel). Только fetch API, без read Sheets.
 pub struct MemberOk<S: Script>(pub S);
 
 impl<S: Script> Script for MemberOk<S> {

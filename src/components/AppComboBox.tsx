@@ -165,7 +165,14 @@ export default function AppComboBox({
             aria-controls={listId}
             aria-haspopup="listbox"
           >
-            {closedLabel || placeholder || ""}
+            {selected?.secondary && !displayValue ? (
+              <>
+                <span className="app-combo-display-label">{selected.label}</span>
+                <span className="app-combo-display-secondary">{selected.secondary}</span>
+              </>
+            ) : (
+              closedLabel || placeholder || ""
+            )}
           </button>
         )}
         <button

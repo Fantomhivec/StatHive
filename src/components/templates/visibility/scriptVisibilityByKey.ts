@@ -32,6 +32,7 @@ export const BY_KEY: Record<string, ScriptVisibility> = {
     secondHint: t("templates.scriptHints.wbNmSource"),
   },
   order_feed: { ...DEFAULT, requiresDateRange: true },
+  wb_supplier_orders: { ...DEFAULT, requiresDateRange: true },
   orders_fbs: { ...DEFAULT, requiresDateRange: true },
   orders_fbs_status: {
     ...DEFAULT,

@@ -25,6 +25,16 @@ pub mod order_feed {
     }
 }
 
+/// Statistics API supplier orders: 1 req / 1 min per cabinet.
+pub mod wb_supplier_orders {
+    use super::*;
+    pub const SCOPE: &str = "wb_supplier_orders|GET|/api/v1/supplier/orders";
+    pub fn profile() -> RateLimitProfile {
+        RateLimitProfile::sliding_window(1, Duration::from_secs(60), Duration::from_secs(60))
+            .with_429_pause(Duration::from_secs(65))
+    }
+}
+
 /// Marketplace FBS orders list: ~300 req / min.
 pub mod orders_fbs {
     use super::*;

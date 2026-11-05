@@ -144,6 +144,10 @@
   gap: 8px;
 }
 
+.users-scripts-search {
+  margin-bottom: 0;
+}
+
 .users-check-row {
   display: flex;
   align-items: flex-start;
