@@ -48,9 +48,11 @@ pub async fn templates_snapshot(
             }
         }
     }
+    let market = normalize_marketplace(&args.marketplace);
     let allowed = |script_key: &str| {
         let member_ok = state.registry.is_member_ok(script_key);
         crate::core::access::can_run_script(&level, script_key, has_oauth, member_ok)
+            && crate::scripts::groups::script_belongs_to_marketplace(script_key, &market)
     };
     snap.templates.retain(|t| allowed(&t.script_key));
     {
@@ -95,41 +97,23 @@ pub fn templates_get(
             .map(|u| u.access_level)
             .unwrap_or_else(|| "Denied".into());
         let has_oauth = access_gate::session_has_oauth(&state);
-        let key = if args.script_key.trim().is_empty() {
-            state
-                .registry
-                .list_with_meta()
-                .into_iter()
-                .find(|(k, _, member_ok)| {
-                    crate::core::access::can_run_script(&level, k, has_oauth, *member_ok)
-                })
-                .map(|(k, _, _)| k)
-                .unwrap_or_else(|| {
-                    if market == "ozon" {
-                        "ozon_pending".into()
-                    } else {
-                        "cards_list".into()
-                    }
-                })
+        let requested = args.script_key.trim().to_string();
+        let key = if requested.is_empty()
+            || !crate::scripts::groups::script_belongs_to_marketplace(&requested, &market)
+        {
+            crate::scripts::groups::default_script_key(&state.registry, &market, &|k, member_ok| {
+                crate::core::access::can_run_script(&level, k, has_oauth, member_ok)
+            })
         } else {
-            args.script_key.trim().to_string()
+            requested
         };
+        if !crate::scripts::groups::script_belongs_to_marketplace(&key, &market) {
+            return Err(format!(
+                "Скрипт «{key}» не относится к площадке «{market}»"
+            ));
+        }
         access_gate::require_script(&state, &key)?;
-        let mut tpl = if state.registry.get(&key).is_some() {
-            templates::new_template(&state.registry, &key, &market, &tab)?
-        } else {
-            crate::templates::Template::new_blank(
-                &key,
-                if market == "ozon" {
-                    "OZON (скоро)"
-                } else {
-                    &key
-                },
-                Vec::new(),
-                &market,
-                &tab,
-            )
-        };
+        let mut tpl = templates::new_template(&state.registry, &key, &market, &tab)?;
         if access_gate::templates_excel_only(&state) {
             tpl.export_to_excel = true;
         }
@@ -189,8 +173,14 @@ pub fn templates_save(
         return Err("Укажите имя шаблона".into());
     }
     let market = normalize_marketplace(&template.marketplace);
-    if market == "wb" && state.registry.get(&template.script_key).is_none() {
+    if state.registry.get(&template.script_key).is_none() {
         return Err(format!("Скрипт не найден: {}", template.script_key));
+    }
+    if !crate::scripts::groups::script_belongs_to_marketplace(&template.script_key, &market) {
+        return Err(format!(
+            "Скрипт «{}» нельзя сохранить в шаблонах «{}»",
+            template.script_key, market
+        ));
     }
     access_gate::require_script(&state, &template.script_key)?;
     let mut tpl = template;

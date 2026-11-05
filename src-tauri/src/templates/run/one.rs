@@ -71,6 +71,13 @@ pub(super) async fn run_one_inner(
     dry_run: bool,
 ) -> Result<(usize, String), String> {
     crate::templates::access_gate::require_script(state, &tpl.script_key)?;
+    let market = crate::templates::model::normalize_marketplace(&tpl.marketplace);
+    if !crate::scripts::groups::script_belongs_to_marketplace(&tpl.script_key, &market) {
+        return Err(format!(
+            "Скрипт «{}» не относится к площадке «{}»",
+            tpl.script_key, market
+        ));
+    }
 
     let script = state
         .registry

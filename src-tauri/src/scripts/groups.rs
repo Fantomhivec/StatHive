@@ -31,6 +31,39 @@ pub struct ScriptOptionDto {
     pub api_updated: String,
 }
 
+/// WB vs OZON: ключи `ozon_*` только для Ozon; всё остальное — WB. Площадки не пересекаются.
+pub fn script_belongs_to_marketplace(script_key: &str, marketplace: &str) -> bool {
+    let market = marketplace.trim().to_ascii_lowercase();
+    let is_ozon = script_key.trim().starts_with("ozon_");
+    if market == "ozon" {
+        is_ozon
+    } else {
+        !is_ozon
+    }
+}
+
+/// Первый ключ из групп площадки, который проходит ACL; иначе запасной дефолт площадки.
+pub fn default_script_key(
+    registry: &ScriptRegistry,
+    marketplace: &str,
+    can_run: &dyn Fn(&str, bool) -> bool,
+) -> String {
+    let market = marketplace.trim().to_ascii_lowercase();
+    for g in list_grouped(registry, &market) {
+        for s in g.scripts {
+            let member_ok = registry.is_member_ok(&s.key);
+            if can_run(&s.key, member_ok) {
+                return s.key;
+            }
+        }
+    }
+    if market == "ozon" {
+        "ozon_product_list".into()
+    } else {
+        "cards_list".into()
+    }
+}
+
 /// Группы `ScriptGroupsConfiguration` — только зарегистрированные скрипты.
 pub fn list_grouped(registry: &ScriptRegistry, marketplace: &str) -> Vec<ScriptGroupDto> {
     let market = marketplace.trim().to_ascii_lowercase();
@@ -245,13 +278,7 @@ pub fn list_grouped(registry: &ScriptRegistry, marketplace: &str) -> Vec<ScriptG
         .collect();
     let mut other = Vec::new();
     for (key, title) in registry.list() {
-        let is_ozon_script = key.starts_with("ozon_");
-        let belongs = if market == "ozon" {
-            is_ozon_script
-        } else {
-            !is_ozon_script
-        };
-        if belongs && !known.contains(key.as_str()) {
+        if script_belongs_to_marketplace(&key, &market) && !known.contains(key.as_str()) {
             other.push(ScriptOptionDto {
                 key,
                 title,

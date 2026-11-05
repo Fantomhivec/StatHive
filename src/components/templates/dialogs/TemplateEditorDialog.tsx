@@ -88,7 +88,8 @@ export default function TemplateEditorDialog({
         if (cancelled) return;
         const forceExcel = !!layout?.templatesExcelOnly;
         setExcelOnly(forceExcel);
-        setScriptGroups(grouped.groups ?? []);
+        const groups = grouped.groups ?? [];
+        setScriptGroups(groups);
         const marketFilter = marketplace === "ozon" ? "OZON" : "WB";
         const cabs = env.rows.filter((r) => r.marketplace === marketFilter);
         setCabinets(cabs);
@@ -97,7 +98,31 @@ export default function TemplateEditorDialog({
           templateId && loadedTab
             ? loadedTab
             : tabName.trim() || loadedTab || tabs[0] || t("templates.defaultTab");
+        const marketKeys = new Set(
+          groups.flatMap((g) => g.scripts.map((s) => s.key)),
+        );
         const next = normalizeTpl(loaded.template, marketplace, initialTab);
+        // WB/OZON never cross: foreign key (e.g. after market switch) → first script of this market.
+        if (!marketKeys.has((next.script_key ?? "").trim())) {
+          const fallback = groups.flatMap((g) => g.scripts)[0];
+          if (fallback) {
+            next.script_key = fallback.key;
+            if (!templateId) {
+              next.name = t("templates.newTemplateName", {
+                scriptTitle: fallback.title,
+              });
+            }
+            try {
+              const res = await hostApi.templatesListFields(fallback.key, []);
+              next.selected_fields = normalizeFieldRows(res.fields);
+            } catch {
+              next.selected_fields = [];
+            }
+          } else {
+            next.script_key = "";
+            next.selected_fields = [];
+          }
+        }
         if (!next.cabinets?.length && cabs.length === 1) {
           next.cabinets = [cabs[0].cabinet];
         }
