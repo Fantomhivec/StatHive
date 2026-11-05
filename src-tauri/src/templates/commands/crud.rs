@@ -75,6 +75,7 @@ pub async fn templates_snapshot(
         .filter(|t| !in_group.contains(&t.id))
         .cloned()
         .collect();
+    crate::templates::runs::hydrate_snapshot_running(&mut snap);
     Ok(serde_json::to_value(snap).map_err(|e| e.to_string())?)
 }
 

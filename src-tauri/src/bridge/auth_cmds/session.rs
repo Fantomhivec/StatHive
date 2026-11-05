@@ -17,10 +17,11 @@ use crate::app_state::AppState;
 use crate::auth::{AuthSetupStatus, UserInfo};
 use serde::Deserialize;
 use std::sync::Arc;
-use tauri::State;
+use tauri::{AppHandle, State};
 
 #[tauri::command]
-pub fn auth_status(state: State<'_, Arc<AppState>>) -> Option<UserInfo> {
+pub fn auth_status(app: AppHandle, state: State<'_, Arc<AppState>>) -> Option<UserInfo> {
+    crate::auth::ensure_runtime_from_app(&app);
     state.auth.ensure_activity_timer();
     state.auth.current_user()
 }

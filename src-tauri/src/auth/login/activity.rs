@@ -251,12 +251,8 @@ impl AuthService {
                                             }
                                             if super::super::emit_session_updated(&next) {
                                                 last_emitted_fp = next_fp;
-                                            } else {
-                                                log.warn(tf(
-                                                    "log.auth.sessionUpdatedEmitFailed",
-                                                    &[("login", &next.login)],
-                                                ));
                                             }
+                                            // No APP / emit Err: silent retry next tick (not a user-facing error).
                                         }
                                         Some(next.access_level)
                                     }

@@ -167,7 +167,7 @@ async fn fetch_by_cabinets(
     profile: &crate::core::rate_limit::RateLimitProfile,
     order: &str,
 ) -> Result<Vec<Built>, String> {
-    let parts = common::map_cabinets_chunked(cabinets, common::CABINET_PARALLELISM, |cabinet| {
+    let parts = common::map_cabinets_chunked(cabinets, common::wb_cabinet_parallelism(cabinets.len()), |cabinet| {
         let token = common::resolve_wb_token_with_map(ctx, tokens, &cabinet);
         let profile = profile.clone();
         let order = order.to_string();
@@ -257,7 +257,7 @@ async fn fetch_by_nm(
         return Err("Нет валидных пар кабинет/артикул в диапазонах".into());
     }
     let cabinets: Vec<String> = by_cab.keys().cloned().collect();
-    let parts = common::map_cabinets_chunked(&cabinets, common::CABINET_PARALLELISM, |cabinet| {
+    let parts = common::map_cabinets_chunked(&cabinets, common::wb_cabinet_parallelism(cabinets.len()), |cabinet| {
         let nms = by_cab.get(&cabinet).cloned().unwrap_or_default();
         let token = common::resolve_wb_token_with_map(ctx, tokens, &cabinet);
         let profile = profile.clone();

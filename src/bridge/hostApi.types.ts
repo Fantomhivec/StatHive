@@ -302,6 +302,8 @@ export type TemplateGroupDto = {
   last_run_status?: string;
   last_run_at?: string;
   is_running?: boolean;
+  /** Ephemeral — current nested template while group runs. */
+  active_template_id?: string | null;
   time_triggers?: TimeTriggerDto[];
 };
 

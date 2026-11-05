@@ -59,6 +59,28 @@ pub fn default_fields() -> Vec<ScriptField> {
     ]
 }
 
+/// Merge template selected_fields with catalog defaults (fix titles; drop unknown names).
+pub fn normalize_fields(saved: &[ScriptField]) -> Vec<ScriptField> {
+    let defaults = default_fields();
+    let by_name: std::collections::HashMap<&str, &ScriptField> =
+        defaults.iter().map(|f| (f.name.as_str(), f)).collect();
+    let mut out = Vec::with_capacity(saved.len());
+    for f in saved {
+        let Some(def) = by_name.get(f.name.as_str()) else {
+            continue;
+        };
+        out.push(ScriptField::new(
+            f.name.as_str(),
+            def.title.clone(),
+            f.selected,
+        ));
+    }
+    if out.is_empty() {
+        return defaults;
+    }
+    out
+}
+
 pub fn build_rows(cabinet: &str, orders: &[Value], fields: &[ScriptField]) -> Vec<Vec<String>> {
     let selected: Vec<&ScriptField> = fields.iter().filter(|f| f.selected).collect();
     let mut out = Vec::with_capacity(orders.len() + 1);
@@ -73,6 +95,36 @@ pub fn build_rows(cabinet: &str, orders: &[Value], fields: &[ScriptField]) -> Ve
     out
 }
 
+/// One-shot diagnostic when price columns are empty on the first data row.
+pub fn price_fields_empty_diag(orders: &[Value], fields: &[ScriptField]) -> Option<String> {
+    let price_names = ["totalPrice", "spp", "finishedPrice", "priceWithDisc", "discountPercent"];
+    let selected_prices: Vec<&str> = fields
+        .iter()
+        .filter(|f| f.selected && price_names.contains(&f.name.as_str()))
+        .map(|f| f.name.as_str())
+        .collect();
+    if selected_prices.is_empty() {
+        return None;
+    }
+    let Some(o) = orders.first() else {
+        return None;
+    };
+    let all_empty = selected_prices
+        .iter()
+        .all(|n| field_value("", o, n).is_empty());
+    if !all_empty {
+        return None;
+    }
+    let keys: Vec<&str> = o
+        .as_object()
+        .map(|m| m.keys().map(|k| k.as_str()).collect())
+        .unwrap_or_default();
+    Some(format!(
+        "Пустые price-поля на первой строке; ключи JSON заказа: {}",
+        keys.join(", ")
+    ))
+}
+
 fn field_value(cabinet: &str, o: &Value, name: &str) -> String {
     match name {
         "cabinet" => cabinet.to_string(),
@@ -81,16 +133,21 @@ fn field_value(cabinet: &str, o: &Value, name: &str) -> String {
         "warehouseName" | "warehouseType" | "countryName" | "oblastOkrugName" | "regionName"
         | "supplierArticle" | "barcode" | "category" | "subject" | "brand" | "techSize"
         | "sticker" | "gNumber" | "srid" => json_str(o.get(name)),
-        "nmId" | "incomeID" | "discountPercent" => num_str(o.get(name)),
+        "nmId" | "incomeID" => num_str(o.get(name)),
+        "discountPercent" | "totalPrice" | "spp" | "finishedPrice" | "priceWithDisc" => {
+            format_number_ru(o.get(name))
+        }
         "isSupply" | "isRealization" | "isCancel" => format_bool(o.get(name)),
-        "totalPrice" | "spp" | "finishedPrice" | "priceWithDisc" => format_number_ru(o.get(name)),
         _ => String::new(),
     }
 }
 
 fn format_cancel_date(raw: &str) -> String {
     let s = raw.trim();
-    if s.is_empty() || s.starts_with("0001-01-01") {
+    if s.is_empty()
+        || s.starts_with("0001-01-01")
+        || s.starts_with("2001-01-01")
+    {
         return String::new();
     }
     sheet_dates::format_wb_timestamp(s)
@@ -109,7 +166,14 @@ fn json_str(v: Option<&Value>) -> String {
 fn num_str(v: Option<&Value>) -> String {
     match v {
         Some(Value::Number(n)) => n.to_string(),
-        Some(Value::String(s)) => s.clone(),
+        Some(Value::String(s)) => s.trim().to_string(),
+        Some(Value::Bool(b)) => {
+            if *b {
+                "1".into()
+            } else {
+                "0".into()
+            }
+        }
         _ => String::new(),
     }
 }
@@ -118,12 +182,37 @@ fn format_bool(v: Option<&Value>) -> String {
     match v {
         Some(Value::Bool(true)) => "Да".into(),
         Some(Value::Bool(false)) => "Нет".into(),
+        Some(Value::Number(n)) => {
+            if n.as_f64() == Some(0.0) {
+                "Нет".into()
+            } else if n.as_f64().is_some() {
+                "Да".into()
+            } else {
+                String::new()
+            }
+        }
+        Some(Value::String(s)) => {
+            let t = s.trim().to_ascii_lowercase();
+            match t.as_str() {
+                "true" | "1" | "yes" | "да" => "Да".into(),
+                "false" | "0" | "no" | "нет" => "Нет".into(),
+                _ => String::new(),
+            }
+        }
         _ => String::new(),
     }
 }
 
 fn format_number_ru(v: Option<&Value>) -> String {
-    let Some(n) = v.and_then(|x| x.as_f64()) else {
+    let n = match v {
+        Some(Value::Number(n)) => n.as_f64(),
+        Some(Value::String(s)) => {
+            let t = s.trim().replace(',', ".");
+            t.parse::<f64>().ok()
+        }
+        _ => None,
+    };
+    let Some(n) = n else {
         return String::new();
     };
     format!("{n:.2}").replace('.', ",")

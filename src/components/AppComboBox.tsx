@@ -18,7 +18,10 @@ import { useT } from "../i18n";
 export type AppComboOption = {
   value: string;
   label: string;
+  /** Method / path — muted. */
   secondary?: string;
+  /** Date / badge — higher contrast (e.g. script api_updated). */
+  tertiary?: string;
 };
 
 export type AppComboGroup = {
@@ -95,9 +98,9 @@ export default function AppComboBox({
   const closedLabel =
     displayValue ??
     (selected
-      ? selected.secondary
-        ? `${selected.label} ${selected.secondary}`
-        : selected.label
+      ? [selected.label, selected.secondary, selected.tertiary]
+          .filter(Boolean)
+          .join(" ")
       : value);
 
   function toggleGroup(label: string) {
@@ -129,6 +132,7 @@ export default function AppComboBox({
       >
         <span className="app-combo-item-label">{o.label}</span>
         {o.secondary ? <span className="app-combo-item-secondary">{o.secondary}</span> : null}
+        {o.tertiary ? <span className="app-combo-item-tertiary">{o.tertiary}</span> : null}
       </li>
     );
   }
@@ -165,10 +169,15 @@ export default function AppComboBox({
             aria-controls={listId}
             aria-haspopup="listbox"
           >
-            {selected?.secondary && !displayValue ? (
+            {(selected?.secondary || selected?.tertiary) && !displayValue ? (
               <>
                 <span className="app-combo-display-label">{selected.label}</span>
-                <span className="app-combo-display-secondary">{selected.secondary}</span>
+                {selected.secondary ? (
+                  <span className="app-combo-display-secondary">{selected.secondary}</span>
+                ) : null}
+                {selected.tertiary ? (
+                  <span className="app-combo-display-tertiary">{selected.tertiary}</span>
+                ) : null}
               </>
             ) : (
               closedLabel || placeholder || ""

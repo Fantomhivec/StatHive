@@ -115,7 +115,7 @@ async fn run(ctx: &ScriptContext) -> ScriptResult {
     let cab_order: Vec<String> = by_cab.keys().cloned().collect();
     let parts = common::map_cabinets_chunked(
         &cab_order,
-        common::CABINET_PARALLELISM,
+        common::wb_cabinet_parallelism(cab_order.len()),
         |cabinet| {
             let items = by_cab.get(&cabinet).cloned().unwrap_or_default();
             let token = common::resolve_wb_token_with_map(ctx, &wb_tokens, &cabinet);

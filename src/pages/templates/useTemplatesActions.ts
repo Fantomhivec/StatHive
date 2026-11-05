@@ -12,10 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   hostApi,
-  onEvent,
   TemplateDto,
   TemplateGroupDto,
   TemplatesSnapshot,
@@ -25,13 +24,14 @@ import { useAppDialogs } from "../../components/useAppDialogs";
 import { useT } from "../../i18n";
 import { enrichSpreadsheetTitles } from "./enrichSpreadsheetTitles";
 import {
-  applyTemplatesRunProgress,
   emptySnap,
   ensureScriptsMap,
+  ensureTemplatesRunProgressBridge,
   getTemplatesSnapCache,
+  mergeEphemeralRunFlags,
   setTemplatesSnapCache,
+  subscribeTemplatesSnap,
   type TemplatesMarket,
-  type TemplatesRunProgress,
 } from "./templatesPageCache";
 
 export function useTemplatesActions() {
@@ -41,6 +41,8 @@ export function useTemplatesActions() {
   const [error, setError] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  /** Sync guard — setState alone allows double-click before re-render. */
+  const runLockRef = useRef(false);
   const [editorId, setEditorId] = useState<string | null | undefined>(undefined);
   const [groupEditor, setGroupEditor] = useState<{ groupId?: string | null } | null>(null);
   const [groupPick, setGroupPick] = useState<{ templateId: string } | null>(null);
@@ -48,9 +50,12 @@ export function useTemplatesActions() {
   const { confirm, prompt, alert, dialogs } = useAppDialogs();
 
   const applySnap = useCallback((s: TemplatesSnapshot) => {
-    const m = (s.marketplace === "ozon" ? "ozon" : "wb") as TemplatesMarket;
-    setTemplatesSnapCache(m, s);
-    setSnap(s);
+    setSnap((prev) => {
+      const merged = mergeEphemeralRunFlags(prev, s);
+      const m = (merged.marketplace === "ozon" ? "ozon" : "wb") as TemplatesMarket;
+      setTemplatesSnapCache(m, merged);
+      return merged;
+    });
   }, []);
 
   /** Карточки сразу; названия Google — фоном (кэш сессии + один batch save). */
@@ -93,27 +98,28 @@ export function useTemplatesActions() {
   }, [market, applySnap, enrichTitlesInBackground]);
 
   useEffect(() => {
+    ensureTemplatesRunProgressBridge();
     const cached = getTemplatesSnapCache(market);
     if (cached) {
       setSnap(cached);
       setError(null);
-      void ensureScriptsMap();
-      return;
     }
+    void ensureScriptsMap();
+    // Always re-fetch: hydrate is_running from cancel_map (cache alone loses busy after Logs).
     void reload();
   }, [market, reload]);
 
   useEffect(() => {
-    return onEvent<TemplatesRunProgress>("templates.runProgress", (p) => {
+    return subscribeTemplatesSnap((s) => {
+      const m = (s.marketplace === "ozon" ? "ozon" : "wb") as TemplatesMarket;
+      if (m !== market) return;
       setSnap((prev) => {
-        if (!prev) return prev;
-        const next = applyTemplatesRunProgress(prev, p);
-        const m = (next.marketplace === "ozon" ? "ozon" : "wb") as TemplatesMarket;
-        setTemplatesSnapCache(m, next);
-        return next;
+        const merged = mergeEphemeralRunFlags(prev, s);
+        setTemplatesSnapCache(m, merged);
+        return merged;
       });
     });
-  }, []);
+  }, [market]);
 
   // Caps/пресеты догрузились после restore — убрать ложный «нет доступа» без ухода со вкладки.
   useEffect(() => {
@@ -151,11 +157,60 @@ export function useTemplatesActions() {
     [applySnap, enrichTitlesInBackground, reloadSnap],
   );
 
+  const patchOptimisticRunning = useCallback((id: string, kind: "template" | "group") => {
+    setSnap((prev) => {
+      let next: TemplatesSnapshot;
+      if (kind === "template") {
+        const mark = (tpl: TemplateDto): TemplateDto =>
+          tpl.id === id ? { ...tpl, is_running: true } : tpl;
+        next = {
+          ...prev,
+          templates: (prev.templates ?? []).map(mark),
+          standalone: (prev.standalone ?? []).map(mark),
+        };
+      } else {
+        const firstTpl = (prev.groups ?? []).find((g) => g.id === id)?.template_ids?.[0];
+        next = {
+          ...prev,
+          groups: (prev.groups ?? []).map((g) =>
+            g.id === id
+              ? {
+                  ...g,
+                  is_running: true,
+                  active_template_id: g.active_template_id || firstTpl || null,
+                }
+              : g,
+          ),
+        };
+        if (firstTpl) {
+          const memberIds = new Set(
+            (prev.groups ?? []).find((g) => g.id === id)?.template_ids ?? [],
+          );
+          const markNested = (tpl: TemplateDto): TemplateDto =>
+            memberIds.has(tpl.id)
+              ? { ...tpl, is_running: tpl.id === firstTpl }
+              : tpl;
+          next = {
+            ...next,
+            templates: (next.templates ?? []).map(markNested),
+            standalone: (next.standalone ?? []).map(markNested),
+          };
+        }
+      }
+      const m = (next.marketplace === "ozon" ? "ozon" : "wb") as TemplatesMarket;
+      setTemplatesSnapCache(m, next);
+      return next;
+    });
+  }, []);
+
   const run = useCallback(
     async (id: string, dryRun = false) => {
+      if (runLockRef.current) return;
+      runLockRef.current = true;
       setBusyId(id);
       setMsg(null);
       setError(null);
+      patchOptimisticRunning(id, "template");
       try {
         const res = await hostApi.templatesRun(id, dryRun);
         const fallback = dryRun
@@ -165,19 +220,23 @@ export function useTemplatesActions() {
       } catch (e) {
         setError(e instanceof Error ? e.message : String(e));
       } finally {
+        runLockRef.current = false;
         setBusyId(null);
         // С диска: иначе кэш/effect откатывает карточку к старому last_run_*.
         await reloadSnap();
       }
     },
-    [t, reloadSnap],
+    [t, reloadSnap, patchOptimisticRunning],
   );
 
   const runGroup = useCallback(
     async (id: string, dryRun = false) => {
+      if (runLockRef.current) return;
+      runLockRef.current = true;
       setBusyId(id);
       setMsg(null);
       setError(null);
+      patchOptimisticRunning(id, "group");
       try {
         const res = await hostApi.templatesRunGroup(id, dryRun);
         const fallback = dryRun
@@ -187,8 +246,40 @@ export function useTemplatesActions() {
       } catch (e) {
         setError(e instanceof Error ? e.message : String(e));
       } finally {
+        runLockRef.current = false;
         setBusyId(null);
         await reloadSnap();
+      }
+    },
+    [t, reloadSnap, patchOptimisticRunning],
+  );
+
+  const duplicateTemplate = useCallback(
+    async (id: string) => {
+      if (runLockRef.current) return;
+      setBusyId(id);
+      setMsg(null);
+      setError(null);
+      try {
+        const { template } = await hostApi.templatesGet(id);
+        const srcName = (template.name ?? "").trim() || id;
+        const clone: TemplateDto = {
+          ...template,
+          id: crypto.randomUUID(),
+          name: t("templates.copyName", { name: srcName }),
+          last_run_status: "",
+          last_run_at: "",
+          is_running: false,
+          created_at: undefined,
+          updated_at: undefined,
+        };
+        const saved = await hostApi.templatesSave(clone);
+        setMsg(t("templates.copiedOk", { name: saved.template.name }));
+        await reloadSnap();
+      } catch (e) {
+        setError(e instanceof Error ? e.message : String(e));
+      } finally {
+        setBusyId(null);
       }
     },
     [t, reloadSnap],
@@ -330,6 +421,7 @@ export function useTemplatesActions() {
     reloadSnap,
     run,
     runGroup,
+    duplicateTemplate,
     remove,
     removeGroup,
     onExpandGroup,

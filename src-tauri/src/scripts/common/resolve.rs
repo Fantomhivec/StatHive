@@ -199,8 +199,14 @@ pub fn append_cabinet_rows(
     all_rows.extend(rows);
 }
 
-/// OAuth пользователя (логирует).
+/// Default chunk size for Ozon / calculator (global-ish API pressure).
 pub const CABINET_PARALLELISM: usize = 3;
+
+/// WB: all selected cabinets at once (rate limit is per cabinet / token).
+#[inline]
+pub fn wb_cabinet_parallelism(cabinet_count: usize) -> usize {
+    cabinet_count.max(1)
+}
 
 /// Обход кабинетов чанками: внутри чанка — `try_join_all`, порядок чанков сохраняется.
 pub async fn map_cabinets_chunked<T, F, Fut>(

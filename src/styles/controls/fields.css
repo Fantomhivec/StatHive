@@ -27,6 +27,13 @@
   overflow: visible;
 }
 
+/* Beat .app-win-body / .dialog-body / .dialog-panel overflow:auto|hidden. */
+.app-win-body.combo-clip-ok,
+.dialog-body.combo-clip-ok,
+.dialog-panel.combo-clip-ok {
+  overflow: visible;
+}
+
 .field label {
   display: block;
   font-size: 12px;

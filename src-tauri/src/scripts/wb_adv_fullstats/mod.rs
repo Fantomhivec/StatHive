@@ -126,7 +126,7 @@ async fn run_fullstats(ctx: &ScriptContext) -> ScriptResult {
     let date_chunks = chunks.clone();
     let parts = common::map_cabinets_chunked(
         &cab_order,
-        common::CABINET_PARALLELISM,
+        common::wb_cabinet_parallelism(cab_order.len()),
         |cabinet| {
             let mut ids = by_cabinet.get(&cabinet).cloned().unwrap_or_default();
             ids.sort();

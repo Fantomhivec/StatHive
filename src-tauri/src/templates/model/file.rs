@@ -37,6 +37,12 @@ pub struct TemplateGroup {
     pub last_run_at: String,
     #[serde(default, alias = "TimeTriggers", alias = "timeTriggers")]
     pub time_triggers: Vec<TimeTrigger>,
+    /// Ephemeral — not on disk.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not", skip_deserializing)]
+    pub is_running: bool,
+    /// Ephemeral — current template while group runs.
+    #[serde(default, skip_serializing_if = "Option::is_none", skip_deserializing)]
+    pub active_template_id: Option<String>,
 }
 
 impl TemplateGroup {

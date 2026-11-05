@@ -154,6 +154,15 @@ pub(super) async fn run_one_inner(
         log_label,
         cancelled,
     );
+    // Sheets write needs user OAuth — fail before cabinet fetch spam.
+    if !dry_run && !export_to_excel {
+        if !crate::core::google::oauth::has_cached_token() {
+            return Err(crate::core::i18n::t(
+                "errors.google.notConnectedHint",
+            ));
+        }
+    }
+
     state
         .log
         .info(tf(

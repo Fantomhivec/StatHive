@@ -23,6 +23,7 @@ mod updates;
 
 use app_state::AppState;
 use std::sync::Arc;
+use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -36,7 +37,8 @@ pub fn run() {
             calculator::run_log::set_app_handle(app.handle().clone());
             calculator::set_team_sync_app_handle(app.handle().clone());
             templates::runs::set_app_handle(app.handle().clone());
-            auth::set_app_handle(app.handle().clone());
+            let app_state = app.state::<Arc<AppState>>().inner().clone();
+            auth::set_runtime(app.handle().clone(), app_state);
             // Тихий прогрев Google user OAuth (refresh access; без браузера на старте).
             tauri::async_runtime::spawn(async {
                 crate::core::google_oauth::warm_user_token().await;

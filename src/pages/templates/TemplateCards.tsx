@@ -56,17 +56,21 @@ function ReorderBtns({
 function TemplateTitleBlock({ template: tpl, running }: { template: TemplateDto; running: boolean }) {
   const period = formatPeriodLabel(tpl);
   const meta = formatTemplateMeta(tpl, running);
+  const fullMeta = [meta.lead, meta.status].filter(Boolean).join(" · ");
   return (
-    <div>
+    <div className="tpl-card-text">
       <div className="tpl-card-title-row">
         <h2 className="tpl-card-name">{tpl.name}</h2>
         {period ? <span className="tpl-period">{period}</span> : null}
       </div>
-      <p className="tpl-card-meta">
+      <p className="tpl-card-meta" title={fullMeta || undefined}>
         {meta.lead}
         {meta.lead && meta.status ? " · " : null}
         {meta.status ? (
-          <span className={"tpl-status" + (meta.statusClass ? ` ${meta.statusClass}` : "")}>
+          <span
+            className={"tpl-status" + (meta.statusClass ? ` ${meta.statusClass}` : "")}
+            title={meta.status}
+          >
             {meta.status}
           </span>
         ) : null}
@@ -83,6 +87,7 @@ export type GroupCardHandlers = {
   onDeleteGroup: (id: string) => void;
   onMoveGroup: (id: string, dir: "up" | "down") => void;
   onEditTemplate: (id: string) => void;
+  onDuplicateTemplate: (id: string) => void;
   onRunTemplate: (id: string, dryRun?: boolean) => void;
   onCancelTemplate: (id: string) => void;
   onMoveTemplate: (groupId: string, id: string, dir: "up" | "down") => void;
@@ -106,15 +111,31 @@ function GroupCardInner({
   onDeleteGroup,
   onMoveGroup,
   onEditTemplate,
+  onDuplicateTemplate,
   onRunTemplate,
   onCancelTemplate,
   onMoveTemplate,
   onRemoveFromGroup,
 }: GroupProps) {
   const t = useT();
-  const running = !!g.is_running || busyId === g.id;
+  const nestedRunning = (g.template_ids ?? []).some((tid) => !!byId.get(tid)?.is_running);
+  const groupRunning =
+    !!g.is_running || busyId === g.id || nestedRunning;
+  const running = groupRunning;
+  // Single active nested — never OR multiple is_running (group is sequential).
+  const activeTplId =
+    (g.active_template_id ?? "").trim() ||
+    (busyId === g.id || groupRunning
+      ? (g.template_ids ?? []).find((tid) => !!byId.get(tid)?.is_running) ||
+        (busyId === g.id ? (g.template_ids ?? [])[0] : undefined)
+      : undefined);
   const when = formatRunAtDisplay(g.last_run_at);
   const status = (g.last_run_status ?? "").trim();
+  const groupMetaText = running
+    ? `${t("templates.card.templatesShort", { count: g.template_ids?.length ?? 0 })} · ${t("templates.card.running")}`
+    : when || status
+      ? `${t("templates.card.templatesShort", { count: g.template_ids?.length ?? 0 })} · ${[when, status || t("templates.card.ready")].filter(Boolean).join(" · ")}`
+      : `${t("templates.card.templatesShort", { count: g.template_ids?.length ?? 0 })} · ${t("templates.card.ready")}`;
   return (
     <div className="card card--md card--pad tpl-card">
       <div className="tpl-card-row tpl-card-row--4">
@@ -126,7 +147,7 @@ function GroupCardInner({
         >
           {g.is_expanded ? "−" : "+"}
         </button>
-        <div>
+        <div className="tpl-card-text">
           <div className="tpl-card-title-row">
             <h2 className="tpl-card-name">{g.name}</h2>
           </div>
@@ -139,13 +160,9 @@ function GroupCardInner({
                   ? " is-ok"
                   : "")
             }
+            title={groupMetaText}
           >
-            {t("templates.card.templatesShort", { count: g.template_ids?.length ?? 0 })}
-            {running
-              ? ` · ${t("templates.card.running")}`
-              : when || status
-                ? ` · ${[when, status || t("templates.card.ready")].filter(Boolean).join(" · ")}`
-                : ` · ${t("templates.card.ready")}`}
+            {groupMetaText}
           </p>
         </div>
         <ReorderBtns busy={!!busyId} onMove={(dir) => onMoveGroup(g.id, dir)} />
@@ -192,7 +209,10 @@ function GroupCardInner({
           {(g.template_ids ?? []).map((tid) => {
             const tpl = byId.get(tid);
             if (!tpl) return null;
-            const tRunning = !!tpl.is_running || busyId === tpl.id;
+            const tplSoloRunning = !!tpl.is_running || busyId === tpl.id;
+            const tplActiveInGroup =
+              groupRunning && !!activeTplId && activeTplId === tpl.id;
+            const tRunning = groupRunning ? tplActiveInGroup : tplSoloRunning;
             return (
               <div key={tid} className="plate plate--pad tpl-nested-row">
                 <ReorderBtns
@@ -201,7 +221,17 @@ function GroupCardInner({
                 />
                 <TemplateTitleBlock template={tpl} running={tRunning} />
                 <div className="form-actions form-actions--end">
-                  {tRunning ? (
+                  {groupRunning ? (
+                    <button
+                      className="btn btn-outline btn-card"
+                      type="button"
+                      disabled
+                    >
+                      {tplActiveInGroup
+                        ? t("templates.card.running")
+                        : t("templates.card.run")}
+                    </button>
+                  ) : tplSoloRunning ? (
                     <button
                       className="btn btn-danger btn-card"
                       type="button"
@@ -223,9 +253,18 @@ function GroupCardInner({
                   <button
                     className="btn btn-outline btn-card"
                     type="button"
+                    disabled={!!busyId}
                     onClick={() => onEditTemplate(tpl.id)}
                   >
                     {t("common.edit")}
+                  </button>
+                  <button
+                    className="btn btn-outline btn-card"
+                    type="button"
+                    disabled={!!busyId}
+                    onClick={() => onDuplicateTemplate(tpl.id)}
+                  >
+                    {t("common.copy")}
                   </button>
                   <button
                     className="btn btn-outline btn-card"
@@ -251,6 +290,7 @@ export type StandaloneCardHandlers = {
   onRunTemplate: (id: string, dryRun?: boolean) => void;
   onCancelTemplate: (id: string) => void;
   onEditTemplate: (id: string) => void;
+  onDuplicateTemplate: (id: string) => void;
   onDeleteTemplate: (id: string) => void;
   onAddToGroup: (id: string) => void;
   onMoveTemplate: (id: string, dir: "up" | "down") => void;
@@ -269,6 +309,7 @@ function StandaloneCardInner({
   onRunTemplate,
   onCancelTemplate,
   onEditTemplate,
+  onDuplicateTemplate,
   onDeleteTemplate,
   onAddToGroup,
   onMoveTemplate,
@@ -307,6 +348,14 @@ function StandaloneCardInner({
             onClick={() => onEditTemplate(tpl.id)}
           >
             {t("common.edit")}
+          </button>
+          <button
+            className="btn btn-outline btn-card"
+            type="button"
+            disabled={!!busyId}
+            onClick={() => onDuplicateTemplate(tpl.id)}
+          >
+            {t("common.copy")}
           </button>
           <button
             className="btn btn-outline btn-card"

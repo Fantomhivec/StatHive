@@ -304,6 +304,9 @@ pub struct TemplateCard {
     pub tab_name: String,
     pub last_run_status: String,
     pub last_run_at: String,
+    /// Ephemeral — from cancel_map / runProgress, not persisted.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub is_running: bool,
 }
 
 impl From<&Template> for TemplateCard {
@@ -324,6 +327,7 @@ impl From<&Template> for TemplateCard {
             tab_name: t.tab_name.clone(),
             last_run_status: t.last_run_status.clone(),
             last_run_at: t.last_run_at.clone(),
+            is_running: false,
         }
     }
 }

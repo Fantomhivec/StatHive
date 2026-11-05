@@ -83,8 +83,6 @@ impl AuthService {
             ));
             e
         })?;
-        let count = rows.len().to_string();
-        self.log.info(tf("log.auth.teamUserCount", &[("count", &count)]));
         let team: Vec<TeamUserRow> = rows
             .into_iter()
             .map(|u| {

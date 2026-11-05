@@ -59,12 +59,17 @@
   align-items: center;
 }
 
+.tpl-card-text {
+  min-width: 0;
+  overflow: hidden;
+}
+
 .tpl-card-row--4 {
-  grid-template-columns: auto 1fr auto auto;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
 }
 
 .tpl-card-row--3 {
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
 }
 
 .tpl-reorder {
@@ -94,6 +99,15 @@
   font-size: 13px;
   color: var(--muted);
   line-height: 1.35;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tpl-status {
+  min-width: 0;
 }
 
 .tpl-status.is-ok {
@@ -102,6 +116,10 @@
 
 .tpl-status.is-err {
   color: var(--danger);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
 }
 
 .tpl-period {
@@ -125,9 +143,13 @@
 
 .tpl-nested-row {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   gap: 10px;
   align-items: center;
+}
+
+.tpl-nested-row .form-actions {
+  flex-shrink: 0;
 }
 
 .tpl-ctx-menu {

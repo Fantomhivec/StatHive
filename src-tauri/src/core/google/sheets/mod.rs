@@ -27,7 +27,8 @@ use super::oauth;
 use super::service_account;
 use serde_json::{json, Value};
 
-pub(crate) const BATCH_ROWS: usize = 2000;
+/// Rows per values.update — large sheets must not go in one HTTP body.
+pub(crate) const BATCH_ROWS: usize = 10_000;
 
 #[derive(Clone)]
 pub struct GoogleSheetsClient {

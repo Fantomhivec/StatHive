@@ -25,9 +25,16 @@ static MANUAL_ACTIVE: AtomicUsize = AtomicUsize::new(0);
 const MANUAL_LIMIT: usize = 4;
 
 type CancelMap = Mutex<HashMap<String, Arc<AtomicBool>>>;
+/// group_id → current template id while group run is active.
+type ActiveTplMap = Mutex<HashMap<String, String>>;
 
 fn cancel_map() -> &'static CancelMap {
     static MAP: OnceLock<CancelMap> = OnceLock::new();
+    MAP.get_or_init(|| Mutex::new(HashMap::new()))
+}
+
+fn active_tpl_map() -> &'static ActiveTplMap {
+    static MAP: OnceLock<ActiveTplMap> = OnceLock::new();
     MAP.get_or_init(|| Mutex::new(HashMap::new()))
 }
 
@@ -48,6 +55,9 @@ pub fn unregister(run_key: &str) {
     if let Ok(mut g) = cancel_map().lock() {
         g.remove(run_key);
     }
+    if let Some(gid) = run_key.strip_prefix("group:") {
+        clear_group_active_template(gid);
+    }
     MANUAL_ACTIVE.fetch_sub(1, Ordering::Relaxed);
 }
 
@@ -61,6 +71,34 @@ pub fn cancel(run_key: &str) -> bool {
     false
 }
 
+/// Snapshot of active run keys (`template:…` / `group:…`).
+pub fn active_keys() -> Vec<String> {
+    cancel_map()
+        .lock()
+        .ok()
+        .map(|g| g.keys().cloned().collect())
+        .unwrap_or_default()
+}
+
+pub fn set_group_active_template(group_id: &str, template_id: &str) {
+    if let Ok(mut g) = active_tpl_map().lock() {
+        g.insert(group_id.to_string(), template_id.to_string());
+    }
+}
+
+pub fn clear_group_active_template(group_id: &str) {
+    if let Ok(mut g) = active_tpl_map().lock() {
+        g.remove(group_id);
+    }
+}
+
+pub fn group_active_template(group_id: &str) -> Option<String> {
+    active_tpl_map()
+        .lock()
+        .ok()
+        .and_then(|g| g.get(group_id).cloned())
+}
+
 pub fn emit_progress(
     entity_type: &str,
     id: &str,
@@ -68,10 +106,22 @@ pub fn emit_progress(
     is_running: bool,
     last_run_at: Option<&str>,
 ) {
+    emit_progress_ex(entity_type, id, status, is_running, last_run_at, None, None);
+}
+
+pub fn emit_progress_ex(
+    entity_type: &str,
+    id: &str,
+    status: Option<&str>,
+    is_running: bool,
+    last_run_at: Option<&str>,
+    active_template_id: Option<&str>,
+    group_id: Option<&str>,
+) {
     let Some(app) = APP.get() else {
         return;
     };
-    let payload = json!({
+    let mut payload = json!({
         "entityType": entity_type,
         "id": id,
         "lastRunStatus": status,
@@ -80,5 +130,58 @@ pub fn emit_progress(
         "manualRunsActive": MANUAL_ACTIVE.load(Ordering::Relaxed),
         "manualRunsLimit": MANUAL_LIMIT,
     });
+    if let Some(obj) = payload.as_object_mut() {
+        if let Some(tid) = active_template_id {
+            obj.insert("activeTemplateId".into(), json!(tid));
+        }
+        if let Some(gid) = group_id {
+            obj.insert("groupId".into(), json!(gid));
+        }
+    }
     let _ = app.emit("templates.runProgress", payload);
+}
+
+/// Patch snapshot cards with live run flags from cancel_map / active template.
+pub fn hydrate_snapshot_running(snap: &mut crate::templates::model::TemplatesSnapshot) {
+    let keys = active_keys();
+    let mut tpl_running: std::collections::HashSet<String> = std::collections::HashSet::new();
+    let mut group_running: std::collections::HashSet<String> = std::collections::HashSet::new();
+    for k in &keys {
+        if let Some(id) = k.strip_prefix("template:") {
+            tpl_running.insert(id.to_string());
+        } else if let Some(id) = k.strip_prefix("group:") {
+            group_running.insert(id.to_string());
+        }
+    }
+
+    let mut group_member_ids: std::collections::HashSet<String> =
+        std::collections::HashSet::new();
+    for g in &mut snap.groups {
+        if group_running.contains(&g.id) {
+            g.is_running = true;
+            g.active_template_id = group_active_template(&g.id);
+            if let Some(ref tid) = g.active_template_id {
+                tpl_running.insert(tid.clone());
+            }
+            for tid in &g.template_ids {
+                group_member_ids.insert(tid.clone());
+            }
+        }
+    }
+
+    for t in &mut snap.templates {
+        if tpl_running.contains(&t.id) {
+            t.is_running = true;
+        } else if group_member_ids.contains(&t.id) {
+            // Only the active nested is running — clear siblings from prior optimistic UI.
+            t.is_running = false;
+        }
+    }
+    for t in &mut snap.standalone {
+        if tpl_running.contains(&t.id) {
+            t.is_running = true;
+        } else if group_member_ids.contains(&t.id) {
+            t.is_running = false;
+        }
+    }
 }

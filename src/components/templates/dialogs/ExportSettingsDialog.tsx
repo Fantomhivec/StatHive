@@ -78,9 +78,10 @@ export default function ExportSettingsDialog({ fields, settings, onCancel, onSav
   return (
     <AppCustomWindow
       title={t("templates.exportSync.title")}
-      width={520}
+      width={560}
       zIndex={1250}
       onClose={onCancel}
+      panelClassName="combo-clip-ok"
       bodyClassName="tpl-export-body combo-clip-ok"
       footer={
         <>
@@ -123,6 +124,7 @@ export default function ExportSettingsDialog({ fields, settings, onCancel, onSav
           <div className="field">
             <label>{t("templates.exportSync.key1")}</label>
             <AppComboBox
+              className="app-combo--drop-up"
               options={options}
               value={key1}
               onChange={setKey1}
@@ -135,6 +137,7 @@ export default function ExportSettingsDialog({ fields, settings, onCancel, onSav
             <div className="tpl-export-key2-row">
               <div className="tpl-export-key2-combo">
                 <AppComboBox
+                  className="app-combo--drop-up"
                   options={options}
                   value={key2}
                   onChange={setKey2}

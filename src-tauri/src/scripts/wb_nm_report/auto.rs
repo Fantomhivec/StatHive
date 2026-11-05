@@ -113,7 +113,7 @@ pub(crate) async fn run(ctx: &ScriptContext, stock_history: bool) -> ScriptResul
     let rates = rates_for(stock_history);
     let parts = common::map_cabinets_chunked(
         &cabinets,
-        common::CABINET_PARALLELISM,
+        common::wb_cabinet_parallelism(cabinets.len()),
         |cabinet| {
             let token = common::resolve_wb_token_with_map(ctx, &wb_tokens, &cabinet);
             let create_p = rates.create.clone();

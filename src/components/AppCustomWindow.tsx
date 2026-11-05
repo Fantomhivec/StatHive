@@ -27,6 +27,8 @@ type Props = {
   closeOnOverlay?: boolean;
   showClose?: boolean;
   bodyClassName?: string;
+  /** Extra classes on .dialog-panel (e.g. combo-clip-ok). */
+  panelClassName?: string;
   footer?: ReactNode;
   /** Почти на весь экран (настройка вкладок и т.п.). */
   maximized?: boolean;
@@ -43,6 +45,7 @@ export default function AppCustomWindow({
   closeOnOverlay = false,
   showClose = true,
   bodyClassName,
+  panelClassName,
   footer,
   maximized = false,
 }: Props) {
@@ -66,7 +69,8 @@ export default function AppCustomWindow({
       <div
         className={
           `dialog-panel dialog-panel--win app-win--${tone}` +
-          (maximized ? " app-win--max" : "")
+          (maximized ? " app-win--max" : "") +
+          (panelClassName ? ` ${panelClassName}` : "")
         }
         style={
           maximized

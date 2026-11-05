@@ -83,8 +83,8 @@ export default function TemplateEditorBody({
           .map((s) => ({
             value: s.key,
             label: s.title,
-            secondary:
-              [s.api_method, s.api_updated].filter(Boolean).join(" · ") || undefined,
+            secondary: s.api_method || undefined,
+            tertiary: s.api_updated || undefined,
           }))
           .sort((a, b) => byRu(a.label, b.label) || a.value.localeCompare(b.value)),
       }))

@@ -461,6 +461,8 @@
     "groupRowsWritten": "Группа: строк {count}",
     "deleteTemplateConfirm": "Удалить шаблон?",
     "deleteGroupConfirm": "Удалить группу? Шаблоны останутся.",
+    "copyName": "{name} — копия",
+    "copiedOk": "Шаблон «{name}» скопирован",
     "tabNamePrompt": "Имя вкладки",
     "newTabPromptTitle": "Новая вкладка",
     "renameTabPrompt": "Новое название",

@@ -62,6 +62,8 @@ pub fn try_normalize_date_for_compare(raw: &str) -> Option<String> {
         "%Y-%m-%d",
         "%Y-%m-%dT%H:%M:%S",
         "%Y-%m-%dT%H:%M:%S%.f",
+        "%Y-%m-%dT%H:%M:%SZ",
+        "%Y-%m-%dT%H:%M:%S%.fZ",
         "%Y-%m-%d %H:%M:%S",
     ];
     for fmt in EXACT {

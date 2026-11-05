@@ -21,7 +21,7 @@ use crate::core::script::{Script, ScriptContext, ScriptOutput, ScriptResult};
 use crate::core::script_field::ScriptField;
 use crate::scripts::{common, dates};
 use chrono::{Duration, NaiveDate, NaiveDateTime};
-use self::fields::{build_rows, default_fields};
+use self::fields::{build_rows, default_fields, normalize_fields, price_fields_empty_diag};
 use self::fetch::fetch_all_unique;
 use serde_json::Value;
 use std::future::Future;
@@ -78,15 +78,16 @@ async fn run(ctx: &ScriptContext) -> ScriptResult {
         Err(o) => return Ok(o),
     };
 
-    let fields = common::resolve_fields(ctx, default_fields());
+    let fields = normalize_fields(&common::resolve_fields(ctx, default_fields()));
     if fields.iter().filter(|f| f.selected).count() == 0 {
         return Err("Не выбраны поля для выгрузки.".into());
     }
 
     let wb_tokens = common::load_wb_tokens()?;
+    // All selected cabinets in parallel (per-cabinet rate limit, not global CAP=3).
     let parts = common::map_cabinets_chunked(
         &cabinets,
-        common::CABINET_PARALLELISM,
+        common::wb_cabinet_parallelism(cabinets.len()),
         |cabinet| {
             let token = common::resolve_wb_token_with_map(ctx, &wb_tokens, &cabinet);
             async move {
@@ -112,10 +113,17 @@ async fn run(ctx: &ScriptContext) -> ScriptResult {
     let mut all_rows: Vec<Vec<String>> = Vec::new();
     let mut header_done = false;
     let mut total = 0usize;
+    let mut price_diag_done = false;
     for (cabinet, data) in parts {
         let Some(orders) = data else {
             continue;
         };
+        if !price_diag_done {
+            if let Some(msg) = price_fields_empty_diag(&orders, &fields) {
+                ctx.log.info(msg);
+            }
+            price_diag_done = true;
+        }
         total += orders.len();
         common::append_cabinet_rows(
             &mut all_rows,

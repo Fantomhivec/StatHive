@@ -37,9 +37,24 @@ use std::sync::{Arc, Mutex, OnceLock};
 use tauri::{AppHandle, Emitter, Manager};
 
 static APP: OnceLock<AppHandle> = OnceLock::new();
+static APP_STATE: OnceLock<Arc<crate::app_state::AppState>> = OnceLock::new();
 
-pub fn set_app_handle(app: AppHandle) {
+/// AppHandle + AppState for background emits (activity tick must not rely on try_state).
+pub fn set_runtime(app: AppHandle, state: Arc<crate::app_state::AppState>) {
     let _ = APP.set(app);
+    let _ = APP_STATE.set(state);
+}
+
+/// Belt: fill OnceLocks if setup raced / activity started early.
+pub fn ensure_runtime_from_app(app: &AppHandle) {
+    if APP.get().is_none() {
+        let _ = APP.set(app.clone());
+    }
+    if APP_STATE.get().is_none() {
+        if let Some(s) = app.try_state::<Arc<crate::app_state::AppState>>() {
+            let _ = APP_STATE.set(s.inner().clone());
+        }
+    }
 }
 
 pub(crate) fn emit_access_revoked(reason: &str) {
@@ -49,23 +64,34 @@ pub(crate) fn emit_access_revoked(reason: &str) {
 }
 
 /// Сессия обновлена с листа (смена пресета / HasOauth) — UI сбрасывает caps + layout.
-/// `true` только если оба emit успешны (есть AppHandle + state для layout).
+/// `true` если доставлен `auth.sessionUpdated`. Layout — best-effort (не валит emit).
 pub(crate) fn emit_session_updated(user: &UserInfo) -> bool {
-    let Some(app) = APP.get() else {
+    let Some(app) = APP.get().cloned().or_else(|| {
+        // Last resort: nothing in OnceLock yet.
+        None
+    }) else {
         return false;
     };
-    let session_ok = app.emit("auth.sessionUpdated", user).is_ok();
-    let layout_ok = emit_tabs_layout_changed(app, user);
-    session_ok && layout_ok
+    ensure_runtime_from_app(&app);
+    if app.emit("auth.sessionUpdated", user).is_err() {
+        return false;
+    }
+    let _ = emit_tabs_layout_changed(&app, user);
+    true
 }
 
 /// Тот же payload, что после OAuth / save keys — Shell и caps без рестарта.
 fn emit_tabs_layout_changed(app: &AppHandle, user: &UserInfo) -> bool {
-    let Some(state) = app.try_state::<Arc<crate::app_state::AppState>>() else {
+    ensure_runtime_from_app(app);
+    let state = APP_STATE.get().cloned().or_else(|| {
+        app.try_state::<Arc<crate::app_state::AppState>>()
+            .map(|s| s.inner().clone())
+    });
+    let Some(state) = state else {
         return false;
     };
     let any_ok = crate::templates::access_gate::any_member_ok_in_scope(
-        state.inner().as_ref(),
+        state.as_ref(),
         &user.access_level,
     );
     let oauth = access::effective_has_oauth(&user.access_level, user.has_oauth);

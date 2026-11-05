@@ -267,4 +267,36 @@ impl GoogleSheetsClient {
         }
         Ok(())
     }
+
+    /// Write `rows` starting at sheet row `start_row_1based`, in chunks of `BATCH_ROWS`.
+    pub(crate) async fn update_values_chunked(
+        &self,
+        spreadsheet_id: &str,
+        sheet_name: &str,
+        rows: &[Vec<String>],
+        start_row_1based: usize,
+        on_progress: &mut impl FnMut(String),
+    ) -> Result<(), String> {
+        if rows.is_empty() {
+            return Ok(());
+        }
+        let cols = rows.iter().map(|r| r.len()).max().unwrap_or(1).max(1);
+        let last_col = to_a1_column(cols);
+        let total = rows.len();
+        let mut i = 0usize;
+        while i < total {
+            let end = (i + BATCH_ROWS).min(total);
+            let chunk = &rows[i..end];
+            let start = start_row_1based + i;
+            let end_row = start_row_1based + end - 1;
+            let range = format!(
+                "{}!A{start}:{last_col}{end_row}",
+                quote_sheet(sheet_name)
+            );
+            self.update_values(spreadsheet_id, &range, chunk).await?;
+            on_progress(format!("Запись: {end}/{total} строк"));
+            i = end;
+        }
+        Ok(())
+    }
 }

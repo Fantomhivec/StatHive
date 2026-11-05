@@ -133,6 +133,7 @@ export default function TemplatesPage() {
               onDeleteGroup={a.removeGroup}
               onMoveGroup={a.onMoveGroup}
               onEditTemplate={a.onEditTemplate}
+              onDuplicateTemplate={a.duplicateTemplate}
               onRunTemplate={a.run}
               onCancelTemplate={a.onCancelTemplate}
               onMoveTemplate={a.onMoveTemplateInGroup}
@@ -156,6 +157,7 @@ export default function TemplatesPage() {
               onRunTemplate={a.run}
               onCancelTemplate={a.onCancelTemplate}
               onEditTemplate={a.onEditTemplate}
+              onDuplicateTemplate={a.duplicateTemplate}
               onDeleteTemplate={a.remove}
               onAddToGroup={a.onAddToGroup}
               onMoveTemplate={a.onMoveStandalone}

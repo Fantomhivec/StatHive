@@ -22,6 +22,8 @@ use serde_json::Value;
 use std::collections::HashSet;
 
 const ENDPOINT: &str = "https://statistics-api.wildberries.ru/api/v1/supplier/orders";
+/// Statistics API flag=0: max rows per response — fewer means no next page.
+const PAGE_LIMIT: usize = 80_000;
 
 /// Все страницы кабинета; дедуп по srid. Возвращает (заказы, число дублей).
 pub async fn fetch_all_unique(
@@ -56,6 +58,7 @@ pub async fn fetch_all_unique(
             .filter(|s| !s.is_empty())
             .map(str::to_string);
 
+        let batch_len = batch.len();
         for order in batch {
             let srid = order
                 .get("srid")
@@ -68,6 +71,11 @@ pub async fn fetch_all_unique(
                 continue;
             }
             out.push(order);
+        }
+
+        // Full page only → more data may exist; partial page is the last.
+        if batch_len < PAGE_LIMIT {
+            break;
         }
 
         let Some(next) = next_cursor else {

@@ -123,7 +123,7 @@ async fn run_stats(ctx: &ScriptContext) -> ScriptResult {
     let cab_order: Vec<String> = by_cabinet.keys().cloned().collect();
     let parts = common::map_cabinets_chunked(
         &cab_order,
-        common::CABINET_PARALLELISM,
+        common::wb_cabinet_parallelism(cab_order.len()),
         |cabinet| {
             let mut ids = by_cabinet.get(&cabinet).cloned().unwrap_or_default();
             ids.sort();

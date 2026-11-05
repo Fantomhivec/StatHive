@@ -15,7 +15,7 @@
 //! Инкрементальная запись в Sheets (паритет IncrementalSheetWriter).
 
 use super::normalize::{normalize_value, values_equal};
-use super::{quote_sheet, to_a1_column, GoogleSheetsClient};
+use super::{quote_sheet, to_a1_column, GoogleSheetsClient, BATCH_ROWS};
 use serde_json::json;
 use std::collections::{HashMap, VecDeque};
 
@@ -28,6 +28,7 @@ pub struct IncrementalWriteResult {
 
 impl GoogleSheetsClient {
     /// Синхронизация по 1–2 колонкам-ключам. Пустой лист → полная запись.
+    /// `on_progress` — UI log lines (read / batch write).
     pub async fn write_incremental(
         &self,
         spreadsheet_id: &str,
@@ -35,6 +36,7 @@ impl GoogleSheetsClient {
         rows: Vec<Vec<String>>,
         key_columns: &[usize],
         allow_delete: bool,
+        mut on_progress: impl FnMut(String),
     ) -> Result<IncrementalWriteResult, String> {
         if rows.is_empty() {
             return Ok(IncrementalWriteResult::default());
@@ -51,6 +53,7 @@ impl GoogleSheetsClient {
 
         // Не тянем A:ZZ — только колонки заголовка (лишние пустые ZZ сильно тормозят I/O).
         let last_col = to_a1_column(header.len().max(1));
+        on_progress(format!("Чтение листа «{sheet_name}»…"));
         let existing = self
             .read_values(
                 spreadsheet_id,
@@ -58,8 +61,13 @@ impl GoogleSheetsClient {
             )
             .await
             .unwrap_or_default();
+        on_progress(format!("Прочитано строк листа: {}", existing.len()));
 
         if existing.is_empty() {
+            on_progress(format!(
+                "Лист пуст — полная запись {} строк партиями по {BATCH_ROWS}…",
+                rows.len()
+            ));
             let n = self
                 .clear_and_write(spreadsheet_id, sheet_name, rows, true)
                 .await?;
@@ -74,7 +82,6 @@ impl GoogleSheetsClient {
         if headers_differ(&existing[0], header) {
             let old_header = existing[0].clone();
             existing = remap_existing_to_header(&old_header, header, existing);
-            let last_col = to_a1_column(header.len().max(1));
             let end_row = existing.len().max(1);
             ensure_capacity(
                 self,
@@ -84,13 +91,18 @@ impl GoogleSheetsClient {
                 header.len().max(1),
             )
             .await?;
-            let range = format!(
-                "{}!A1:{}{end_row}",
-                quote_sheet(sheet_name),
-                last_col
-            );
-            self.update_values(spreadsheet_id, &range, &existing)
-                .await?;
+            on_progress(format!(
+                "Выравнивание заголовка: запись {} строк…",
+                existing.len()
+            ));
+            self.update_values_chunked(
+                spreadsheet_id,
+                sheet_name,
+                &existing,
+                1,
+                &mut on_progress,
+            )
+            .await?;
         }
 
         // Индексы вместо clone строк: (sheet_row_1based, index_in_existing).
@@ -131,11 +143,16 @@ impl GoogleSheetsClient {
 
         updates.sort_by_key(|(n, _)| *n);
         let mut i = 0usize;
+        let mut updated_done = 0usize;
+        let updates_total = updates.len();
         while i < updates.len() {
             let start = updates[i].0;
             let mut batch: Vec<&[String]> = vec![&rows[updates[i].1]];
             let mut j = i + 1;
-            while j < updates.len() && updates[j].0 == start + (j - i) as usize {
+            while j < updates.len()
+                && updates[j].0 == start + (j - i) as usize
+                && batch.len() < BATCH_ROWS
+            {
                 batch.push(&rows[updates[j].1]);
                 j += 1;
             }
@@ -147,12 +164,15 @@ impl GoogleSheetsClient {
             );
             let owned: Vec<Vec<String>> = batch.iter().map(|r| r.to_vec()).collect();
             self.update_values(spreadsheet_id, &range, &owned).await?;
+            updated_done += batch.len();
+            on_progress(format!(
+                "Обновление: {updated_done}/{updates_total} строк"
+            ));
             i = j;
         }
 
         if !insert_idxs.is_empty() {
             let start_row = existing.len() + 1;
-            let last_col = to_a1_column(header.len().max(1));
             let end_row = start_row + insert_idxs.len() - 1;
             ensure_capacity(
                 self,
@@ -162,12 +182,23 @@ impl GoogleSheetsClient {
                 header.len().max(1),
             )
             .await?;
-            let range = format!(
-                "{}!A{start_row}:{last_col}{end_row}",
-                quote_sheet(sheet_name)
-            );
-            let owned: Vec<Vec<String>> = insert_idxs.iter().map(|&i| rows[i].clone()).collect();
-            self.update_values(spreadsheet_id, &range, &owned).await?;
+            let total = insert_idxs.len();
+            let mut offset = 0usize;
+            while offset < total {
+                let end = (offset + BATCH_ROWS).min(total);
+                let chunk = &insert_idxs[offset..end];
+                let chunk_start = start_row + offset;
+                let chunk_end = start_row + end - 1;
+                let last_col = to_a1_column(header.len().max(1));
+                let range = format!(
+                    "{}!A{chunk_start}:{last_col}{chunk_end}",
+                    quote_sheet(sheet_name)
+                );
+                let owned: Vec<Vec<String>> = chunk.iter().map(|&i| rows[i].clone()).collect();
+                self.update_values(spreadsheet_id, &range, &owned).await?;
+                on_progress(format!("Добавление: {end}/{total} строк"));
+                offset = end;
+            }
         }
 
         if allow_delete {

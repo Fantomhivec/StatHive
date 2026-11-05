@@ -113,6 +113,7 @@ pub async fn write_sheet_rows_with(
                 rows,
                 &keys,
                 allow_delete,
+                |msg| ctx.log.info(msg),
             )
             .await
             .map_err(|e| format!("Google Sheets: {e}"))?;

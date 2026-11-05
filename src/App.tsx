@@ -24,9 +24,11 @@ import {
 import type { CalcAccessDto, TabLayoutItem } from "./bridge/hostApi.types";
 import { isMainAdminRole } from "./bridge/accessRole";
 import { AuthProvider, useAuth } from "./auth/AuthContext";
+import { useEnsureGoogleOauth } from "./auth/useEnsureGoogleOauth";
 import HostTitleBar from "./components/HostTitleBar";
 import { FAIL_CLOSED_TABS_LAYOUT } from "./bridge/useTabsLayoutCaps";
 import { useT } from "./i18n";
+import { ensureTemplatesRunProgressBridge } from "./pages/templates/templatesPageCache";
 import "./styles/app.css";
 
 const UpdateAvailableDialog = lazy(() => import("./components/UpdateAvailableDialog"));
@@ -81,6 +83,10 @@ function ShellLayout() {
   const t = useT();
   const navigate = useNavigate();
   const location = useLocation();
+  // Keep templates.is_running cache alive on Logs / other tabs.
+  useEffect(() => {
+    ensureTemplatesRunProgressBridge();
+  }, []);
   const [layout, setLayout] = useState<TabLayoutItem[] | null>(null);
   const [calculatorMode, setCalculatorMode] = useState(false);
   const [forceCalculatorMode, setForceCalculatorMode] = useState(false);
@@ -93,8 +99,16 @@ function ShellLayout() {
     FAIL_CLOSED_TABS_LAYOUT.calcAccess!,
   );
   const [layoutReady, setLayoutReady] = useState(false);
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
   const isAdmin = isMainAdminRole(user?.access_level);
+  const canCheckGoogle =
+    !!peekTabsLayout()?.canCheckGoogle || isAdmin;
+  useEnsureGoogleOauth({
+    enabled: layoutReady && !!user?.is_authorized,
+    sessionId: user?.session_id ?? undefined,
+    canCheckGoogle,
+    setUser,
+  });
 
   const defaultNav = useMemo<NavItem[]>(() => {
     const items: NavItem[] = [];

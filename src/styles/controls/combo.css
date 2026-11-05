@@ -110,6 +110,12 @@
   max-height: 400px;
 }
 
+/* Open list above the control (small dialogs / bottom fields). */
+.app-combo--drop-up .app-combo-dropdown {
+  top: auto;
+  bottom: calc(100% + 2px);
+}
+
 .app-combo-item {
   padding: 8px 10px;
   cursor: pointer;
@@ -144,6 +150,19 @@
   font-size: 11px;
   opacity: 0.7;
   color: var(--muted);
+}
+
+.app-combo-item-secondary + .app-combo-item-tertiary::before,
+.app-combo-display-secondary + .app-combo-display-tertiary::before {
+  content: " · ";
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.app-combo-item-tertiary,
+.app-combo-display-tertiary {
+  color: var(--warn);
+  font-weight: 600;
 }
 
 .app-combo-item.muted {
@@ -217,19 +236,47 @@
   padding-left: 30px;
   text-align: center;
   font-weight: 600;
+  font-size: calc(var(--control-font) + 2px);
   color: var(--text);
 }
 
 .app-combo--emphasis .app-combo-display-label {
   font-weight: 700;
+  font-size: calc(var(--control-font) + 2px);
   color: var(--text);
 }
 
 .app-combo--emphasis .app-combo-display-secondary {
   margin-left: 6px;
   font-weight: 500;
-  font-size: 0.92em;
+  font-size: calc(var(--control-font) + 1px);
   color: color-mix(in srgb, var(--accent) 35%, var(--muted));
+}
+
+.app-combo--emphasis .app-combo-display-tertiary {
+  margin-left: 6px;
+  font-weight: 700;
+  font-size: calc(var(--control-font) + 1px);
+  color: var(--warn);
+}
+
+.app-combo--emphasis .app-combo-display-secondary + .app-combo-display-tertiary {
+  margin-left: 0;
+}
+
+.app-combo--emphasis.app-combo-grouped .app-combo-item,
+.app-combo--emphasis.app-combo-grouped .app-combo-group-header {
+  font-size: calc(var(--control-font) + 2px);
+}
+
+.app-combo--emphasis.app-combo-grouped .app-combo-item-secondary {
+  font-size: calc(var(--control-font) + 1px);
+}
+
+.app-combo--emphasis.app-combo-grouped .app-combo-item-tertiary {
+  font-size: calc(var(--control-font) + 1px);
+  color: var(--warn);
+  font-weight: 700;
 }
 
 .app-combo--emphasis .app-combo-arrow-glyph {
@@ -257,4 +304,9 @@ html[data-theme="light"] .app-combo--emphasis .app-combo-main:hover {
 
 html[data-theme="light"] .app-combo--emphasis .app-combo-display-secondary {
   color: color-mix(in srgb, var(--accent) 55%, var(--muted));
+}
+
+html[data-theme="light"] .app-combo--emphasis .app-combo-display-tertiary,
+html[data-theme="light"] .app-combo--emphasis.app-combo-grouped .app-combo-item-tertiary {
+  color: color-mix(in srgb, var(--warn) 70%, var(--ink));
 }

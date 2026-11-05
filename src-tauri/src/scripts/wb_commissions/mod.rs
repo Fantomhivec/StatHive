@@ -67,7 +67,7 @@ async fn run_commissions(ctx: &ScriptContext) -> ScriptResult {
     let wb_tokens = common::load_wb_tokens()?;
     let parts = common::map_cabinets_chunked(
         &cabinets,
-        common::CABINET_PARALLELISM,
+        common::wb_cabinet_parallelism(cabinets.len()),
         |cabinet| {
             let token = common::resolve_wb_token_with_map(ctx, &wb_tokens, &cabinet);
             async move {

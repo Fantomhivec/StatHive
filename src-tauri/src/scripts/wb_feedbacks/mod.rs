@@ -63,7 +63,7 @@ async fn run_count(ctx: &ScriptContext) -> ScriptResult {
     let profile = rate::profile();
     let parts = common::map_cabinets_chunked(
         &cabinets,
-        common::CABINET_PARALLELISM,
+        common::wb_cabinet_parallelism(cabinets.len()),
         |cabinet| {
             let token = common::resolve_wb_token_with_map(ctx, &wb_tokens, &cabinet);
             let profile = profile.clone();
