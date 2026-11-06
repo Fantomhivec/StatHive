@@ -1101,7 +1101,8 @@
  "subjectName": "Предмет",
  "brandId": "ID бренда",
  "brandName": "Бренд",
- "errors": "Ошибки"
+ "errors": "Ошибки",
+ "updatedAt": "Обновлён"
  },
  "cards_trash": {
  "cabinet": "Кабинет",

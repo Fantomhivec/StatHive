@@ -18,6 +18,7 @@ use crate::core::rate_profiles::cards_error_list as rate;
 use crate::core::request_sender::{Auth, Limit};
 use crate::core::script::{Script, ScriptContext, ScriptOutput, ScriptResult};
 use crate::core::script_field::ScriptField;
+use crate::core::sheet_dates;
 use crate::scripts::common;
 use serde_json::Value;
 use std::future::Future;
@@ -92,7 +93,6 @@ async fn run(ctx: &ScriptContext) -> ScriptResult {
         for item in &items {
             let batch = item
                 .get("batchUUID")
-                .or_else(|| item.get("batchUuid"))
                 .and_then(|x| x.as_str())
                 .unwrap_or("");
             let vendor_codes = item
@@ -139,22 +139,27 @@ fn cell_value(cabinet: &str, item: &Value, batch: &str, vendor: &str, name: &str
         "subjectName" => map_field(item, "subjects", vendor, "name"),
         "brandId" => map_field(item, "brands", vendor, "id"),
         "brandName" => map_field(item, "brands", vendor, "name"),
-        "errors" => {
-            let Some(errs) = item
-                .get("errors")
-                .and_then(|e| e.get(vendor))
-                .and_then(|a| a.as_array())
-            else {
-                return String::new();
-            };
-            errs.iter()
-                .filter_map(|e| e.as_str())
-                .filter(|s| !s.is_empty())
-                .collect::<Vec<_>>()
-                .join(" | ")
+        "errors" => errors_join(item, vendor),
+        "updatedAt" => {
+            sheet_dates::format_wb_timestamp(item.get("updatedAt").and_then(|x| x.as_str()).unwrap_or(""))
         }
         _ => String::new(),
     }
+}
+
+fn errors_join(item: &Value, vendor: &str) -> String {
+    let Some(errs) = item
+        .get("errors")
+        .and_then(|e| e.get(vendor))
+        .and_then(|a| a.as_array())
+    else {
+        return String::new();
+    };
+    errs.iter()
+        .filter_map(|e| e.as_str())
+        .filter(|s| !s.is_empty())
+        .collect::<Vec<_>>()
+        .join("; ")
 }
 
 fn map_field(item: &Value, map_key: &str, vendor: &str, field: &str) -> String {
@@ -206,15 +211,32 @@ async fn fetch_all(
                 &body,
             )
             .await?;
-        let data = v.get("data");
-        let items = data
-            .and_then(|d| d.get("items"))
-            .and_then(|a| a.as_array())
-            .cloned()
-            .unwrap_or_default();
+
+        if v.get("error").and_then(|e| e.as_bool()).unwrap_or(false) {
+            let text = v
+                .get("errorText")
+                .and_then(|t| t.as_str())
+                .unwrap_or("error");
+            let extra = v
+                .get("additionalErrors")
+                .filter(|a| !a.is_null())
+                .map(|a| format!("; additionalErrors={a}"))
+                .unwrap_or_default();
+            return Err(format!("[{cabinet}] cards/error/list: {text}{extra}"));
+        }
+
+        let mut v = v;
+        let items = match v
+            .get_mut("data")
+            .and_then(|d| d.get_mut("items"))
+            .map(std::mem::take)
+        {
+            Some(Value::Array(a)) => a,
+            _ => Vec::new(),
+        };
         all.extend(items);
 
-        let cursor = data.and_then(|d| d.get("cursor"));
+        let cursor = v.get("data").and_then(|d| d.get("cursor"));
         let next = cursor
             .and_then(|c| c.get("next"))
             .and_then(|n| n.as_bool())
@@ -239,7 +261,6 @@ async fn fetch_all(
     Ok(all)
 }
 
-// --- fields (merged) ---
 pub fn default_fields() -> Vec<ScriptField> {
     vec![
         ScriptField::new("cabinet", crate::core::i18n::t("fields.cards_error_list.cabinet"), true),
@@ -250,5 +271,68 @@ pub fn default_fields() -> Vec<ScriptField> {
         ScriptField::new("brandId", crate::core::i18n::t("fields.cards_error_list.brandId"), true),
         ScriptField::new("brandName", crate::core::i18n::t("fields.cards_error_list.brandName"), true),
         ScriptField::new("errors", crate::core::i18n::t("fields.cards_error_list.errors"), true),
+        ScriptField::new("updatedAt", crate::core::i18n::t("fields.cards_error_list.updatedAt"), true),
     ]
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn flattens_example_batch_by_vendor() {
+        let item = json!({
+            "batchUUID": "b15fecaf-57fd-4b63-ab6f-18d630b8793e",
+            "subjects": {
+                "wb15j2kjk9": { "id": 8827, "name": "Автомобили с пробегом" },
+                "test_pasha1": { "id": 184, "name": "Рубашки" }
+            },
+            "brands": {},
+            "vendorCodes": ["wb15j2kjk9", "test_pasha1"],
+            "errors": {
+                "wb15j2kjk9": [
+                    "Поле Наименование не должно содержать запрещенные символы: 😈"
+                ],
+                "test_pasha1": [
+                    "Запрещено использовать E-Mail в поле Наименование",
+                    "Запрещено использовать E-Mail в поле Описание"
+                ]
+            },
+            "updatedAt": "2025-12-19T23:59:59Z"
+        });
+
+        assert_eq!(
+            cell_value("cab", &item, "b15fecaf", "wb15j2kjk9", "subjectId"),
+            "8827"
+        );
+        assert_eq!(
+            cell_value("cab", &item, "b15fecaf", "wb15j2kjk9", "subjectName"),
+            "Автомобили с пробегом"
+        );
+        assert!(cell_value("cab", &item, "b15fecaf", "wb15j2kjk9", "brandId").is_empty());
+        assert_eq!(
+            cell_value("cab", &item, "b15fecaf", "test_pasha1", "errors"),
+            "Запрещено использовать E-Mail в поле Наименование; Запрещено использовать E-Mail в поле Описание"
+        );
+        let updated = cell_value("cab", &item, "b15fecaf", "wb15j2kjk9", "updatedAt");
+        assert!(!updated.is_empty());
+        assert!(!updated.contains('T'));
+    }
+
+    #[test]
+    fn ignores_legacy_batch_uuid_key() {
+        let item = json!({
+            "batchUuid": "legacy",
+            "vendorCodes": ["a"],
+            "errors": { "a": ["e"] }
+        });
+        let batch = item
+            .get("batchUUID")
+            .and_then(|x| x.as_str())
+            .unwrap_or("");
+        assert!(batch.is_empty());
+        assert_eq!(cell_value("c", &item, batch, "a", "batchUUID"), "");
+        assert_eq!(cell_value("c", &item, batch, "a", "errors"), "e");
+    }
 }

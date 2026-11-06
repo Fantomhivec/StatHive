@@ -181,9 +181,27 @@ export default function TemplateEditorDialog({
     try {
       const res = await hostApi.templatesListFields(key, []);
       const vis = visibilityForScript(key);
+      const fields = normalizeFieldRows(res.fields);
+      const fieldNames = new Set(fields.map((f) => f.name));
+      const selectedNames = new Set(
+        fields.filter((f) => f.selected).map((f) => f.name),
+      );
+      // Write/sync keys are field names — drop values that belong to the previous script
+      // (combo otherwise shows a raw stale name not in options).
+      const sort = (tpl.write_sort_field_name ?? "").trim();
+      const sync = tpl.sync_settings;
+      const k1 = (sync?.key_field_1 ?? "").trim();
+      const k2 = (sync?.key_field_2 ?? "").trim();
       const partial: Partial<TemplateDto> = {
         script_key: key,
-        selected_fields: normalizeFieldRows(res.fields),
+        selected_fields: fields,
+        write_sort_field_name: selectedNames.has(sort) ? sort : "",
+        sync_settings: {
+          enable_change_sync: !!sync?.enable_change_sync,
+          key_field_1: fieldNames.has(k1) ? k1 : "",
+          key_field_2: fieldNames.has(k2) ? k2 : "",
+          do_not_delete_old_rows: !!sync?.do_not_delete_old_rows,
+        },
       };
       if (vis.showOzonIdMode && !(tpl.id_mode ?? "").trim()) {
         partial.id_mode = "sku";
