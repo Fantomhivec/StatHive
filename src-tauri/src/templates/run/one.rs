@@ -176,38 +176,47 @@ pub(super) async fn run_one_inner(
         Ok(out) => {
             let status = if dry_run { "ok:dry_run" } else { "ok" };
             let _ = store::set_last_run(&tpl.id, status);
-            if let Some(ref path) = excel_file_path {
-                if std::path::Path::new(path).is_file() {
-                    match tauri_plugin_opener::open_path(path, None::<&str>) {
-                        Ok(()) => state.log.info(tf(
+            // Prefixed like script lines: `[WB: Заказы]: Шаблон «…» успешно выполнен`.
+            ctx.log.info(tf(
+                "log.templates.runSuccess",
+                &[("name", tpl.name.as_str())],
+            ));
+            // Lesson 123: never block finish emit on opener / Sheets meta (spawn both).
+            if let Some(path) = excel_file_path.clone() {
+                let log = state.log.clone();
+                tauri::async_runtime::spawn(async move {
+                    if !std::path::Path::new(&path).is_file() {
+                        return;
+                    }
+                    match tauri_plugin_opener::open_path(&path, None::<&str>) {
+                        Ok(()) => log.info(tf(
                             "log.templates.excelOpened",
                             &[("path", path.as_str())],
                         )),
-                        Err(e) => state.log.warn(tf(
+                        Err(e) => log.warn(tf(
                             "log.templates.excelOpenFailed",
                             &[("error", &e.to_string())],
                         )),
                     }
-                }
+                });
             }
             if need_backfill {
+                let tpl_id = tpl.id.clone();
+                let sid = resolved_sid.clone();
+                let sheet = resolved_sheet.clone();
                 let mut title = tpl.spreadsheet_title.clone();
-                if title.trim().is_empty() && !resolved_sid.trim().is_empty() {
-                    if let Ok(client) =
-                        crate::core::google::sheets::GoogleSheetsClient::from_user_oauth().await
-                    {
-                        if let Ok((doc_title, _)) = client.list_spreadsheet_meta(&resolved_sid).await
+                tauri::async_runtime::spawn(async move {
+                    if title.trim().is_empty() && !sid.trim().is_empty() {
+                        if let Ok(client) =
+                            crate::core::google::sheets::GoogleSheetsClient::from_user_oauth().await
                         {
-                            title = doc_title;
+                            if let Ok((doc_title, _)) = client.list_spreadsheet_meta(&sid).await {
+                                title = doc_title;
+                            }
                         }
                     }
-                }
-                let _ = store::backfill_spreadsheet_target(
-                    &tpl.id,
-                    &resolved_sid,
-                    &resolved_sheet,
-                    &title,
-                );
+                    let _ = store::backfill_spreadsheet_target(&tpl_id, &sid, &sheet, &title);
+                });
             }
             Ok((out.rows_written, out.message))
         }

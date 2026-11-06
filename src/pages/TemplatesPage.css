@@ -94,6 +94,14 @@
   gap: 8px;
 }
 
+.tpl-card-group-success {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ok);
+  line-height: 1.35;
+  min-width: 0;
+}
+
 .tpl-card-meta {
   margin: 4px 0 0;
   font-size: 13px;

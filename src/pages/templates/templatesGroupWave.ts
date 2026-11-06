@@ -13,7 +13,7 @@
 // limitations under the License.
 
 /**
- * Session group-run wave (row tints). Lessons 115–121.
+ * Session group-run wave (row tints). Lessons 115–121, 123.
  * Paint CSS only from tones; drive tones via progress events and/or hydrate cursor.
  */
 
@@ -213,11 +213,13 @@ function toneFromStatus(status: string | undefined): WaveTone {
 function wavesForTemplateEvent(
   templateId: string,
   groupId: string | null | undefined,
+  markRunning: boolean,
 ): GroupWave[] {
   const gid = (groupId ?? "").trim();
   if (gid) {
     const w = ensureWave(gid);
-    w.inFlight = true;
+    // Lesson 123: only arm inFlight on start — finish must not revive «выполняется».
+    if (markRunning) w.inFlight = true;
     return [w];
   }
   const out: GroupWave[] = [];
@@ -239,6 +241,73 @@ function wavesForTemplateEvent(
   return out;
 }
 
+/** Apply group-end tones: remaining run → ok/err, clear inFlight. */
+function endGroupWaveSession(w: GroupWave, lastRunStatus: string | undefined) {
+  w.inFlight = false;
+  const endTone = toneFromStatus(lastRunStatus);
+  for (const id of Object.keys(w.tones)) {
+    if (w.tones[id] === "run") w.tones[id] = endTone;
+  }
+}
+
+/**
+ * Lesson 123 hydrate end: cancel_map empty (`!is_running`) but session wave still
+ * inFlight — same finalize as group-end progress (events may have been lost).
+ * Returns true when a flying wave was closed.
+ */
+export function finalizeGroupWaveFromHydrate(
+  groupId: string,
+  lastRunStatus?: string | null,
+): boolean {
+  const w = groupWaves.get(groupId);
+  if (!w) return false;
+  const hasRun = Object.values(w.tones).some((t) => t === "run");
+  if (!w.inFlight && !hasRun) return false;
+  const st = (lastRunStatus ?? "").trim() || "ok";
+  endGroupWaveSession(w, st);
+  notifyGroupWaves();
+  return true;
+}
+
+/** Last nested (or sole member) finished — no next cursor to advance tones. */
+function finalizeWaveIfLastMember(w: GroupWave, templateId: string, endTone: WaveTone) {
+  const members = w.memberIds;
+  // Empty roster: still finalize once no `run` tones remain (beginWave may omit ids).
+  if (members.length > 0 && members[members.length - 1] !== templateId) return;
+  for (const id of Object.keys(w.tones)) {
+    if (w.tones[id] === "run") w.tones[id] = endTone;
+  }
+  if (!Object.values(w.tones).some((t) => t === "run")) {
+    w.inFlight = false;
+  }
+}
+
+/**
+ * Session summary after a finished group wave (lesson 123).
+ * null while inFlight or when no terminal tones yet.
+ */
+export function groupWaveSuccessCount(
+  wave: GroupWave | undefined,
+  fallbackMemberCount: number,
+): { ok: number; total: number } | null {
+  if (!wave || wave.inFlight) return null;
+  let ok = 0;
+  let terminal = 0;
+  for (const tone of Object.values(wave.tones)) {
+    if (tone === "ok") {
+      ok += 1;
+      terminal += 1;
+    } else if (tone === "err") {
+      terminal += 1;
+    }
+  }
+  if (terminal === 0) return null;
+  const total =
+    wave.memberIds.length > 0 ? wave.memberIds.length : fallbackMemberCount;
+  if (total <= 0) return null;
+  return { ok, total };
+}
+
 /** Update session wave from templates.runProgress (live, no tab switch). */
 export function applyGroupWaveFromProgress(
   raw: TemplatesRunProgress | Record<string, unknown>,
@@ -247,10 +316,8 @@ export function applyGroupWaveFromProgress(
   if (p.entityType === "group") {
     const w = ensureWave(p.id);
     if (p.isRunning === false) {
-      w.inFlight = false;
-      for (const id of Object.keys(w.tones)) {
-        if (w.tones[id] === "run") delete w.tones[id];
-      }
+      // Lesson 123: last nested has no "next" cursor — finalize run, do not delete.
+      endGroupWaveSession(w, p.lastRunStatus);
     } else {
       w.inFlight = true;
       if (p.activeTemplateId) setToneRun(w, p.activeTemplateId);
@@ -270,10 +337,10 @@ export function applyGroupWaveFromProgress(
   }
   if (p.entityType !== "template" || !p.id) return;
 
-  const targets = wavesForTemplateEvent(p.id, p.groupId);
+  const running = p.isRunning === true;
+  const targets = wavesForTemplateEvent(p.id, p.groupId, running);
   if (targets.length === 0) return;
 
-  const running = p.isRunning === true;
   for (const w of targets) {
     if (running) {
       setToneRun(w, p.id);
@@ -283,10 +350,14 @@ export function applyGroupWaveFromProgress(
     const finished =
       p.isRunning === false ||
       st === "ok" ||
+      st.startsWith("ok") ||
       st.startsWith("error") ||
       st === "cancelled";
     if (!finished) continue;
-    w.tones[p.id] = toneFromStatus(p.lastRunStatus);
+    const endTone = toneFromStatus(p.lastRunStatus);
+    w.tones[p.id] = endTone;
+    // Sole / last nested: paint ok now — do not wait for group-end or a next cursor.
+    finalizeWaveIfLastMember(w, p.id, endTone);
   }
   notifyGroupWaves();
 }

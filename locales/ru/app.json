@@ -400,6 +400,7 @@
  },
  "templates": {
  "runStart": "Запуск шаблона «{name}» ({scriptKey})",
+ "runSuccess": "Шаблон «{name}» успешно выполнен",
  "excelOpened": "Excel файл открыт: {path}",
  "excelOpenFailed": "Не удалось открыть Excel файл: {error}",
  "triggerTemplate": "Триггер → шаблон «{name}»",
@@ -1027,21 +1028,58 @@
  "vendorCode": "Артикул продавца",
  "brand": "Бренд",
  "title": "Наименование",
+ "gtin": "GTIN",
  "description": "Описание",
  "needKiz": "Требуется КИЗ",
- "photos": "Фото (до 30 ссылок в конце)",
+ "kizMarked": "КИЗ нанесён (подтверждение)",
+ "photo": "Фото",
+ "video": "Видео",
+ "wholesale": {
+ "enabled": "Опт (B2B only)",
+ "quantum": "Кратность опта"
+ },
  "dimensions": {
  "length": "Длина, см",
  "width": "Ширина, см",
  "height": "Высота, см",
- "weightBrutto": "Вес, кг"
+ "weightBrutto": "Вес, кг",
+ "isValid": "Габариты корректны (dimensions.isValid)"
  },
- "isValid": "Габариты корректны",
- "characteristics": "Характеристики (слитно)",
+ "characteristics": "Характеристики (id:name:value)",
  "tnved": "ТН-ВЭД",
  "doc_number": "Номер сертификата/декларации",
- "cert_check_status": "Статус проверки",
+ "cert_reg_date": "Дата регистрации сертификата/декларации",
+ "cert_expire_date": "Дата окончания сертификата/декларации",
+ "cert_check_status": "Статус проверки (cert/decl)",
  "vat_rate": "Ставка НДС",
+ "documents": {
+ "excludeDocuments": "Документы не требуются (excludeDocuments)",
+ "overallVerdict": {
+ "isFullyChecked": "Карточка проверена (overallVerdict)",
+ "status": "Статус проверки карточки",
+ "reason": "Причина отклонения карточки",
+ "createdAt": "Дата проверки карточки"
+ },
+ "items": {
+ "id": "Документы: id",
+ "type": "Документы: type",
+ "number": "Документы: number",
+ "productNumber": "Документы: productNumber",
+ "tradeName": "Документы: tradeName",
+ "applicant": "Документы: applicant",
+ "startDate": "Документы: startDate",
+ "endDate": "Документы: endDate",
+ "isEndless": "Документы: isEndless",
+ "createdAt": "Документы: createdAt",
+ "verdict": {
+ "verified": "Документы: verdict.verified",
+ "status": "Документы: verdict.status",
+ "reason": "Документы: verdict.reason",
+ "createdAt": "Документы: verdict.createdAt",
+ "additionalData": "Документы: verdict.additionalData"
+ }
+ }
+ },
  "sizes": {
  "chrtID": "Размеры: chrtID",
  "techSize": "Размеры: techSize",

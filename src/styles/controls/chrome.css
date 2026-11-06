@@ -194,17 +194,20 @@ html[data-theme="light"] .wb-tables-plaque-refresh {
   background: color-mix(in srgb, var(--accent) 8%, var(--bg));
 }
 
-/* Group run wave: current / done / failed nested template (text stays --text). */
+/* Group run wave: current / done / failed — fill + edge so warn≠ok on dark (123). */
 .plate--wave-run {
   background: var(--tpl-wave-run);
+  box-shadow: inset 3px 0 0 var(--warn);
 }
 
 .plate--wave-ok {
   background: var(--tpl-wave-ok);
+  box-shadow: inset 3px 0 0 var(--ok);
 }
 
 .plate--wave-err {
   background: var(--tpl-wave-err);
+  box-shadow: inset 3px 0 0 var(--danger);
 }
 
 /* Compact bordered row (calc triggers) — layout flex stays in page CSS. */

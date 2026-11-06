@@ -56,9 +56,22 @@ pub fn set_app_handle(app: AppHandle) {
     }
     tauri::async_runtime::spawn(async move {
         while let Some(payload) = rx.recv().await {
-            let handle = APP.lock().ok().and_then(|g| g.clone());
-            if let Some(handle) = handle {
-                let _ = handle.emit("templates.runProgress", payload);
+            // Lesson 123: do not silently drop when AppHandle is briefly unset.
+            let mut emitted = false;
+            for _ in 0..20 {
+                let handle = APP.lock().ok().and_then(|g| g.clone());
+                if let Some(handle) = handle {
+                    let _ = handle.emit("templates.runProgress", &payload);
+                    emitted = true;
+                    break;
+                }
+                tokio::time::sleep(std::time::Duration::from_millis(25)).await;
+            }
+            if !emitted {
+                let handle = APP.lock().ok().and_then(|g| g.clone());
+                if let Some(handle) = handle {
+                    let _ = handle.emit("templates.runProgress", &payload);
+                }
             }
             tokio::task::yield_now().await;
         }

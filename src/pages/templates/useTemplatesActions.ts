@@ -30,6 +30,7 @@ import {
   emptySnap,
   ensureScriptsMap,
   ensureTemplatesRunProgressBridge,
+  finalizeGroupWaveFromHydrate,
   getTemplatesSnapCache,
   mergeEphemeralRunFlags,
   setTemplatesSnapCache,
@@ -140,8 +141,12 @@ export function useTemplatesActions() {
     });
   }, []);
 
+  // Groups hydrate already reported is_running — required before hydrate-end finalize
+  // (avoids closing wave on the tick before Rust register enters cancel_map).
+  const seenHydrateRunningRef = useRef(new Set<string>());
+
   // Lesson 121: while group wave flies, poll hydrate cursor → same tones pipeline.
-  // Covers emit batching (lesson 120) and missed progress events.
+  // Lesson 123: hydrate !is_running + inFlight → finalize (finish events may be lost).
   const waveFlying = Object.values(groupWaves).some((w) => w.inFlight);
   useEffect(() => {
     if (!waveFlying) return;
@@ -152,7 +157,18 @@ export function useTemplatesActions() {
         if (dead) return;
         let moved = false;
         for (const g of s.groups ?? []) {
+          if (g.is_running) seenHydrateRunningRef.current.add(g.id);
           if (advanceGroupWaveFromActive(g.id, g.active_template_id)) moved = true;
+          // Group left cancel_map — close wave even if runProgress finish never arrived.
+          if (
+            !g.is_running &&
+            seenHydrateRunningRef.current.has(g.id) &&
+            finalizeGroupWaveFromHydrate(g.id, g.last_run_status)
+          ) {
+            seenHydrateRunningRef.current.delete(g.id);
+            moved = true;
+            setBusyId((id) => (id === g.id ? null : id));
+          }
         }
         if (moved) setGroupWaves(snapshotGroupWaves());
         // Refresh busy flags from hydrate without wiping session tones (merge).
@@ -260,11 +276,8 @@ export function useTemplatesActions() {
       setError(null);
       patchOptimisticRunning(id, "template");
       try {
-        const res = await hostApi.templatesRun(id, dryRun);
-        const fallback = dryRun
-          ? t("templates.dryRunDone", { count: res.rows_written })
-          : t("templates.rowsWritten", { count: res.rows_written });
-        setMsg(res.message || fallback);
+        // Lesson 123: no top-of-tab run summary — status lives on the card.
+        await hostApi.templatesRun(id, dryRun);
       } catch (e) {
         setError(e instanceof Error ? e.message : String(e));
       } finally {
@@ -274,7 +287,7 @@ export function useTemplatesActions() {
         await reloadSnap();
       }
     },
-    [t, reloadSnap, patchOptimisticRunning],
+    [reloadSnap, patchOptimisticRunning],
   );
 
   const runGroup = useCallback(
@@ -287,6 +300,7 @@ export function useTemplatesActions() {
       const memberIds =
         snap.groups.find((g) => g.id === id)?.template_ids ?? [];
       beginGroupWave(id, memberIds);
+      seenHydrateRunningRef.current.delete(id);
       const waves = snapshotGroupWaves();
       setGroupWaves(waves);
       const started = waves[id];
@@ -312,20 +326,20 @@ export function useTemplatesActions() {
         });
       }
       try {
-        const res = await hostApi.templatesRunGroup(id, dryRun);
-        const fallback = dryRun
-          ? t("templates.groupDryRunDone", { count: res.rows_written })
-          : t("templates.groupRowsWritten", { count: res.rows_written });
-        setMsg(res.message || fallback);
+        // Lesson 123: group итог — справа от имени группы, не ok-text сверху вкладки.
+        await hostApi.templatesRunGroup(id, dryRun);
       } catch (e) {
         setError(e instanceof Error ? e.message : String(e));
       } finally {
         runLockRef.current = false;
         setBusyId(null);
+        // Invoke returned — close wave even if finish events / hydrate lagged.
+        finalizeGroupWaveFromHydrate(id, "ok");
+        setGroupWaves(snapshotGroupWaves());
         await reloadSnap();
       }
     },
-    [t, reloadSnap, patchOptimisticRunning, snap.groups],
+    [reloadSnap, patchOptimisticRunning, snap.groups],
   );
 
   const duplicateTemplate = useCallback(

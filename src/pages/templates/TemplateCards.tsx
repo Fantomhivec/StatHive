@@ -20,7 +20,12 @@ import {
   formatRunAtDisplay,
   formatTemplateMeta,
 } from "./templateCardMeta";
-import { waveFromGroup, waveRowClass, type GroupWave } from "./templatesPageCache";
+import {
+  groupWaveSuccessCount,
+  waveFromGroup,
+  waveRowClass,
+  type GroupWave,
+} from "./templatesPageCache";
 
 function ReorderBtns({
   busy,
@@ -123,8 +128,15 @@ function GroupCardInner({
   const t = useT();
   const liveWave = waveFromGroup(wave, g);
   const nestedRunning = (g.template_ids ?? []).some((tid) => !!byId.get(tid)?.is_running);
-  const groupRunning =
-    !!g.is_running || busyId === g.id || nestedRunning || !!liveWave?.inFlight;
+  // Lesson 123: session wave already terminal → do not keep Stop via stale nested is_running.
+  const waveSessionDone =
+    !!liveWave &&
+    !liveWave.inFlight &&
+    Object.keys(liveWave.tones).length > 0 &&
+    !Object.values(liveWave.tones).some((tone) => tone === "run");
+  const groupRunning = waveSessionDone
+    ? false
+    : !!g.is_running || busyId === g.id || nestedRunning || !!liveWave?.inFlight;
   const running = groupRunning;
   const when = formatRunAtDisplay(g.last_run_at);
   const status = (g.last_run_status ?? "").trim();
@@ -133,6 +145,9 @@ function GroupCardInner({
     : when || status
       ? `${t("templates.card.templatesShort", { count: g.template_ids?.length ?? 0 })} · ${[when, status || t("templates.card.ready")].filter(Boolean).join(" · ")}`
       : `${t("templates.card.templatesShort", { count: g.template_ids?.length ?? 0 })} · ${t("templates.card.ready")}`;
+  const successCount = !running
+    ? groupWaveSuccessCount(liveWave, g.template_ids?.length ?? 0)
+    : null;
   return (
     <div className="card card--md card--pad tpl-card">
       <div className="tpl-card-row tpl-card-row--4">
@@ -147,6 +162,14 @@ function GroupCardInner({
         <div className="tpl-card-text">
           <div className="tpl-card-title-row">
             <h2 className="tpl-card-name">{g.name}</h2>
+            {successCount ? (
+              <span className="tpl-card-group-success">
+                {t("templates.card.groupSuccessCount", {
+                  ok: successCount.ok,
+                  total: successCount.total,
+                })}
+              </span>
+            ) : null}
           </div>
           <p
             className={

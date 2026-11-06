@@ -40,6 +40,8 @@ export {
   advanceGroupWaveFromActive,
   beginGroupWave,
   cancelGroupWave,
+  finalizeGroupWaveFromHydrate,
+  groupWaveSuccessCount,
   snapshotGroupWaves,
   subscribeGroupWaves,
   waveFromGroup,
@@ -51,6 +53,7 @@ export {
 type SnapListener = (snap: TemplatesSnapshot) => void;
 const snapListeners = new Set<SnapListener>();
 let runProgressBridgeStarted = false;
+let runProgressUnlisten: (() => void) | null = null;
 
 /**
  * Keep templates snap cache updated even when TemplatesPage is unmounted (Logs tab).
@@ -59,7 +62,7 @@ let runProgressBridgeStarted = false;
 export function ensureTemplatesRunProgressBridge() {
   if (runProgressBridgeStarted) return;
   runProgressBridgeStarted = true;
-  onEvent<TemplatesRunProgress>("templates.runProgress", (raw) => {
+  runProgressUnlisten = onEvent<TemplatesRunProgress>("templates.runProgress", (raw) => {
     const p = normalizeRunProgress(raw);
     applyGroupWaveFromProgress(p);
     for (const market of ["wb", "ozon"] as TemplatesMarket[]) {
@@ -86,6 +89,8 @@ export function ensureTemplatesRunProgressBridge() {
 
 if (import.meta.hot) {
   import.meta.hot.dispose(() => {
+    runProgressUnlisten?.();
+    runProgressUnlisten = null;
     runProgressBridgeStarted = false;
   });
 }
@@ -117,14 +122,21 @@ export function mergeEphemeralRunFlags(
   const groups = (next.groups ?? []).map((g) => {
     const p = prevGroup.get(g.id);
     if (!p) return g;
-    const is_running = !!(g.is_running || p.is_running);
-    // Prefer next active (progress); keep prev only while group still running.
+    // Lesson 123: trust hydrate/progress `is_running`. Sticky-OR with prev kept
+    // «выполняется…» forever after a finished group (disk already false).
+    const is_running = !!g.is_running;
     const active_template_id = is_running
       ? (g.active_template_id ?? p.active_template_id ?? null)
       : null;
-    // Session wave tones: prefer next (progress mirror); else keep prev while in flight.
-    const wave_in_flight = !!(g.wave_in_flight || (is_running && p.wave_in_flight));
-    const wave_tones = g.wave_tones ?? (wave_in_flight ? p.wave_tones : undefined);
+    // Explicit wave mirror from progress bridge wins; else keep prev only while running.
+    const wave_in_flight =
+      g.wave_in_flight != null
+        ? !!g.wave_in_flight
+        : is_running
+          ? !!p.wave_in_flight
+          : false;
+    const wave_tones =
+      g.wave_tones ?? (wave_in_flight || is_running ? p.wave_tones : undefined);
     if (!is_running && !active_template_id && !wave_in_flight && !wave_tones) return g;
     return {
       ...g,
@@ -137,7 +149,11 @@ export function mergeEphemeralRunFlags(
 
   /** Nested tpl id → active id of its running group (null = group busy, none selected yet). */
   const nestedActive = new Map<string, string | null>();
+  const groupedIds = new Set<string>();
   for (const g of groups) {
+    for (const tid of g.template_ids ?? []) {
+      groupedIds.add(tid);
+    }
     if (!g.is_running) continue;
     const active = g.active_template_id ?? null;
     for (const tid of g.template_ids ?? []) {
@@ -151,6 +167,9 @@ export function mergeEphemeralRunFlags(
       // Trust progress patch on next; do not sticky-OR revive from active alone.
       return t;
     }
+    // Lesson 123: nested members must not sticky-OR is_running after group ends —
+    // that kept groupRunning via nestedRunning + Stop forever while tones already ok.
+    if (groupedIds.has(t.id)) return t;
     // Solo run: preserve prev if disk/enrich wiped the flag mid-flight.
     if (t.is_running) return t;
     const p = prevTpl.get(t.id);
