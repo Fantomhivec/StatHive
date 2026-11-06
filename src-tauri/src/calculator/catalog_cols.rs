@@ -44,7 +44,7 @@ pub const WB_SOURCE_COLS: &[WbSourceColDef] = &[
         key: "photo",
         table_key: "Array",
         sheet_name_key: "calc.tables.Array.sheetName",
-        column_key: "photo1",
+        column_key: "photo_1",
         article_key: "calc.articles.wbLatin",
     },
     WbSourceColDef {

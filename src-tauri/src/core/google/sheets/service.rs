@@ -16,13 +16,17 @@
 
 use super::GoogleSheetsClient;
 
-/// How wide to clear before a full replace (rows always = used-range, not grid.rowCount).
+/// How to clear before a full replace (`clear_only_written_range` in template editor).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SheetClearScope {
-    /// Template `clear_only_written_range`: A1:{dataCols}{usedRows}.
+    /// Toggle ON: A1:{dataCols}{max(dataRows, usedRows)} — do not touch columns to the right
+    /// (user formulas). Default Google grid is 26 cols, so this must stay narrower than
+    /// whole-sheet when data also has 26 cols.
     DataColumns,
-    /// Default template («весь лист» in UI): A1:{max(data, gridCols)}{usedRows}.
-    DataAndGridWidth,
+    /// Toggle OFF («весь лист»): clear the entire sheet title range (all cells).
+    /// Not `A1:{max(data,gridCols)}{used}` — that matched data size on a 26-col sheet
+    /// and made the editor toggle look ignored.
+    WholeSheet,
 }
 
 impl SheetClearScope {
@@ -30,14 +34,14 @@ impl SheetClearScope {
         if clear_only {
             Self::DataColumns
         } else {
-            Self::DataAndGridWidth
+            Self::WholeSheet
         }
     }
 
     pub fn log_label(self) -> &'static str {
         match self {
             Self::DataColumns => "только колонки данных",
-            Self::DataAndGridWidth => "used-range + ширина сетки",
+            Self::WholeSheet => "весь лист",
         }
     }
 }

@@ -176,3 +176,123 @@ pub fn photo_url(raw: &str) -> String {
     first_http_url(raw)
 }
 
+const PHOTO_SLOTS: usize = 30;
+
+/// Первая непустая фото-ячейка Массива: `photo_1`…`photo_30` / «Фото N», затем legacy.
+pub fn photo_from_row_map(map: Option<&HashMap<String, String>>) -> String {
+    let Some(m) = map else {
+        return String::new();
+    };
+    for i in 1..=PHOTO_SLOTS {
+        let snake = format!("photo_{i}");
+        let titled = format!("Фото {i}");
+        for key in [&snake, &titled] {
+            if let Some(v) = m.get(key.as_str()).filter(|s| !s.trim().is_empty()) {
+                let url = photo_url(v);
+                if !url.is_empty() {
+                    return url;
+                }
+            }
+            for (hk, hv) in m {
+                if hk.eq_ignore_ascii_case(key) && !hv.trim().is_empty() {
+                    let url = photo_url(hv);
+                    if !url.is_empty() {
+                        return url;
+                    }
+                }
+            }
+        }
+    }
+    photo_url(&cell(
+        Some(m),
+        &[
+            "photo1",
+            "photos",
+            "Фото",
+            "Фото (до 30 ссылок в конце)",
+        ],
+    ))
+}
+
+/// То же для сырой строки листа (header + row) — lookup без свода.
+pub fn photo_from_sheet_row(header: &[String], row: &[String]) -> String {
+    for i in 1..=PHOTO_SLOTS {
+        let snake = format!("photo_{i}");
+        let titled = format!("Фото {i}");
+        for key in [&snake, &titled] {
+            for (hi, h) in header.iter().enumerate() {
+                if !h.eq_ignore_ascii_case(key) {
+                    continue;
+                }
+                let url = photo_url(&cell_at(row, hi as isize));
+                if !url.is_empty() {
+                    return url;
+                }
+            }
+        }
+    }
+    for alias in [
+        "photos",
+        "photo1",
+        "Фото",
+        "Фото (до 30 ссылок в конце)",
+    ] {
+        let idx = find_header_index(header, alias, &[]);
+        if idx < 0 {
+            continue;
+        }
+        let url = photo_url(&cell_at(row, idx));
+        if !url.is_empty() {
+            return url;
+        }
+    }
+    String::new()
+}
+
+#[cfg(test)]
+mod photo_tests {
+    use super::*;
+
+    #[test]
+    fn photo_from_row_map_prefers_photo_1() {
+        let mut m = HashMap::new();
+        m.insert("photo_2".into(), "https://example/2.webp".into());
+        m.insert("photo_1".into(), "https://example/1.webp".into());
+        assert_eq!(
+            photo_from_row_map(Some(&m)),
+            "https://example/1.webp"
+        );
+    }
+
+    #[test]
+    fn photo_from_row_map_legacy_photos() {
+        let mut m = HashMap::new();
+        m.insert(
+            "photos".into(),
+            "https://cdn.example/a.jpg\nhttps://cdn.example/b.jpg".into(),
+        );
+        assert_eq!(
+            photo_from_row_map(Some(&m)),
+            "https://cdn.example/a.jpg"
+        );
+    }
+
+    #[test]
+    fn photo_from_sheet_row_foto_n_title() {
+        let header = vec![
+            "nmID".into(),
+            "Фото 1".into(),
+            "Фото 2".into(),
+        ];
+        let row = vec![
+            "123".into(),
+            "".into(),
+            "https://img.example/2.webp".into(),
+        ];
+        assert_eq!(
+            photo_from_sheet_row(&header, &row),
+            "https://img.example/2.webp"
+        );
+    }
+}
+

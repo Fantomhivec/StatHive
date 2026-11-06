@@ -38,7 +38,7 @@ pub fn apply_calculator_script_extras(
             &[
                 "cabinet",
                 "nmID",
-                "photos",
+                "photo_1",
                 "subjectID",
                 "subjectName",
                 "dimensions.length",
@@ -52,7 +52,7 @@ pub fn apply_calculator_script_extras(
                 "cert_expire_date",
                 "cert_check_status",
             ],
-            "[Калькулятор] Массив: photos, subjectID, габариты/вес, chrtID, ТН-ВЭД, документы — для карточки/остатков.",
+            "[Калькулятор] Массив: photo_1, subjectID, габариты/вес, chrtID, ТН-ВЭД, документы — для карточки/остатков.",
             log,
         );
         return;

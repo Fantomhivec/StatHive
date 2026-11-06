@@ -40,7 +40,6 @@ impl AppState {
         let registry = build_registry();
         let http = HttpClient::new();
         let rate_limiter = KeyedRateLimiter::new();
-        log.info(crate::core::i18n::t("log.appStarted"));
         Self {
             log,
             config: Mutex::new(config),

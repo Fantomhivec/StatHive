@@ -18,7 +18,8 @@ mod sheet_map;
 mod wb_load;
 
 pub use enrich::{
-    apply_commission_from_map, apply_logistics_from_box, cell, first_nonempty_line, photo_url, put,
+    apply_commission_from_map, apply_logistics_from_box, cell, first_nonempty_line,
+    photo_from_row_map, photo_from_sheet_row, photo_url, put,
 };
 pub(crate) use sheet_map::{
     load_sheet_map, load_table_rows,

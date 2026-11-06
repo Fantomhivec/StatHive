@@ -25,10 +25,11 @@ use crate::calculator::logistics;
 use crate::calculator::profile::CalculatorProfile;
 use crate::calculator::profit::{evaluate_profit, format_profit_ru};
 use crate::calculator::sheet_util::{
-    self, articles_match, cell_at, find_header_index, first_http_url, format_ru_num,
-    get_sheet_rows, header_row, is_valid_article, resolve_column_index, resolve_value_aliases,
-    try_parse_number, ARTICLE_ALIASES, SUBJECT_ALIASES, SheetCache,
+    self, articles_match, cell_at, find_header_index, format_ru_num, get_sheet_rows, header_row,
+    is_valid_article, resolve_column_index, resolve_value_aliases, try_parse_number,
+    ARTICLE_ALIASES, SUBJECT_ALIASES, SheetCache,
 };
+use crate::calculator::summary_maps::photo_from_sheet_row;
 use crate::core::google_sheets::GoogleSheetsClient;
 use serde_json::{json, Value};
 use std::collections::HashMap;
@@ -245,13 +246,25 @@ async fn fill_metrics_from_wb_sources(
         }
         let header = header_row(&rows);
         let article_idx = resolve_column_index(&header, &art, ARTICLE_ALIASES);
-        let value_aliases = if key == "photo" {
-            vec!["photo1", "Фото", "photos"]
-        } else {
-            resolve_value_aliases(&col)
-        };
+        if article_idx < 0 {
+            continue;
+        }
+        if key == "photo" {
+            for row in rows.iter().skip(1) {
+                if !articles_match(&cell_at(row, article_idx), article) {
+                    continue;
+                }
+                let url = photo_from_sheet_row(&header, row);
+                if !url.is_empty() {
+                    values.insert(key.to_string(), url);
+                }
+                break;
+            }
+            continue;
+        }
+        let value_aliases = resolve_value_aliases(&col);
         let value_idx = resolve_column_index(&header, &col, &value_aliases);
-        if article_idx < 0 || value_idx < 0 {
+        if value_idx < 0 {
             continue;
         }
         let sum_values = SUM_KEYS.iter().any(|k| k.eq_ignore_ascii_case(key));
@@ -278,14 +291,11 @@ async fn fill_metrics_from_wb_sources(
         if !found {
             continue;
         }
-        let mut value = if sum_values {
+        let value = if sum_values {
             format_ru_num(sum)
         } else {
             first
         };
-        if key == "photo" {
-            value = first_http_url(&value);
-        }
         values.insert(key.to_string(), value);
     }
 }
@@ -400,6 +410,7 @@ async fn enrich_from_array_extras(
         "Дата окончания действия сертификата/декларации",
         &[
             "Дата окончания действия сертификата/декларации",
+            "Дата окончания сертификата/декларации",
             "cert_expire_date",
         ],
     );

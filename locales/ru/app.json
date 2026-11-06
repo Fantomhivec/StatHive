@@ -284,7 +284,6 @@
  "Logs": "Логи"
  },
  "log": {
- "appStarted": "StatHive запущен",
  "auth": {
  "oauthSaved": "OAuth client сохранён локально",
  "teamCodeBuilt": "Код команды сформирован (команда={workspaceId}, длина={length})",
@@ -1817,7 +1816,7 @@
  "goods_labeling": "WB: Удержания за маркировку",
  "analytics_deductions": "WB: Удержания (подмены)",
  "tariffs_box": "WB: Тарифы для коробов",
- "cards_list": "WB: Карточки WB",
+ "cards_list": "WB: Список карточек",
  "cards_error_list": "WB: Список черновиков (ошибки карточек)",
  "cards_move_nm": "WB: Разъединение карточек товаров",
  "cards_move_to_trash": "WB: Перенести карточки в корзину",

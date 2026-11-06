@@ -53,7 +53,14 @@ pub const SUBJECT_ALIASES: &[&str] = &["ID предмета", "subjectID", "subj
 
 pub fn resolve_value_aliases(column_header: &str) -> Vec<&'static str> {
     let groups: &[&[&str]] = &[
-        &["photo1", "Фото", "photos", "Фото (до 30 ссылок в конце)"],
+        &[
+            "photo_1",
+            "Фото 1",
+            "photo1",
+            "Фото",
+            "photos",
+            "Фото (до 30 ссылок в конце)",
+        ],
         &["Кабинет", "cabinet"],
         &["Наименование", "Название", "Название товара", "title"],
         &["Бренд", "brandName", "brand"],

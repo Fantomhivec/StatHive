@@ -30,7 +30,7 @@ use crate::calculator::sheet_util::{
 use crate::calculator::manual_bindings::{self, apply_manual_to_values};
 use crate::calculator::summary_maps::{
     apply_commission_from_map, apply_logistics_from_box, cell, first_nonempty_line, load_wb_maps,
-    photo_url, put,
+    photo_from_row_map, put,
 };
 use crate::core::google_sheets::{
     GoogleSheetsClient, SheetClearScope, SheetWriteMode, SheetWriteRequest,
@@ -162,20 +162,8 @@ pub async fn rebuild_wb_summary(
         let pur = maps.purchases.get(art);
 
         let mut values: HashMap<String, String> = HashMap::new();
-        // Массив: API-поле `photos` / photo1 / «Фото…» — в свод колонка «Фото» (без lookup-fallback с Массива).
-        put(
-            &mut values,
-            "photo",
-            photo_url(&cell(
-                a,
-                &[
-                    "photo1",
-                    "photos",
-                    "Фото",
-                    "Фото (до 30 ссылок в конце)",
-                ],
-            )),
-        );
+        // Массив: photo_1…photo_30 / «Фото N» + legacy photos/photo1/Фото → свод «Фото».
+        put(&mut values, "photo", photo_from_row_map(a));
         put(&mut values, "cabinet", cell(a, &["Кабинет", "cabinet"]));
         put(
             &mut values,
@@ -249,6 +237,7 @@ pub async fn rebuild_wb_summary(
                 a,
                 &[
                     "Дата окончания действия сертификата/декларации",
+                    "Дата окончания сертификата/декларации",
                     "cert_expire_date",
                 ],
             )),

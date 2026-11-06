@@ -53,7 +53,7 @@ impl Script for CardsScript {
 }
 
 async fn run_cards(ctx: &ScriptContext) -> ScriptResult {
-    ctx.log.info("Скрипт «Карточки WB»: старт");
+    ctx.log.info("Скрипт «Список карточек»: старт");
 
     let cabinets = common::resolve_cabinets(ctx);
     if cabinets.is_empty() {

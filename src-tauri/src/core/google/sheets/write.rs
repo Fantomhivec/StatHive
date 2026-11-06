@@ -47,8 +47,8 @@ pub(crate) fn format_sheets_op_progress(verb: &str, done: usize, total: usize) -
 }
 
 impl GoogleSheetsClient {
-    /// WriteDataSmart: clear bounded `A1:{col}{rows}` (not whole-grid title range), then
-    /// Values.Update in `BATCH_ROWS` chunks. Prefer [`GoogleSheetsClient::write_sheet`].
+    /// WriteDataSmart: clear per [`SheetClearScope`], then Values.Update in chunks.
+    /// Prefer [`GoogleSheetsClient::write_sheet`].
     pub(crate) async fn clear_and_write(
         &self,
         spreadsheet_id: &str,
@@ -70,14 +70,11 @@ impl GoogleSheetsClient {
             .unwrap_or(1)
             .max(1);
         let total = rows.len();
-        let a_col = format!("{}!A:A", quote_sheet(sheet));
+        let quoted = quote_sheet(sheet);
+        let a_col = format!("{quoted}!A:A");
 
-        // Meta (grid) || used rows (A:A) — clear must use used, not grid.rowCount
-        // (раздутая сетка 50k+ делала clear снова 20+ с).
-        let (meta_res, used_res) = tokio::join!(
-            self.sheet_grid_meta(sid, sheet),
-            self.read_values_row_count(sid, &a_col),
-        );
+        // Meta always; used rows only for DataColumns (WholeSheet clears title range).
+        let meta_res = self.sheet_grid_meta(sid, sheet).await;
         let (sheet_id, cur_rows, cur_cols) = match meta_res {
             Ok(m) => m,
             Err(e) if looks_like_missing_sheet(&e) => {
@@ -86,24 +83,33 @@ impl GoogleSheetsClient {
             }
             Err(e) => return Err(e),
         };
-        let used_rows = used_res.unwrap_or(0);
 
-        let clear_cols = match clear {
-            SheetClearScope::DataColumns => cols,
-            SheetClearScope::DataAndGridWidth => cols.max(cur_cols).max(1),
-        };
-        let clear_rows = total.max(used_rows).max(1);
-        let clear_a1 = format!(
-            "{}!A1:{}{clear_rows}",
-            quote_sheet(sheet),
-            to_a1_column(clear_cols)
-        );
-        on_progress(format!(
-            "Очистка листа ({clear_rows} строк × {clear_cols} кол.)…"
-        ));
-        self.clear_range(sid, &clear_a1)
-            .await
-            .map_err(|e| format!("clear {clear_a1}: {e}"))?;
+        match clear {
+            SheetClearScope::WholeSheet => {
+                on_progress(format!(
+                    "Очистка листа (весь лист)…"
+                ));
+                self.clear_range(sid, &quoted)
+                    .await
+                    .map_err(|e| format!("clear sheet {quoted}: {e}"))?;
+            }
+            SheetClearScope::DataColumns => {
+                // Used-range height (A:A), not grid.rowCount — fat grids were 20+s clears.
+                let used_rows = self
+                    .read_values_row_count(sid, &a_col)
+                    .await
+                    .unwrap_or(0);
+                let clear_cols = cols;
+                let clear_rows = total.max(used_rows).max(1);
+                let clear_a1 = format!("{quoted}!A1:{}{clear_rows}", to_a1_column(clear_cols));
+                on_progress(format!(
+                    "Очистка листа ({clear_rows} строк × {clear_cols} кол.)…"
+                ));
+                self.clear_range(sid, &clear_a1)
+                    .await
+                    .map_err(|e| format!("clear {clear_a1}: {e}"))?;
+            }
+        }
 
         if rows.is_empty() {
             return Ok(0);
@@ -130,7 +136,7 @@ impl GoogleSheetsClient {
             let chunk = &rows[i..end];
             let start_row = i + 1;
             let end_row = end;
-            let range = format!("{}!A{start_row}:{last_col}{end_row}", quote_sheet(sheet));
+            let range = format!("{quoted}!A{start_row}:{last_col}{end_row}");
             // 429/quota — только внутри exchange_with_backoff (без внешнего sleep-loop).
             self.update_values(sid, &range, chunk)
                 .await
