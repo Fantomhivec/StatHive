@@ -71,6 +71,7 @@ pub fn default_tabs() -> Vec<(String, String)> {
     vec![
         ("KeysCheck".into(), t("tabs.KeysCheck")),
         ("Templates".into(), t("tabs.Templates")),
+        ("AllTables".into(), t("tabs.AllTables")),
         ("Logs".into(), t("tabs.Logs")),
     ]
 }
@@ -162,6 +163,8 @@ pub fn get_layout(
         "canKeysCheck": access::can_keys_check(access_level),
         "can_users_tab": access::can_users_tab(access_level),
         "canUsersTab": access::can_users_tab(access_level),
+        "can_all_tables": access::can_all_tables(access_level),
+        "canAllTables": access::can_all_tables(access_level),
         "has_oauth": effective_oauth,
         "hasOauth": effective_oauth,
         "templates_excel_only": !effective_oauth,

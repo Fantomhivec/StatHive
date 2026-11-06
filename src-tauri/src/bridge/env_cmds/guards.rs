@@ -54,6 +54,18 @@ pub(super) fn require_keys_check(state: &AppState) -> Result<(), String> {
     Ok(())
 }
 
+/// Вкладка «Все таблицы» + effective OAuth (Admin / HasOauth + token).
+pub(super) fn require_all_tables_oauth(state: &AppState) -> Result<(), String> {
+    let u = crate::templates::access_gate::require_user(state)?;
+    if !access::can_all_tables(&u.access_level) {
+        return Err(t("errors.auth.allTablesDenied"));
+    }
+    if !access::effective_has_oauth(&u.access_level, u.has_oauth) {
+        return Err(t("errors.auth.allTablesNeedOauth"));
+    }
+    Ok(())
+}
+
 /// KeysCheck **или** (OAuth ∧ скрипты) — Google list/check (нужен token).
 pub(super) fn require_keys_or_script_oauth(state: &AppState) -> Result<(), String> {
     let u = crate::templates::access_gate::require_user(state)?;

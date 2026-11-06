@@ -34,8 +34,9 @@ const OAUTH_WAIT: StdDuration = StdDuration::from_secs(45);
 
 const REDIRECT_URI: &str = "http://localhost:8765/";
 const SCOPES: &str = concat!(
-    // drive.file: файлы, созданные приложением / открытые через него (без полного Drive).
+    // Полный drive — список всех доступных таблиц / permissions (All Tables); drive.file — узкий доступ.
     "https://www.googleapis.com/auth/spreadsheets ",
+    "https://www.googleapis.com/auth/drive ",
     "https://www.googleapis.com/auth/drive.file ",
     "https://www.googleapis.com/auth/userinfo.email openid"
 );
@@ -43,6 +44,7 @@ const SCOPES: &str = concat!(
 /// Обычный вход и скрипты используют `SCOPES` без cloud-platform.
 const SCOPES_WITH_CLOUD: &str = concat!(
     "https://www.googleapis.com/auth/spreadsheets ",
+    "https://www.googleapis.com/auth/drive ",
     "https://www.googleapis.com/auth/drive.file ",
     "https://www.googleapis.com/auth/userinfo.email openid ",
     "https://www.googleapis.com/auth/cloud-platform"

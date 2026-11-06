@@ -39,8 +39,9 @@ pub const ALL_CALC_FLAGS: &[&str] = &[
 /// Вкладки приложения вне калькулятора.
 pub const APP_FLAG_KEYS_CHECK: &str = "keysCheck";
 pub const APP_FLAG_USERS: &str = "users";
+pub const APP_FLAG_ALL_TABLES: &str = "allTables";
 
-pub const ALL_APP_FLAGS: &[&str] = &[APP_FLAG_KEYS_CHECK, APP_FLAG_USERS];
+pub const ALL_APP_FLAGS: &[&str] = &[APP_FLAG_KEYS_CHECK, APP_FLAG_USERS, APP_FLAG_ALL_TABLES];
 
 pub(crate) const HEADER: &[&str] =
     &["Id", "Title", "Calculator", "Scripts", "CalcAccess", "AppAccess"];
@@ -61,7 +62,7 @@ pub struct PresetDef {
     /// Ключи: view, settings, tables, kgt, excel. Пусто + calculator=true → все.
     #[serde(default)]
     pub calc_access: HashSet<String>,
-    /// Ключи: keysCheck, users. Пусто → нет вкладок.
+    /// Ключи: keysCheck, users, allTables. Пусто → нет вкладок.
     #[serde(default)]
     pub app_access: HashSet<String>,
 }
@@ -135,6 +136,7 @@ pub(crate) fn normalize_app_flag(raw: &str) -> Option<&'static str> {
     match raw.trim().to_ascii_lowercase().as_str() {
         "keyscheck" | "keys_check" | "keys" => Some(APP_FLAG_KEYS_CHECK),
         "users" | "user" | "team" => Some(APP_FLAG_USERS),
+        "alltables" | "all_tables" | "alltable" => Some(APP_FLAG_ALL_TABLES),
         _ => None,
     }
 }
@@ -221,8 +223,9 @@ mod tests {
         let all = parse_app_access_cell("*");
         assert!(all.contains(APP_FLAG_KEYS_CHECK));
         assert!(all.contains(APP_FLAG_USERS));
-        let one = parse_app_access_cell("users,keysCheck");
-        assert_eq!(one.len(), 2);
+        assert!(all.contains(APP_FLAG_ALL_TABLES));
+        let one = parse_app_access_cell("users,keysCheck,allTables");
+        assert_eq!(one.len(), 3);
     }
 }
 

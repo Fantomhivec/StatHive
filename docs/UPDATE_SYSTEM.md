@@ -5,7 +5,7 @@
 - Owner/repo зашиты в приложение: `Fantomhivec/StatHive`.
 - Скачивается zip текущей ОС (предпочтительно `browser_download_url`); хост только GitHub; если API отдал `digest` (`sha256:…`) — проверяется после скачивания.
 - Установка: временная папка + StatHive.Updater (или тихий install-скрипт).
-- User OAuth: scopes `spreadsheets` + `drive.file` (без полного `drive`); SA по-прежнему с полным Drive.
+- User OAuth: scopes `spreadsheets` + `drive` + `drive.file` (+ `userinfo.email` / `openid`); полный `drive` нужен для вкладки «Все таблицы». SA по-прежнему с полным Drive.
 - CSP в `tauri.conf.json` ограничен; `openUrl` — allowlist https (Discord, Google Docs/Drive, WB/Ozon, GitHub).
 
 Если репозиторий private, API обычно отвечает 404/401 — клиент не найдёт обновление. Сборка релизов через Actions при этом может работать (см. [RELEASE.md](./RELEASE.md)).

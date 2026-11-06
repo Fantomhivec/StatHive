@@ -20,8 +20,8 @@ mod ui_cache;
 pub use store::{
     delete_preset, ensure_access_sheets, list_presets, reload_presets_cache, resolve_preset_id,
     save_preset, AccessMatrix, PresetDef, ADMIN_ROLE_ID, ALL_APP_FLAGS, ALL_CALC_FLAGS,
-    APP_FLAG_KEYS_CHECK, APP_FLAG_USERS, CALC_FLAG_EXCEL, CALC_FLAG_KGT, CALC_FLAG_SETTINGS,
-    CALC_FLAG_TABLES, CALC_FLAG_VIEW,
+    APP_FLAG_ALL_TABLES, APP_FLAG_KEYS_CHECK, APP_FLAG_USERS, CALC_FLAG_EXCEL, CALC_FLAG_KGT,
+    CALC_FLAG_SETTINGS, CALC_FLAG_TABLES, CALC_FLAG_VIEW,
 };
 pub use ui_cache::{
     cached_team, invalidate_team_cache, invalidate_users_ui_cache, set_team_cache,
@@ -136,6 +136,11 @@ pub fn can_keys_check(access_level: &str) -> bool {
 /// Вкладка «Пользователи» (инвайт, пресеты; без SA / delete / открыть лист).
 pub fn can_users_tab(access_level: &str) -> bool {
     has_app_flag(access_level, APP_FLAG_USERS)
+}
+
+/// Вкладка «Все таблицы» (Drive list / permissions / delete).
+pub fn can_all_tables(access_level: &str) -> bool {
+    has_app_flag(access_level, APP_FLAG_ALL_TABLES)
 }
 
 /// Для колонки AccessLevel: Admin как есть; иначе id пресета из кэша или raw.
@@ -330,6 +335,7 @@ mod tests {
         assert!(can_use_any_script_ex("Analyst", true, true));
         assert!(!can_keys_check("Analyst"));
         assert!(!can_users_tab("Analyst"));
+        assert!(!can_all_tables("Analyst"));
 
         set_presets_cache(vec![PresetDef {
             id: "CalcOnly".into(),
@@ -337,7 +343,11 @@ mod tests {
             calculator: true,
             scripts: AccessMatrix::Keys(HashSet::new()),
             calc_access: HashSet::from([CALC_FLAG_VIEW.into()]),
-            app_access: HashSet::from([APP_FLAG_USERS.into(), APP_FLAG_KEYS_CHECK.into()]),
+            app_access: HashSet::from([
+                APP_FLAG_USERS.into(),
+                APP_FLAG_KEYS_CHECK.into(),
+                APP_FLAG_ALL_TABLES.into(),
+            ]),
         }]);
         assert!(can_calculator_mode("CalcOnly"));
         assert!(can_calc("CalcOnly", CALC_FLAG_VIEW));
@@ -346,7 +356,9 @@ mod tests {
         assert!(!can_use_any_script_ex("CalcOnly", true, true));
         assert!(can_users_tab("CalcOnly"));
         assert!(can_keys_check("CalcOnly"));
+        assert!(can_all_tables("CalcOnly"));
         assert!(can_keys_check("Admin"));
+        assert!(can_all_tables("Admin"));
         clear_presets_cache();
     }
 

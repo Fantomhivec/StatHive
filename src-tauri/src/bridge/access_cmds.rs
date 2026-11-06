@@ -18,7 +18,8 @@ use crate::app_state::AppState;
 use crate::auth::sheets_users::{self, auth_client, spreadsheet_id};
 use crate::core::access::{
     self, delete_preset, ensure_access_sheets, list_presets, resolve_preset_id, save_preset,
-    AccessMatrix, PresetDef, ALL_APP_FLAGS, ALL_CALC_FLAGS, APP_FLAG_KEYS_CHECK, APP_FLAG_USERS,
+    AccessMatrix, PresetDef, ALL_APP_FLAGS, ALL_CALC_FLAGS, APP_FLAG_ALL_TABLES,
+    APP_FLAG_KEYS_CHECK, APP_FLAG_USERS,
 };
 use crate::scripts::build_registry;
 use serde::{Deserialize, Serialize};
@@ -164,6 +165,8 @@ fn normalize_app_access(flags: Vec<String>) -> HashSet<String> {
             set.insert(APP_FLAG_KEYS_CHECK.to_string());
         } else if n == "users" || n == "user" || n == "team" {
             set.insert(APP_FLAG_USERS.to_string());
+        } else if n == "alltables" || n == "all_tables" || n == "alltable" {
+            set.insert(APP_FLAG_ALL_TABLES.to_string());
         } else if ALL_APP_FLAGS.iter().any(|x| x.eq_ignore_ascii_case(&n)) {
             set.insert(n);
         }

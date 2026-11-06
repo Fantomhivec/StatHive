@@ -31,6 +31,7 @@ export const FAIL_CLOSED_TABS_LAYOUT: TabsLayoutResult = {
   canTablesTab: false,
   canKeysCheck: false,
   canUsersTab: false,
+  canAllTables: false,
   hasOauth: false,
   canCheckGoogle: false,
   templatesExcelOnly: true,

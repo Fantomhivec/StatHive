@@ -352,6 +352,7 @@ export type TabsLayoutResult = {
   calcAccess?: CalcAccessDto;
   canKeysCheck?: boolean;
   canUsersTab?: boolean;
+  canAllTables?: boolean;
   hasOauth?: boolean;
   /** Свой Desktop client или грант TeamOAuth — кнопка «Проверить подключение». */
   canCheckGoogle?: boolean;

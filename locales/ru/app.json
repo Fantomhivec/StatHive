@@ -281,6 +281,7 @@
  "tabs": {
  "KeysCheck": "Проверка ключей",
  "Templates": "Шаблоны",
+ "AllTables": "Все таблицы",
  "Logs": "Логи"
  },
  "log": {
@@ -443,6 +444,8 @@
  "teamListAdminOnly": "Список команды доступен при праве «Пользователи»",
  "usersTabDenied": "Нет доступа к вкладке «Пользователи»",
  "keysCheckDenied": "Нет доступа к вкладке «Проверка ключей»",
+ "allTablesDenied": "Нет доступа к вкладке «Все таблицы»",
+ "allTablesNeedOauth": "Для «Все таблицы» нужен свой Google OAuth (Проверка ключей → подключение)",
  "deleteUserAdminOnly": "Удалять пользователей может только Admin",
     "cannotDeleteSelf": "Нельзя удалить свою учётную запись",
     "cannotDeleteAdmin": "Нельзя удалить Admin",
@@ -484,6 +487,9 @@
  "userRowEmpty": "Строка пользователя пуста",
  "usersReadFailed": "Чтение пользователей: {error}",
  "loginTaken": "Логин «{login}» уже занят"
+ },
+ "allTables": {
+ "emptyId": "Укажите id таблицы"
  },
  "templates": {
  "scriptNotFound": "Скрипт не найден: {scriptKey}",

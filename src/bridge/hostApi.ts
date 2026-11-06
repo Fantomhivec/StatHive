@@ -194,6 +194,39 @@ export const hostApi = {
     invoke<{ spreadsheet_id: string; title?: string; sheets: string[] }>("google_list_sheets", {
       args: { spreadsheet_id: spreadsheetId },
     }),
+  listOwnedSheets: (opts?: { sharedOnly?: boolean }) =>
+    invoke<{
+      canManage: boolean;
+      items: Array<{
+        id: string;
+        name: string;
+        url?: string | null;
+        created?: string;
+        createdTs?: number;
+        accessStatus?: string;
+        usersCount?: number;
+        isOwner?: boolean;
+      }>;
+    }>("sheets_list_owned", {
+      args: { sharedOnly: !!opts?.sharedOnly },
+    }),
+  deleteSheet: (id: string) =>
+    invoke<{ ok: boolean }>("sheets_delete", { id }),
+  getSheetPermissions: (id: string) =>
+    invoke<
+      Array<{
+        id: string;
+        email?: string;
+        role?: string;
+        type?: string;
+        displayName?: string;
+        canRemove?: boolean;
+      }>
+    >("sheets_get_permissions", { id }),
+  removePermission: (id: string, permissionId: string) =>
+    invoke<{ ok: boolean }>("sheets_remove_permission", {
+      args: { id, permissionId },
+    }),
   spreadsheetNormalize: (value: string) =>
     invoke<{ spreadsheet_id: string; changed: boolean }>("spreadsheet_normalize", {
       args: { value },

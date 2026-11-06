@@ -15,8 +15,10 @@
 mod file_cmds;
 mod google_cmds;
 mod guards;
+mod sheets_all_cmds;
 mod tabs_cmds;
 
 pub use file_cmds::*;
 pub use google_cmds::*;
+pub use sheets_all_cmds::*;
 pub use tabs_cmds::*;

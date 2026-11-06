@@ -43,6 +43,7 @@ const TabsSettingsPage = lazy(() => import("./pages/TabsSettingsPage"));
 const LogsPage = lazy(() => import("./pages/LogsPage"));
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 const UsersPage = lazy(() => import("./pages/UsersPage"));
+const AllTablesPage = lazy(() => import("./pages/AllTablesPage"));
 const SettingsPage = lazy(() => import("./pages/SettingsPage"));
 
 type NavItem = { tabKey: string; to: string; label: string; end?: boolean; calcFlag?: keyof CalcAccessDto };
@@ -95,6 +96,7 @@ function ShellLayout() {
   const [canTablesTab, setCanTablesTab] = useState(false);
   const [canKeysCheck, setCanKeysCheck] = useState(false);
   const [canUsersTab, setCanUsersTab] = useState(false);
+  const [canAllTables, setCanAllTables] = useState(false);
   const [calcAccess, setCalcAccess] = useState<CalcAccessDto>(
     FAIL_CLOSED_TABS_LAYOUT.calcAccess!,
   );
@@ -118,11 +120,14 @@ function ShellLayout() {
     if (canTemplates) {
       items.push({ tabKey: "Templates", to: "/", label: t("nav.templates"), end: true });
     }
+    if (canAllTables || isAdmin) {
+      items.push({ tabKey: "AllTables", to: "/all-tables", label: t("nav.allTables") });
+    }
     if (canLogs) {
       items.push({ tabKey: "Logs", to: "/logs", label: t("nav.logs") });
     }
     return items;
-  }, [t, canTemplates, canLogs, canKeysCheck, isAdmin]);
+  }, [t, canTemplates, canLogs, canKeysCheck, canAllTables, isAdmin]);
 
   const adminUsersNav = useMemo<NavItem>(
     () => ({
@@ -181,6 +186,7 @@ function ShellLayout() {
       access: CalcAccessDto | undefined,
       keysOk: boolean,
       usersOk: boolean,
+      allTablesOk: boolean,
     ) => {
       setLayout(items);
       setCalculatorMode(mode);
@@ -190,6 +196,7 @@ function ShellLayout() {
       setCanTablesTab(tablesTabOk);
       setCanKeysCheck(keysOk);
       setCanUsersTab(usersOk);
+      setCanAllTables(allTablesOk);
       setCalcAccess(access ?? FAIL_CLOSED_TABS_LAYOUT.calcAccess!);
       setLayoutReady(true);
     },
@@ -200,9 +207,11 @@ function ShellLayout() {
     ? "/"
     : canKeysCheck || isAdmin
       ? "/keys-check"
-      : canLogs
-        ? "/logs"
-        : "/profile";
+      : canAllTables || isAdmin
+        ? "/all-tables"
+        : canLogs
+          ? "/logs"
+          : "/profile";
 
   const sessionId = user?.session_id ?? "";
   const accessLevel = user?.access_level ?? "";
@@ -224,6 +233,7 @@ function ShellLayout() {
         peek.calcAccess,
         !!peek.canKeysCheck || isAdmin,
         !!peek.canUsersTab || isAdmin,
+        !!peek.canAllTables || isAdmin,
       );
       return;
     }
@@ -235,6 +245,7 @@ function ShellLayout() {
       false,
       false,
       FAIL_CLOSED_TABS_LAYOUT.calcAccess,
+      isAdmin,
       isAdmin,
       isAdmin,
     );
@@ -260,6 +271,7 @@ function ShellLayout() {
           fresh.calcAccess,
           !!fresh.canKeysCheck || isAdmin,
           !!fresh.canUsersTab || isAdmin,
+          !!fresh.canAllTables || isAdmin,
         );
       })
       .catch(() =>
@@ -271,6 +283,7 @@ function ShellLayout() {
           false,
           false,
           FAIL_CLOSED_TABS_LAYOUT.calcAccess,
+          isAdmin,
           isAdmin,
           isAdmin,
         ),
@@ -291,6 +304,7 @@ function ShellLayout() {
         res.calcAccess,
         !!res.canKeysCheck || isAdmin,
         !!res.canUsersTab || isAdmin,
+        !!res.canAllTables || isAdmin,
       );
     });
   }, [applyLayout, isAdmin]);
@@ -331,6 +345,15 @@ function ShellLayout() {
       return;
     }
 
+    if (
+      !canAllTables &&
+      !isAdmin &&
+      (path === "/all-tables" || path.startsWith("/all-tables/"))
+    ) {
+      navigate(homePath, { replace: true });
+      return;
+    }
+
     if (!canTemplates && (path === "/" || path.startsWith("/templates"))) {
       navigate(homePath, { replace: true });
       return;
@@ -357,6 +380,7 @@ function ShellLayout() {
     isAdmin,
     canKeysCheck,
     canUsersTab,
+    canAllTables,
     calculatorNav,
     firstCalcPath,
     calcAccess.tables,
@@ -378,6 +402,7 @@ function ShellLayout() {
           if (k === "templates" && !canTemplates) return false;
           if (k === "logs" && !canLogs) return false;
           if (k === "keyscheck" && !canKeysCheck && !isAdmin) return false;
+          if (k === "alltables" && !canAllTables && !isAdmin) return false;
           return true;
         })
         .map((it) => {
@@ -404,6 +429,7 @@ function ShellLayout() {
     canLogs,
     canKeysCheck,
     canUsersTab,
+    canAllTables,
     isAdmin,
     calculatorNav,
     defaultNav,
@@ -462,6 +488,7 @@ function AppRoutes() {
         >
           <Route index element={<TemplatesPage />} />
           <Route path="keys-check" element={<KeysCheckPage />} />
+          <Route path="all-tables" element={<AllTablesPage />} />
           {/* /tables — устаревший alias; только calculator-tables в режиме калькулятора */}
           <Route path="tables" element={<Navigate to="/calculator-tables" replace />} />
           <Route path="calculator" element={<CalculatorViewPage />} />

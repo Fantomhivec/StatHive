@@ -15,6 +15,7 @@
 //! Google OAuth, Sheets, Drive.
 
 pub mod drive;
+pub mod drive_all;
 pub mod http;
 pub mod iam_sa;
 pub mod oauth;

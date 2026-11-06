@@ -59,6 +59,7 @@ export function normalizeTabsLayout(res: Record<string, unknown>): TabsLayoutRes
     calcAccess: normalizeCalcAccess(res.calcAccess ?? res.calc_access),
     canKeysCheck: Boolean(res.canKeysCheck ?? res.can_keys_check),
     canUsersTab: Boolean(res.canUsersTab ?? res.can_users_tab),
+    canAllTables: Boolean(res.canAllTables ?? res.can_all_tables),
     hasOauth: Boolean(res.hasOauth ?? res.has_oauth),
     canCheckGoogle: Boolean(res.canCheckGoogle ?? res.can_check_google),
     templatesExcelOnly: Boolean(res.templatesExcelOnly ?? res.templates_excel_only),

@@ -29,7 +29,7 @@ function compareScripts(a: ScriptCatalogItem, b: ScriptCatalogItem): number {
 }
 
 const CALC_FLAGS = ["view", "settings", "tables", "kgt", "excel"] as const;
-const APP_FLAGS = ["keysCheck", "users"] as const;
+const APP_FLAGS = ["keysCheck", "users", "allTables"] as const;
 
 type CalcFlag = (typeof CALC_FLAGS)[number];
 type AppFlag = (typeof APP_FLAGS)[number];
@@ -183,6 +183,8 @@ export default function UsersAccessEditor({
         return t("nav.keysCheck");
       case "users":
         return t("nav.users");
+      case "allTables":
+        return t("nav.allTables");
       default:
         return flag;
     }
