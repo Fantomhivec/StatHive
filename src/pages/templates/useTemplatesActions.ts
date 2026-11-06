@@ -24,13 +24,19 @@ import { useAppDialogs } from "../../components/useAppDialogs";
 import { useT } from "../../i18n";
 import { enrichSpreadsheetTitles } from "./enrichSpreadsheetTitles";
 import {
+  advanceGroupWaveFromActive,
+  beginGroupWave,
+  cancelGroupWave,
   emptySnap,
   ensureScriptsMap,
   ensureTemplatesRunProgressBridge,
   getTemplatesSnapCache,
   mergeEphemeralRunFlags,
   setTemplatesSnapCache,
+  snapshotGroupWaves,
+  subscribeGroupWaves,
   subscribeTemplatesSnap,
+  type GroupWave,
   type TemplatesMarket,
 } from "./templatesPageCache";
 
@@ -38,6 +44,9 @@ export function useTemplatesActions() {
   const t = useT();
   const [market, setMarket] = useState<TemplatesMarket>("wb");
   const [snap, setSnap] = useState<TemplatesSnapshot>(() => emptySnap("wb"));
+  const [groupWaves, setGroupWaves] = useState<Record<string, GroupWave>>(
+    () => snapshotGroupWaves(),
+  );
   const [error, setError] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -113,6 +122,8 @@ export function useTemplatesActions() {
     return subscribeTemplatesSnap((s) => {
       const m = (s.marketplace === "ozon" ? "ozon" : "wb") as TemplatesMarket;
       if (m !== market) return;
+      // Same tick as snap: wave may have advanced in the bridge — force React paint.
+      setGroupWaves(snapshotGroupWaves());
       setSnap((prev) => {
         const merged = mergeEphemeralRunFlags(prev, s);
         setTemplatesSnapCache(m, merged);
@@ -120,6 +131,43 @@ export function useTemplatesActions() {
       });
     });
   }, [market]);
+
+  useEffect(() => {
+    // Remount / first paint: pull module wave (progress may have advanced on Logs).
+    setGroupWaves(snapshotGroupWaves());
+    return subscribeGroupWaves(() => {
+      setGroupWaves(snapshotGroupWaves());
+    });
+  }, []);
+
+  // Lesson 121: while group wave flies, poll hydrate cursor → same tones pipeline.
+  // Covers emit batching (lesson 120) and missed progress events.
+  const waveFlying = Object.values(groupWaves).some((w) => w.inFlight);
+  useEffect(() => {
+    if (!waveFlying) return;
+    let dead = false;
+    const tick = async () => {
+      try {
+        const s = await hostApi.templatesSnapshot(market);
+        if (dead) return;
+        let moved = false;
+        for (const g of s.groups ?? []) {
+          if (advanceGroupWaveFromActive(g.id, g.active_template_id)) moved = true;
+        }
+        if (moved) setGroupWaves(snapshotGroupWaves());
+        // Refresh busy flags from hydrate without wiping session tones (merge).
+        applySnap(s);
+      } catch {
+        /* mid-run poll is best-effort */
+      }
+    };
+    const timer = window.setInterval(() => void tick(), 750);
+    void tick();
+    return () => {
+      dead = true;
+      window.clearInterval(timer);
+    };
+  }, [waveFlying, market, applySnap]);
 
   // Caps/пресеты догрузились после restore — убрать ложный «нет доступа» без ухода со вкладки.
   useEffect(() => {
@@ -236,7 +284,33 @@ export function useTemplatesActions() {
       setBusyId(id);
       setMsg(null);
       setError(null);
+      const memberIds =
+        snap.groups.find((g) => g.id === id)?.template_ids ?? [];
+      beginGroupWave(id, memberIds);
+      const waves = snapshotGroupWaves();
+      setGroupWaves(waves);
+      const started = waves[id];
       patchOptimisticRunning(id, "group");
+      // Same tick as optimistic busy: stamp wave_tones so paint does not wait on events.
+      if (started) {
+        setSnap((prev) => {
+          const next: TemplatesSnapshot = {
+            ...prev,
+            groups: (prev.groups ?? []).map((g) =>
+              g.id === id
+                ? {
+                    ...g,
+                    wave_in_flight: true,
+                    wave_tones: { ...started.tones },
+                  }
+                : g,
+            ),
+          };
+          const m = (next.marketplace === "ozon" ? "ozon" : "wb") as TemplatesMarket;
+          setTemplatesSnapCache(m, next);
+          return next;
+        });
+      }
       try {
         const res = await hostApi.templatesRunGroup(id, dryRun);
         const fallback = dryRun
@@ -251,7 +325,7 @@ export function useTemplatesActions() {
         await reloadSnap();
       }
     },
-    [t, reloadSnap, patchOptimisticRunning],
+    [t, reloadSnap, patchOptimisticRunning, snap.groups],
   );
 
   const duplicateTemplate = useCallback(
@@ -286,6 +360,52 @@ export function useTemplatesActions() {
   );
 
   const cancelRun = useCallback(async (id: string, entityType: "template" | "group") => {
+    // Lesson 118: UI unlock immediately — do not wait for long Sheets/rate-limit.
+    runLockRef.current = false;
+    setBusyId(null);
+    if (entityType === "group") {
+      cancelGroupWave(id);
+      const waves = snapshotGroupWaves();
+      setGroupWaves(waves);
+      const cancelled = waves[id];
+      setSnap((prev) => {
+        const next: TemplatesSnapshot = {
+          ...prev,
+          groups: (prev.groups ?? []).map((g) =>
+            g.id === id
+              ? {
+                  ...g,
+                  is_running: false,
+                  active_template_id: null,
+                  wave_in_flight: false,
+                  wave_tones: cancelled?.tones ? { ...cancelled.tones } : g.wave_tones,
+                }
+              : g,
+          ),
+          templates: (prev.templates ?? []).map((tpl) => {
+            const g = prev.groups?.find((x) => x.id === id);
+            if (!g?.template_ids?.includes(tpl.id)) return tpl;
+            return { ...tpl, is_running: false };
+          }),
+        };
+        const m = (next.marketplace === "ozon" ? "ozon" : "wb") as TemplatesMarket;
+        setTemplatesSnapCache(m, next);
+        return next;
+      });
+    } else {
+      setSnap((prev) => {
+        const mark = (tpl: TemplateDto): TemplateDto =>
+          tpl.id === id ? { ...tpl, is_running: false } : tpl;
+        const next = {
+          ...prev,
+          templates: (prev.templates ?? []).map(mark),
+          standalone: (prev.standalone ?? []).map(mark),
+        };
+        const m = (next.marketplace === "ozon" ? "ozon" : "wb") as TemplatesMarket;
+        setTemplatesSnapCache(m, next);
+        return next;
+      });
+    }
     try {
       await hostApi.templatesCancel(id, entityType);
     } catch (e) {
@@ -402,6 +522,7 @@ export function useTemplatesActions() {
     market,
     setMarket,
     snap,
+    groupWaves,
     error,
     msg,
     busyId,

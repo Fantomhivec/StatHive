@@ -25,9 +25,11 @@ use tauri::State;
 
 #[tauri::command]
 pub async fn templates_run(
+    app: tauri::AppHandle,
     state: State<'_, Arc<AppState>>,
     args: TemplatesIdArgs,
 ) -> Result<serde_json::Value, String> {
+    crate::templates::runs::set_app_handle(app);
     let tpl = store::get(args.id.trim())?.ok_or_else(|| "Шаблон не найден".to_string())?;
     let (rows, message) = run::run_one_template(&state, &tpl, args.dry_run).await?;
     Ok(serde_json::json!({
@@ -40,9 +42,11 @@ pub async fn templates_run(
 
 #[tauri::command]
 pub async fn templates_run_group(
+    app: tauri::AppHandle,
     state: State<'_, Arc<AppState>>,
     args: TemplatesIdArgs,
 ) -> Result<serde_json::Value, String> {
+    crate::templates::runs::set_app_handle(app);
     access_gate::require_any_script(&state)?;
     let (rows, message) = run::run_group(&state, args.id.trim(), args.dry_run).await?;
     Ok(serde_json::json!({

@@ -15,12 +15,14 @@
 //! Инкрементальная запись в Sheets (паритет IncrementalSheetWriter).
 
 use super::normalize::{normalize_value, values_equal};
+use super::service::SheetClearScope;
+use super::write::format_sheets_op_progress;
 use super::{quote_sheet, to_a1_column, GoogleSheetsClient, BATCH_ROWS};
 use serde_json::json;
 use std::collections::{HashMap, VecDeque};
 
 #[derive(Debug, Default)]
-pub struct IncrementalWriteResult {
+pub(crate) struct IncrementalWriteResult {
     pub updated_rows: usize,
     pub inserted_rows: usize,
     pub deleted_rows: usize,
@@ -28,8 +30,8 @@ pub struct IncrementalWriteResult {
 
 impl GoogleSheetsClient {
     /// Синхронизация по 1–2 колонкам-ключам. Пустой лист → полная запись.
-    /// `on_progress` — UI log lines (read / batch write).
-    pub async fn write_incremental(
+    /// Prefer [`GoogleSheetsClient::write_sheet`].
+    pub(crate) async fn write_incremental(
         &self,
         spreadsheet_id: &str,
         sheet_name: &str,
@@ -69,7 +71,13 @@ impl GoogleSheetsClient {
                 rows.len()
             ));
             let n = self
-                .clear_and_write(spreadsheet_id, sheet_name, rows, true)
+                .clear_and_write(
+                    spreadsheet_id,
+                    sheet_name,
+                    rows,
+                    SheetClearScope::DataColumns,
+                    &mut on_progress,
+                )
                 .await?;
             return Ok(IncrementalWriteResult {
                 inserted_rows: n.saturating_sub(1),
@@ -83,12 +91,17 @@ impl GoogleSheetsClient {
             let old_header = existing[0].clone();
             existing = remap_existing_to_header(&old_header, header, existing);
             let end_row = existing.len().max(1);
-            ensure_capacity(
-                self,
+            let need_cols = header.len().max(1);
+            let (sheet_id, cur_rows, cur_cols) =
+                self.sheet_grid_meta(spreadsheet_id, sheet_name).await?;
+            self.ensure_sheet_capacity_with_meta(
                 spreadsheet_id,
-                sheet_name,
+                sheet_id,
+                cur_rows,
+                cur_cols,
                 end_row,
-                header.len().max(1),
+                need_cols,
+                &mut on_progress,
             )
             .await?;
             on_progress(format!(
@@ -146,6 +159,7 @@ impl GoogleSheetsClient {
         let mut updated_done = 0usize;
         let updates_total = updates.len();
         while i < updates.len() {
+            self.check_cancelled()?;
             let start = updates[i].0;
             let mut batch: Vec<&[String]> = vec![&rows[updates[i].1]];
             let mut j = i + 1;
@@ -165,8 +179,10 @@ impl GoogleSheetsClient {
             let owned: Vec<Vec<String>> = batch.iter().map(|r| r.to_vec()).collect();
             self.update_values(spreadsheet_id, &range, &owned).await?;
             updated_done += batch.len();
-            on_progress(format!(
-                "Обновление: {updated_done}/{updates_total} строк"
+            on_progress(format_sheets_op_progress(
+                "Обновлено",
+                updated_done,
+                updates_total,
             ));
             i = j;
         }
@@ -174,17 +190,23 @@ impl GoogleSheetsClient {
         if !insert_idxs.is_empty() {
             let start_row = existing.len() + 1;
             let end_row = start_row + insert_idxs.len() - 1;
-            ensure_capacity(
-                self,
+            let need_cols = header.len().max(1);
+            let (sheet_id, cur_rows, cur_cols) =
+                self.sheet_grid_meta(spreadsheet_id, sheet_name).await?;
+            self.ensure_sheet_capacity_with_meta(
                 spreadsheet_id,
-                sheet_name,
+                sheet_id,
+                cur_rows,
+                cur_cols,
                 end_row,
-                header.len().max(1),
+                need_cols,
+                &mut on_progress,
             )
             .await?;
             let total = insert_idxs.len();
             let mut offset = 0usize;
             while offset < total {
+                self.check_cancelled()?;
                 let end = (offset + BATCH_ROWS).min(total);
                 let chunk = &insert_idxs[offset..end];
                 let chunk_start = start_row + offset;
@@ -196,7 +218,7 @@ impl GoogleSheetsClient {
                 );
                 let owned: Vec<Vec<String>> = chunk.iter().map(|&i| rows[i].clone()).collect();
                 self.update_values(spreadsheet_id, &range, &owned).await?;
-                on_progress(format!("Добавление: {end}/{total} строк"));
+                on_progress(format_sheets_op_progress("Добавлено", end, total));
                 offset = end;
             }
         }
@@ -244,7 +266,7 @@ impl GoogleSheetsClient {
         if row_numbers_1based.is_empty() {
             return Ok(());
         }
-        let sheet_id = sheet_id_by_title(self, spreadsheet_id, sheet_name).await?;
+        let (sheet_id, _, _) = self.sheet_grid_meta(spreadsheet_id, sheet_name).await?;
         // Merge contiguous descending ranges for fewer requests.
         // Caller sorts descending; e.g. [10,9,8,5,4] → ranges [8..11) and [4..6) (0-based).
         let mut requests = Vec::new();
@@ -387,126 +409,3 @@ mod tests {
     }
 }
 
-async fn sheet_id_by_title(
-    client: &GoogleSheetsClient,
-    spreadsheet_id: &str,
-    sheet_name: &str,
-) -> Result<i64, String> {
-    let url = format!(
-        "https://sheets.googleapis.com/v4/spreadsheets/{spreadsheet_id}?fields=sheets.properties(sheetId,title)"
-    );
-    let v: serde_json::Value = client
-        .http
-        .get(&url)
-        .bearer_auth(&client.access_token)
-        .send()
-        .await
-        .map_err(|e| e.to_string())?
-        .error_for_status()
-        .map_err(|e| e.to_string())?
-        .json()
-        .await
-        .map_err(|e| e.to_string())?;
-    let want = sheet_name.trim();
-    if let Some(sheets) = v.get("sheets").and_then(|x| x.as_array()) {
-        for sh in sheets {
-            let title = sh
-                .pointer("/properties/title")
-                .and_then(|x| x.as_str())
-                .unwrap_or("");
-            if title.eq_ignore_ascii_case(want) {
-                return sh
-                    .pointer("/properties/sheetId")
-                    .and_then(|x| x.as_i64())
-                    .ok_or_else(|| format!("Нет sheetId для «{want}»"));
-            }
-        }
-    }
-    Err(format!("Лист «{want}» не найден"))
-}
-
-async fn ensure_capacity(
-    client: &GoogleSheetsClient,
-    spreadsheet_id: &str,
-    sheet_name: &str,
-    need_rows: usize,
-    need_cols: usize,
-) -> Result<(), String> {
-    let url = format!(
-        "https://sheets.googleapis.com/v4/spreadsheets/{spreadsheet_id}?fields=sheets.properties(sheetId,title,gridProperties(rowCount,columnCount))"
-    );
-    let v: serde_json::Value = client
-        .http
-        .get(&url)
-        .bearer_auth(&client.access_token)
-        .send()
-        .await
-        .map_err(|e| e.to_string())?
-        .error_for_status()
-        .map_err(|e| e.to_string())?
-        .json()
-        .await
-        .map_err(|e| e.to_string())?;
-    let want = sheet_name.trim();
-    let mut sheet_id = None;
-    let mut cur_rows = 1000usize;
-    let mut cur_cols = 26usize;
-    if let Some(sheets) = v.get("sheets").and_then(|x| x.as_array()) {
-        for sh in sheets {
-            let title = sh
-                .pointer("/properties/title")
-                .and_then(|x| x.as_str())
-                .unwrap_or("");
-            if !title.eq_ignore_ascii_case(want) {
-                continue;
-            }
-            sheet_id = sh.pointer("/properties/sheetId").and_then(|x| x.as_i64());
-            cur_rows = sh
-                .pointer("/properties/gridProperties/rowCount")
-                .and_then(|x| x.as_u64())
-                .unwrap_or(1000) as usize;
-            cur_cols = sh
-                .pointer("/properties/gridProperties/columnCount")
-                .and_then(|x| x.as_u64())
-                .unwrap_or(26) as usize;
-            break;
-        }
-    }
-    let Some(sid) = sheet_id else {
-        return Err(format!("Лист «{want}» не найден"));
-    };
-    if cur_rows >= need_rows && cur_cols >= need_cols {
-        return Ok(());
-    }
-    let body = json!({
-        "requests": [{
-            "updateSheetProperties": {
-                "properties": {
-                    "sheetId": sid,
-                    "gridProperties": {
-                        "rowCount": cur_rows.max(need_rows),
-                        "columnCount": cur_cols.max(need_cols)
-                    }
-                },
-                "fields": "gridProperties.rowCount,gridProperties.columnCount"
-            }
-        }]
-    });
-    let url = format!(
-        "https://sheets.googleapis.com/v4/spreadsheets/{spreadsheet_id}:batchUpdate"
-    );
-    let res = client
-        .http
-        .post(&url)
-        .bearer_auth(&client.access_token)
-        .json(&body)
-        .send()
-        .await
-        .map_err(|e| e.to_string())?;
-    let status = res.status();
-    if !status.is_success() {
-        let text = res.text().await.unwrap_or_default();
-        return Err(format!("ensure capacity HTTP {status}: {text}"));
-    }
-    Ok(())
-}

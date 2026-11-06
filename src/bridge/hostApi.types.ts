@@ -304,6 +304,12 @@ export type TemplateGroupDto = {
   is_running?: boolean;
   /** Ephemeral — current nested template while group runs. */
   active_template_id?: string | null;
+  /**
+   * Session-only row tints for nested templates (lesson 115/119).
+   * Not persisted — mirrored from group wave so React paints via setSnap.
+   */
+  wave_tones?: Record<string, "run" | "ok" | "err">;
+  wave_in_flight?: boolean;
   time_triggers?: TimeTriggerDto[];
 };
 

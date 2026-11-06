@@ -15,6 +15,7 @@
 //! Keyed rate limiter (паритет RateLimiter): script|cabinet|scope|profile.
 
 use std::collections::{HashMap, VecDeque};
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use tokio::sync::Mutex;
 use tokio::time::{sleep, Duration, Instant};
@@ -119,19 +120,24 @@ impl KeyedRateLimiter {
     }
 
     /// Ждёт слот; возвращает фактическое время ожидания (для логов скриптов).
+    /// `cancelled`: опрос каждые ≤200ms (lesson 118 — Stop не ждёт весь sleep).
     pub async fn wait(
         &self,
         script_key: &str,
         cabinet: &str,
         scope_key: &str,
         profile: &RateLimitProfile,
-    ) -> Duration {
+        cancelled: Option<&AtomicBool>,
+    ) -> Result<Duration, String> {
         let key = format!(
             "{script_key}|{cabinet}|{scope_key}|{}",
             profile.profile_key()
         );
         let started = Instant::now();
         loop {
+            if cancelled.is_some_and(|c| c.load(Ordering::Relaxed)) {
+                return Err(crate::core::i18n::t("errors.cancelled"));
+            }
             let delay = {
                 let mut map = self.inner.lock().await;
                 if !map.contains_key(&key) {
@@ -160,8 +166,18 @@ impl KeyedRateLimiter {
                 }
             };
             match delay {
-                None => return started.elapsed(),
-                Some(d) => sleep(d.max(Duration::from_millis(10))).await,
+                None => return Ok(started.elapsed()),
+                Some(d) => {
+                    let mut left = d.max(Duration::from_millis(10));
+                    while !left.is_zero() {
+                        if cancelled.is_some_and(|c| c.load(Ordering::Relaxed)) {
+                            return Err(crate::core::i18n::t("errors.cancelled"));
+                        }
+                        let tick = left.min(Duration::from_millis(200));
+                        sleep(tick).await;
+                        left = left.saturating_sub(tick);
+                    }
+                }
             }
         }
     }

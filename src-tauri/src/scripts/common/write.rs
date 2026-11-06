@@ -14,7 +14,9 @@
 
 //! Общие helpers запуска скриптов (кабинеты, поля, Sheets, токены).
 
-use crate::core::google_sheets::GoogleSheetsClient;
+use crate::core::google_sheets::{
+    GoogleSheetsClient, SheetClearScope, SheetWriteMode, SheetWriteOutcome, SheetWriteRequest,
+};
 use crate::core::script::ScriptContext;
 use crate::core::script_field::ScriptField;
 
@@ -26,13 +28,14 @@ use super::resolve::{
 };
 
 pub async fn google_sheets_client(ctx: &ScriptContext) -> Result<GoogleSheetsClient, String> {
-    ctx.log.info("Google OAuth пользователя…");
-    GoogleSheetsClient::from_user_oauth()
+    // Success path: no info log (noisy). Failures still surface via map_err.
+    Ok(GoogleSheetsClient::from_user_oauth()
         .await
-        .map_err(|e| format!("Google OAuth: {e}"))
+        .map_err(|e| format!("Google OAuth: {e}"))?
+        .with_cancel(ctx.cancelled.clone()))
 }
 
-/// clear_and_write, Excel `.xlsx` или инкрементальная запись (если sync в params).
+/// write_sheet (replace / incremental), Excel `.xlsx` (если sync в params).
 pub async fn write_sheet_rows_with(
     ctx: &ScriptContext,
     client: &GoogleSheetsClient,
@@ -100,58 +103,61 @@ pub async fn write_sheet_rows_with(
         return Ok(written_total);
     }
 
-    if let Some(keys) = resolve_sync_key_indexes(ctx, &rows) {
+    let mode = if let Some(keys) = resolve_sync_key_indexes(ctx, &rows) {
         ctx.log.info(format!(
             "Запись в Google Sheets: {} строк, инкрементальная синхронизация…",
             rows.len()
         ));
-        let allow_delete = !sync_do_not_delete(ctx);
-        let stats = client
-            .write_incremental(
-                spreadsheet_id.trim(),
-                sheet_name.trim(),
-                rows,
-                &keys,
-                allow_delete,
-                |msg| ctx.log.info(msg),
-            )
-            .await
-            .map_err(|e| format!("Google Sheets: {e}"))?;
-        ctx.log.info(format!(
-            "Инкрементальная запись: изменено {}, добавлено {}, удалено {}",
-            stats.updated_rows, stats.inserted_rows, stats.deleted_rows
-        ));
-        return Ok(stats.updated_rows + stats.inserted_rows);
-    }
-
-    let clear_only = ctx
-        .params
-        .get("clear_only_written_range")
-        .map(|s| {
-            let t = s.trim().to_ascii_lowercase();
-            t == "1" || t == "true" || t == "yes"
-        })
-        .unwrap_or(false);
-    let clear_mode = if clear_only {
-        "только записанный диапазон"
+        SheetWriteMode::Incremental {
+            key_columns: keys,
+            allow_delete: !sync_do_not_delete(ctx),
+        }
     } else {
-        "весь лист"
+        let clear_only = ctx
+            .params
+            .get("clear_only_written_range")
+            .map(|s| {
+                let t = s.trim().to_ascii_lowercase();
+                t == "1" || t == "true" || t == "yes"
+            })
+            .unwrap_or(false);
+        let clear = SheetClearScope::from_clear_only_written_range(clear_only);
+        ctx.log.info(format!(
+            "Запись в Google Sheets: {} строк, очистка = {}…",
+            rows.len(),
+            clear.log_label()
+        ));
+        SheetWriteMode::Replace { clear }
     };
-    ctx.log.info(format!(
-        "Запись в Google Sheets: {} строк, очистка = {clear_mode}…",
-        rows.len()
-    ));
-    let written = client
-        .clear_and_write(
-            spreadsheet_id.trim(),
-            sheet_name.trim(),
-            rows,
-            clear_only,
+
+    let outcome = client
+        .write_sheet(
+            SheetWriteRequest {
+                spreadsheet_id: spreadsheet_id.trim().to_string(),
+                sheet_name: sheet_name.trim().to_string(),
+                rows,
+                mode,
+            },
+            |msg| ctx.log.info(msg),
         )
         .await
         .map_err(|e| format!("Google Sheets: {e}"))?;
-    ctx.log.info(format!("Записано строк: {written}"));
-    Ok(written)
+
+    match &outcome {
+        SheetWriteOutcome::Incremental {
+            updated_rows,
+            inserted_rows,
+            deleted_rows,
+        } => {
+            ctx.log.info(format!(
+                "Инкрементальная запись: изменено {updated_rows}, добавлено {inserted_rows}, удалено {deleted_rows}"
+            ));
+        }
+        SheetWriteOutcome::Replaced { written } => {
+            ctx.log.info(format!("Записано строк: {written}"));
+        }
+    }
+    Ok(outcome.rows_affected())
 }
 
 /// `TryApplyCentralSort`: сортировка data-строк по выбранному полю (заголовок не трогаем).
@@ -309,7 +315,7 @@ fn resolve_sync_key_indexes(ctx: &ScriptContext, rows: &[Vec<String>]) -> Option
     }
 }
 
-/// OAuth + clear_and_write; логирует прогресс.
+/// OAuth + write_sheet; логирует прогресс и режим очистки.
 /// Строки с nmId/SKU = 0 не пишем (паритет `WriteRowsAsync` / `RemoveRowsWithZeroArticleIds`).
 pub async fn write_sheet_rows(
     ctx: &ScriptContext,

@@ -230,13 +230,31 @@ pub(super) async fn run_one_with_flag(
     tpl: &crate::templates::Template,
     cancelled: Arc<std::sync::atomic::AtomicBool>,
     dry_run: bool,
+    group_id: Option<&str>,
 ) -> Result<(usize, String), String> {
     let started_at = Utc::now().to_rfc3339();
-    runs::emit_progress("template", &tpl.id, Some("running"), true, Some(&started_at));
+    // Nested group runs must carry groupId so UI wave can advance without snap lookup.
+    runs::emit_progress_ex(
+        "template",
+        &tpl.id,
+        Some("running"),
+        true,
+        Some(&started_at),
+        None,
+        group_id,
+    );
     let result = run_one_inner(state, tpl, cancelled.clone(), dry_run).await;
     let at = Utc::now().to_rfc3339();
     match &result {
-        Ok(_) => runs::emit_progress("template", &tpl.id, Some("ok"), false, Some(&at)),
+        Ok(_) => runs::emit_progress_ex(
+            "template",
+            &tpl.id,
+            Some("ok"),
+            false,
+            Some(&at),
+            None,
+            group_id,
+        ),
         Err(e) => {
             let cancelled_msg = t("errors.cancelled");
             let status = if cancelled.load(Ordering::Relaxed) || e.contains(&cancelled_msg) {
@@ -244,7 +262,15 @@ pub(super) async fn run_one_with_flag(
             } else {
                 format!("error: {e}")
             };
-            runs::emit_progress("template", &tpl.id, Some(&status), false, Some(&at));
+            runs::emit_progress_ex(
+                "template",
+                &tpl.id,
+                Some(&status),
+                false,
+                Some(&at),
+                None,
+                group_id,
+            );
         }
     }
     result

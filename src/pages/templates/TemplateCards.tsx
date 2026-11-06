@@ -20,6 +20,7 @@ import {
   formatRunAtDisplay,
   formatTemplateMeta,
 } from "./templateCardMeta";
+import { waveFromGroup, waveRowClass, type GroupWave } from "./templatesPageCache";
 
 function ReorderBtns({
   busy,
@@ -98,12 +99,14 @@ type GroupProps = {
   group: TemplateGroupDto;
   byId: Map<string, TemplateDto>;
   busyId: string | null;
+  wave?: GroupWave;
 } & GroupCardHandlers;
 
 function GroupCardInner({
   group: g,
   byId,
   busyId,
+  wave,
   onExpandGroup,
   onRunGroup,
   onCancelGroup,
@@ -118,17 +121,11 @@ function GroupCardInner({
   onRemoveFromGroup,
 }: GroupProps) {
   const t = useT();
+  const liveWave = waveFromGroup(wave, g);
   const nestedRunning = (g.template_ids ?? []).some((tid) => !!byId.get(tid)?.is_running);
   const groupRunning =
-    !!g.is_running || busyId === g.id || nestedRunning;
+    !!g.is_running || busyId === g.id || nestedRunning || !!liveWave?.inFlight;
   const running = groupRunning;
-  // Single active nested — never OR multiple is_running (group is sequential).
-  const activeTplId =
-    (g.active_template_id ?? "").trim() ||
-    (busyId === g.id || groupRunning
-      ? (g.template_ids ?? []).find((tid) => !!byId.get(tid)?.is_running) ||
-        (busyId === g.id ? (g.template_ids ?? [])[0] : undefined)
-      : undefined);
   const when = formatRunAtDisplay(g.last_run_at);
   const status = (g.last_run_status ?? "").trim();
   const groupMetaText = running
@@ -209,17 +206,24 @@ function GroupCardInner({
           {(g.template_ids ?? []).map((tid) => {
             const tpl = byId.get(tid);
             if (!tpl) return null;
-            const tplSoloRunning = !!tpl.is_running || busyId === tpl.id;
-            const tplActiveInGroup =
-              groupRunning && !!activeTplId && activeTplId === tpl.id;
-            const tRunning = groupRunning ? tplActiveInGroup : tplSoloRunning;
+            const tplSoloRunning =
+              !groupRunning && (!!tpl.is_running || busyId === tpl.id);
+            const tint = waveRowClass(liveWave, tpl.id);
             return (
-              <div key={tid} className="plate plate--pad tpl-nested-row">
+              <div
+                key={tid}
+                className={
+                  "plate plate--pad tpl-nested-row" + (tint ? ` ${tint}` : "")
+                }
+              >
                 <ReorderBtns
                   busy={!!busyId}
                   onMove={(dir) => onMoveTemplate(g.id, tpl.id, dir)}
                 />
-                <TemplateTitleBlock template={tpl} running={tRunning} />
+                <TemplateTitleBlock
+                  template={tpl}
+                  running={groupRunning ? false : tplSoloRunning}
+                />
                 <div className="form-actions form-actions--end">
                   {groupRunning ? (
                     <button
@@ -227,9 +231,7 @@ function GroupCardInner({
                       type="button"
                       disabled
                     >
-                      {tplActiveInGroup
-                        ? t("templates.card.running")
-                        : t("templates.card.run")}
+                      {t("templates.card.run")}
                     </button>
                   ) : tplSoloRunning ? (
                     <button

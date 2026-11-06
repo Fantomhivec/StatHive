@@ -32,7 +32,9 @@ use crate::calculator::summary_maps::{
     apply_commission_from_map, apply_logistics_from_box, cell, first_nonempty_line, load_wb_maps,
     photo_url, put,
 };
-use crate::core::google_sheets::GoogleSheetsClient;
+use crate::core::google_sheets::{
+    GoogleSheetsClient, SheetClearScope, SheetWriteMode, SheetWriteRequest,
+};
 use crate::core::log::AppLog;
 use crate::core::sheet_dates;
 use chrono::Local;
@@ -415,7 +417,18 @@ pub async fn rebuild_wb_summary(
     }
 
     run_log::calc_info(log, "[Калькулятор] Карточка WB: запись в Google Sheets…");
-    gs.clear_and_write(&sid, &table.sheet_name_tr(), rows, true).await?;
+    gs.write_sheet(
+        SheetWriteRequest {
+            spreadsheet_id: sid.clone(),
+            sheet_name: table.sheet_name_tr(),
+            rows,
+            mode: SheetWriteMode::Replace {
+                clear: SheetClearScope::DataColumns,
+            },
+        },
+        |msg| run_log::calc_info(log, format!("[Калькулятор] {msg}")),
+    )
+    .await?;
     let now = sheet_dates::format_datetime(Local::now().naive_local());
     profile
         .last_updated

@@ -83,8 +83,9 @@ impl RequestSender {
                 limit.cabinet,
                 limit.scope,
                 limit.profile,
+                Some(self.cancelled.as_ref()),
             )
-            .await;
+            .await?;
         self.check_cancel()?;
         if waited >= Duration::from_millis(500) {
             self.log.info(self.line(format!(
@@ -267,7 +268,14 @@ impl RequestSender {
                     "Кабинет {}: HTTP 429, ожидание {ms}мс и повтор (попытка 1/2)",
                     limit.cabinet
                 )));
-                sleep(limit.profile.pause_on_429).await;
+                // Interruptible 429 pause (lesson 118).
+                let mut left = limit.profile.pause_on_429;
+                while !left.is_zero() {
+                    self.check_cancel()?;
+                    let tick = left.min(Duration::from_millis(200));
+                    sleep(tick).await;
+                    left = left.saturating_sub(tick);
+                }
                 self.wait(limit).await?;
                 self.log.info(self.line(format!("повтор: {request_desc}")));
                 make().await

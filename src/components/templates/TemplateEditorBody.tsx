@@ -91,8 +91,7 @@ export default function TemplateEditorBody({
       .sort((a, b) => byRu(a.label, b.label));
   }, [scriptGroups]);
 
-  const selectedCount = (tpl.selected_fields ?? []).filter((f) => f.selected).length;
-  const cabCount = tpl.cabinets?.length ?? 0;
+  const showPickers = !visibility.hideCabinets || !visibility.hideFields;
 
   const showExtras =
     visibility.showCardsMoveTrashHint ||
@@ -102,31 +101,12 @@ export default function TemplateEditorBody({
     visibility.showPromotionsAllPromo ||
     visibility.showSubjectsFilters ||
     visibility.showOzonIdMode ||
-    hasUnifiedSources(visibility) ||
-    !visibility.hideCabinets ||
-    !visibility.hideFields;
+    hasUnifiedSources(visibility);
 
   return (
     <>
-      {!visibility.hideExportToExcelCard ? (
-        <div className="tpl-dialog-card tpl-excel-card">
-          <label className="toggle-switch tpl-toggle-row">
-            <input
-              type="checkbox"
-              checked={excelOnly ? true : !!tpl.export_to_excel}
-              disabled={saving || excelOnly}
-              onChange={(e) => {
-                if (excelOnly) return;
-                onPatch({ export_to_excel: e.target.checked });
-              }}
-            />
-            <span className="toggle-track" />
-            <span className="tpl-toggle-label">{t("templates.editor.createExcelFile")}</span>
-          </label>
-          {excelOnly ? (
-            <p className="muted u-mt-8">{t("templates.editor.excelOnlyLocked")}</p>
-          ) : null}
-        </div>
+      {excelOnly && !visibility.hideExportToExcelCard ? (
+        <p className="muted">{t("templates.editor.excelOnlyLocked")}</p>
       ) : null}
 
       <div className="tpl-dialog-card">
@@ -209,6 +189,33 @@ export default function TemplateEditorBody({
         ) : null}
       </div>
 
+      {showPickers ? (
+        <div className="tpl-dialog-card">
+          <div className="form-actions tpl-ed-pickers">
+            {!visibility.hideCabinets ? (
+              <button
+                type="button"
+                className="btn btn-primary btn-md"
+                disabled={saving}
+                onClick={onOpenCabinets}
+              >
+                {t("templates.editor.pickCabinets")}
+              </button>
+            ) : null}
+            {!visibility.hideFields ? (
+              <button
+                type="button"
+                className="btn btn-primary btn-md"
+                disabled={saving}
+                onClick={onOpenFields}
+              >
+                {t("templates.editor.pickExportFields")}
+              </button>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
+
       {visibility.requiresDateRange || visibility.requiresSingleDate ? (
         <TemplateDateRangeCard
           tpl={tpl}
@@ -241,31 +248,6 @@ export default function TemplateEditorBody({
               onPatch={onPatch}
               onMessage={onMessage}
             />
-
-            {!visibility.hideCabinets || !visibility.hideFields ? (
-              <div className="form-actions">
-                {!visibility.hideCabinets ? (
-                  <button
-                    type="button"
-                    className="btn btn-outline"
-                    disabled={saving}
-                    onClick={onOpenCabinets}
-                  >
-                    {t("templates.editor.cabinetsCount", { count: cabCount })}
-                  </button>
-                ) : null}
-                {!visibility.hideFields ? (
-                  <button
-                    type="button"
-                    className="btn btn-outline"
-                    disabled={saving}
-                    onClick={onOpenFields}
-                  >
-                    {t("templates.editor.fieldsCount", { count: selectedCount })}
-                  </button>
-                ) : null}
-              </div>
-            ) : null}
           </div>
         </section>
       ) : null}

@@ -34,6 +34,11 @@ export type DateRangeValue = { from: string; to: string };
 type Props = {
   /** `range` — С/По; `single` — одна дата (в `from`). */
   mode?: "single" | "range";
+  /**
+   * Range only: one trigger showing the whole period (`from — to`).
+   * Opens calendar on the `from` field; two-click pick still applies.
+   */
+  combined?: boolean;
   valueFrom?: string;
   valueTo?: string;
   /** Всегда ISO `yyyy-MM-dd` (пустая строка = очищено). */
@@ -76,6 +81,7 @@ const VIEWPORT_PAD = 8;
 /** Тематический календарь (CSS vars) вместо native `type="date"`. */
 export default function DateRangePicker({
   mode = "range",
+  combined = false,
   valueFrom = "",
   valueTo = "",
   onChange,
@@ -85,6 +91,7 @@ export default function DateRangePicker({
   singleLabel = t("common.date"),
   className,
 }: Props) {
+  const useCombined = mode === "range" && combined;
   const uid = useId();
   const rootRef = useRef<HTMLDivElement>(null);
   const popRef = useRef<HTMLDivElement>(null);
@@ -236,9 +243,14 @@ export default function DateRangePicker({
 
   function renderField(field: "from" | "to", label: string, iso: string, placeholder: string) {
     const isOpen = open === field;
+    const shown = label.trim();
+    const a11y =
+      shown ||
+      (field === "to" ? toLabel : mode === "single" ? singleLabel : fromLabel).trim() ||
+      t("common.date");
     return (
       <div className="field field-flush drp-field">
-        <label htmlFor={`${uid}-${field}`}>{label}</label>
+        {shown ? <label htmlFor={`${uid}-${field}`}>{shown}</label> : null}
         <button
           id={`${uid}-${field}`}
           ref={(el) => {
@@ -247,6 +259,7 @@ export default function DateRangePicker({
           type="button"
           className={`input-trigger drp-trigger${isOpen ? " is-open" : ""}`}
           disabled={disabled}
+          aria-label={shown ? undefined : a11y}
           aria-haspopup="dialog"
           aria-expanded={isOpen}
           onClick={() => setOpen(isOpen ? null : field)}
@@ -263,7 +276,54 @@ export default function DateRangePicker({
   }
 
   const openLabel =
-    open === "to" ? toLabel : mode === "single" ? singleLabel : fromLabel;
+    open === "to"
+      ? toLabel.trim() || t("common.dateTo")
+      : mode === "single"
+        ? singleLabel.trim() || t("common.date")
+        : fromLabel.trim() || t("common.period");
+
+  function combinedDisplay(): { text: string; empty: boolean } {
+    if (fromIso && toIso) {
+      return {
+        text: `${formatDisplayDate(fromIso)} — ${formatDisplayDate(toIso)}`,
+        empty: false,
+      };
+    }
+    if (fromIso) {
+      return { text: formatDisplayDate(fromIso), empty: false };
+    }
+    return { text: t("dateCalendar.placeholder"), empty: true };
+  }
+
+  function renderCombinedField() {
+    const isOpen = open === "from";
+    const { text, empty } = combinedDisplay();
+    const label = fromLabel.trim();
+    const a11y = label || t("common.period");
+    return (
+      <div className="field field-flush drp-field drp-field--combined">
+        {label ? <label htmlFor={`${uid}-period`}>{label}</label> : null}
+        <button
+          id={`${uid}-period`}
+          ref={(el) => {
+            triggerRefs.current.from = el;
+          }}
+          type="button"
+          className={`input-trigger drp-trigger${isOpen ? " is-open" : ""}`}
+          disabled={disabled}
+          aria-label={label ? undefined : a11y}
+          aria-haspopup="dialog"
+          aria-expanded={isOpen}
+          onClick={() => setOpen(isOpen ? null : "from")}
+        >
+          <span className={`drp-trigger-value${empty ? " is-empty" : ""}`}>{text}</span>
+          <span className="drp-trigger-icon" aria-hidden>
+            ▾
+          </span>
+        </button>
+      </div>
+    );
+  }
 
   const calendar =
     open && typeof document !== "undefined"
@@ -325,9 +385,14 @@ export default function DateRangePicker({
       : null;
 
   return (
-    <div className={`drp${className ? ` ${className}` : ""}`} ref={rootRef}>
+    <div
+      className={`drp${useCombined ? " drp--combined" : ""}${className ? ` ${className}` : ""}`}
+      ref={rootRef}
+    >
       {mode === "single" ? (
         renderField("from", singleLabel, fromIso, t("dateCalendar.placeholder"))
+      ) : useCombined ? (
+        renderCombinedField()
       ) : (
         <>
           {renderField("from", fromLabel, fromIso, t("dateCalendar.placeholder"))}

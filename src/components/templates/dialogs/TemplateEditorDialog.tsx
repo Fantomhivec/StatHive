@@ -250,12 +250,31 @@ export default function TemplateEditorDialog({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="dialog-header">
-          <h2 id="tpl-ed-title">
-            {templateId ? t("templates.editor.editTitle") : t("templates.editor.newTitle")}
-          </h2>
-          <button type="button" className="btn btn-ghost" onClick={onClose}>
-            {t("common.close")}
-          </button>
+          <div className="tpl-dialog-header-title">
+            <h2 id="tpl-ed-title">
+              {templateId ? t("templates.editor.editTitle") : t("templates.editor.newTitle")}
+            </h2>
+            {tpl && !visibility.hideExportToExcelCard ? (
+              <label className="toggle-switch tpl-header-excel">
+                <input
+                  type="checkbox"
+                  checked={excelOnly ? true : !!tpl.export_to_excel}
+                  disabled={saving || excelOnly || busy}
+                  onChange={(e) => {
+                    if (excelOnly) return;
+                    patch({ export_to_excel: e.target.checked });
+                  }}
+                />
+                <span className="toggle-track" />
+                <span className="tpl-toggle-label">{t("templates.editor.excelToggle")}</span>
+              </label>
+            ) : null}
+          </div>
+          <div className="tpl-dialog-header-actions">
+            <button type="button" className="btn btn-ghost" onClick={onClose}>
+              {t("common.close")}
+            </button>
+          </div>
         </div>
 
         <div className="tpl-modal-body combo-clip-ok">

@@ -57,15 +57,6 @@ pub fn is_rate_or_quota(status: u16, body: &str) -> bool {
         || b.contains("quota")
 }
 
-pub fn error_is_rate_or_quota(err: &str) -> bool {
-    let e = err.to_ascii_lowercase();
-    e.contains("http 429")
-        || e.contains("ratelimitexceeded")
-        || e.contains("userratelimitexceeded")
-        || e.contains("quotaexceeded")
-        || (e.contains("http 403") && e.contains("quota"))
-}
-
 fn retry_after_ms(res: &reqwest::Response, attempt: u32) -> u64 {
     if let Some(h) = res.headers().get(reqwest::header::RETRY_AFTER) {
         if let Ok(s) = h.to_str() {

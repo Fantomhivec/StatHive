@@ -16,14 +16,13 @@
 //! Hot path: 429/quota backoff (`http::exchange_with_backoff`) + resume с уже записанного offset.
 
 use super::super::http as google_http;
+use super::service::SheetClearScope;
 use super::{
     encode_range, looks_like_missing_sheet, quote_sheet, to_a1_column, truncate, GoogleSheetsClient,
     BATCH_ROWS,
 };
 use serde::Serialize;
 use serde_json::{json, Value};
-use std::time::Duration;
-use tokio::time::sleep;
 
 #[derive(Serialize)]
 struct UpdateValuesBody<'a> {
@@ -33,15 +32,30 @@ struct UpdateValuesBody<'a> {
     values: &'a [Vec<String>],
 }
 
+/// Progress line after each Sheets chunk, e.g. `Записано 10000 из 120000 (8%)`.
+pub(crate) fn format_sheets_write_progress(written: usize, total: usize) -> String {
+    format_sheets_op_progress("Записано", written, total)
+}
+
+pub(crate) fn format_sheets_op_progress(verb: &str, done: usize, total: usize) -> String {
+    let pct = if total == 0 {
+        100
+    } else {
+        (done.saturating_mul(100)) / total
+    };
+    format!("{verb} {done} из {total} ({pct}%)")
+}
+
 impl GoogleSheetsClient {
-    /// WriteDataSmart: `clear_only_written_range=true` — только колонки данных;
-    /// `false` — clear всего листа (как ClearSheetAsync). Затем Values.Update батчами.
-    pub async fn clear_and_write(
+    /// WriteDataSmart: clear bounded `A1:{col}{rows}` (not whole-grid title range), then
+    /// Values.Update in `BATCH_ROWS` chunks. Prefer [`GoogleSheetsClient::write_sheet`].
+    pub(crate) async fn clear_and_write(
         &self,
         spreadsheet_id: &str,
         sheet_name: &str,
         rows: Vec<Vec<String>>,
-        clear_only_written_range: bool,
+        clear: SheetClearScope,
+        mut on_progress: impl FnMut(String),
     ) -> Result<usize, String> {
         let sid = spreadsheet_id.trim();
         let sheet = sheet_name.trim();
@@ -55,85 +69,95 @@ impl GoogleSheetsClient {
             .max()
             .unwrap_or(1)
             .max(1);
-        let last_col = to_a1_column(cols);
+        let total = rows.len();
+        let a_col = format!("{}!A:A", quote_sheet(sheet));
 
-        let clear_a1 = if clear_only_written_range {
-            // Used-range: не clear целых колонок A:Z (дорого). Длина A без парса строк.
-            let old_rows = self
-                .read_values_row_count(sid, &format!("{}!A:A", quote_sheet(sheet)))
-                .await
-                .unwrap_or(0);
-            let clear_rows = rows.len().max(old_rows).max(1);
-            format!("{}!A1:{}{clear_rows}", quote_sheet(sheet), last_col)
-        } else {
-            // Весь лист ( ClearSheetAsync): range = 'SheetName'
-            quote_sheet(sheet)
-        };
-        match self.clear_range(sid, &clear_a1).await {
-            Ok(()) => {}
-            Err(e) => {
-                if looks_like_missing_sheet(&e) {
-                    self.add_sheet(sid, sheet).await?;
-                } else {
-                    return Err(format!("clear {clear_a1}: {e}"));
-                }
+        // Meta (grid) || used rows (A:A) — clear must use used, not grid.rowCount
+        // (раздутая сетка 50k+ делала clear снова 20+ с).
+        let (meta_res, used_res) = tokio::join!(
+            self.sheet_grid_meta(sid, sheet),
+            self.read_values_row_count(sid, &a_col),
+        );
+        let (sheet_id, cur_rows, cur_cols) = match meta_res {
+            Ok(m) => m,
+            Err(e) if looks_like_missing_sheet(&e) => {
+                self.add_sheet(sid, sheet).await?;
+                self.sheet_grid_meta(sid, sheet).await?
             }
-        }
+            Err(e) => return Err(e),
+        };
+        let used_rows = used_res.unwrap_or(0);
+
+        let clear_cols = match clear {
+            SheetClearScope::DataColumns => cols,
+            SheetClearScope::DataAndGridWidth => cols.max(cur_cols).max(1),
+        };
+        let clear_rows = total.max(used_rows).max(1);
+        let clear_a1 = format!(
+            "{}!A1:{}{clear_rows}",
+            quote_sheet(sheet),
+            to_a1_column(clear_cols)
+        );
+        on_progress(format!(
+            "Очистка листа ({clear_rows} строк × {clear_cols} кол.)…"
+        ));
+        self.clear_range(sid, &clear_a1)
+            .await
+            .map_err(|e| format!("clear {clear_a1}: {e}"))?;
 
         if rows.is_empty() {
             return Ok(0);
         }
 
-        // Иначе Update A2001:… → HTTP 400 «exceeds grid limits».
-        self.ensure_sheet_capacity(sid, sheet, rows.len(), cols)
-            .await?;
+        let last_col = to_a1_column(cols);
+        self.ensure_sheet_capacity_with_meta(
+            sid,
+            sheet_id,
+            cur_rows,
+            cur_cols,
+            total,
+            cols,
+            &mut on_progress,
+        )
+        .await?;
 
+        on_progress(format!("Запись в Sheets ({total} строк)…"));
         let mut written = 0usize;
         let mut i = 0usize;
-        while i < rows.len() {
-            let end = (i + BATCH_ROWS).min(rows.len());
+        while i < total {
+            self.check_cancelled()?;
+            let end = (i + BATCH_ROWS).min(total);
             let chunk = &rows[i..end];
             let start_row = i + 1;
             let end_row = end;
             let range = format!("{}!A{start_row}:{last_col}{end_row}", quote_sheet(sheet));
-            // Partial resume: не переписываем уже успешные батчи; при 429 — ещё пауза и тот же offset.
-            let mut outer = 0u32;
-            loop {
-                match self.update_values(sid, &range, chunk).await {
-                    Ok(()) => {
-                        written = end;
-                        i = end;
-                        break;
-                    }
-                    Err(e) if google_http::error_is_rate_or_quota(&e) && outer < 2 => {
-                        outer += 1;
-                        sleep(Duration::from_millis(2_000u64 << outer)).await;
-                    }
-                    Err(e) => {
-                        return Err(format!(
-                            "update {range} (уже записано строк: {written}): {e}"
-                        ));
-                    }
-                }
-            }
+            // 429/quota — только внутри exchange_with_backoff (без внешнего sleep-loop).
+            self.update_values(sid, &range, chunk)
+                .await
+                .map_err(|e| format!("update {range} (уже записано строк: {written}): {e}"))?;
+            written = end;
+            i = end;
+            on_progress(format_sheets_write_progress(written, total));
         }
         Ok(written)
     }
 
-    async fn ensure_sheet_capacity(
+    pub(crate) async fn ensure_sheet_capacity_with_meta(
         &self,
         spreadsheet_id: &str,
-        sheet_name: &str,
-        rows: usize,
-        cols: usize,
+        sheet_id: i64,
+        cur_rows: usize,
+        cur_cols: usize,
+        need_rows: usize,
+        need_cols: usize,
+        on_progress: &mut impl FnMut(String),
     ) -> Result<(), String> {
-        let need_rows = rows.max(1);
-        let need_cols = cols.max(1);
-        let (sheet_id, cur_rows, cur_cols) =
-            self.sheet_grid_meta(spreadsheet_id, sheet_name).await?;
+        let need_rows = need_rows.max(1);
+        let need_cols = need_cols.max(1);
         if cur_rows >= need_rows && cur_cols >= need_cols {
             return Ok(());
         }
+        on_progress("Проверка размера сетки…".into());
         let new_rows = cur_rows.max(need_rows);
         let new_cols = cur_cols.max(need_cols);
         let url = format!(
@@ -171,7 +195,7 @@ impl GoogleSheetsClient {
         Ok(())
     }
 
-    async fn sheet_grid_meta(
+    pub(crate) async fn sheet_grid_meta(
         &self,
         spreadsheet_id: &str,
         sheet_name: &str,
@@ -285,6 +309,7 @@ impl GoogleSheetsClient {
         let total = rows.len();
         let mut i = 0usize;
         while i < total {
+            self.check_cancelled()?;
             let end = (i + BATCH_ROWS).min(total);
             let chunk = &rows[i..end];
             let start = start_row_1based + i;
@@ -294,7 +319,7 @@ impl GoogleSheetsClient {
                 quote_sheet(sheet_name)
             );
             self.update_values(spreadsheet_id, &range, chunk).await?;
-            on_progress(format!("Запись: {end}/{total} строк"));
+            on_progress(format_sheets_write_progress(end, total));
             i = end;
         }
         Ok(())

@@ -126,6 +126,7 @@ export default function TemplatesPage() {
               group={g}
               byId={a.byId}
               busyId={a.busyId}
+              wave={a.groupWaves[g.id]}
               onExpandGroup={a.onExpandGroup}
               onRunGroup={a.runGroup}
               onCancelGroup={a.onCancelGroup}

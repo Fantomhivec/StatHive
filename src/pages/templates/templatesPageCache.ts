@@ -26,19 +26,27 @@ import {
   type TemplatesMarket,
 } from "../../bridge/snapCache";
 import { t as tr } from "../../i18n";
+import {
+  applyGroupWaveFromProgress,
+  getGroupWave,
+  normalizeRunProgress,
+  type TemplatesRunProgress,
+} from "./templatesGroupWave";
 
-export type { TemplatesMarket };
+export type { TemplatesMarket, TemplatesRunProgress };
 export { clearTemplatesSnapCache, getTemplatesSnapCache, setTemplatesSnapCache };
 
-export type TemplatesRunProgress = {
-  entityType: string;
-  id: string;
-  lastRunStatus?: string;
-  isRunning?: boolean;
-  lastRunAt?: string | null;
-  activeTemplateId?: string | null;
-  groupId?: string | null;
-};
+export {
+  advanceGroupWaveFromActive,
+  beginGroupWave,
+  cancelGroupWave,
+  snapshotGroupWaves,
+  subscribeGroupWaves,
+  waveFromGroup,
+  waveRowClass,
+  type GroupWave,
+  type WaveTone,
+} from "./templatesGroupWave";
 
 type SnapListener = (snap: TemplatesSnapshot) => void;
 const snapListeners = new Set<SnapListener>();
@@ -51,14 +59,34 @@ let runProgressBridgeStarted = false;
 export function ensureTemplatesRunProgressBridge() {
   if (runProgressBridgeStarted) return;
   runProgressBridgeStarted = true;
-  onEvent<TemplatesRunProgress>("templates.runProgress", (p) => {
+  onEvent<TemplatesRunProgress>("templates.runProgress", (raw) => {
+    const p = normalizeRunProgress(raw);
+    applyGroupWaveFromProgress(p);
     for (const market of ["wb", "ozon"] as TemplatesMarket[]) {
       const prev = getTemplatesSnapCache(market);
       if (!prev) continue;
       const next = applyTemplatesRunProgress(prev, p);
-      setTemplatesSnapCache(market, next);
-      for (const l of snapListeners) l(next);
+      const withWave: TemplatesSnapshot = {
+        ...next,
+        groups: (next.groups ?? []).map((g) => {
+          const w = getGroupWave(g.id);
+          if (!w) return { ...g, wave_tones: undefined, wave_in_flight: undefined };
+          return {
+            ...g,
+            wave_tones: { ...w.tones },
+            wave_in_flight: w.inFlight,
+          };
+        }),
+      };
+      setTemplatesSnapCache(market, withWave);
+      for (const l of snapListeners) l(withWave);
     }
+  });
+}
+
+if (import.meta.hot) {
+  import.meta.hot.dispose(() => {
+    runProgressBridgeStarted = false;
   });
 }
 
@@ -94,11 +122,16 @@ export function mergeEphemeralRunFlags(
     const active_template_id = is_running
       ? (g.active_template_id ?? p.active_template_id ?? null)
       : null;
-    if (!is_running && !active_template_id) return g;
+    // Session wave tones: prefer next (progress mirror); else keep prev while in flight.
+    const wave_in_flight = !!(g.wave_in_flight || (is_running && p.wave_in_flight));
+    const wave_tones = g.wave_tones ?? (wave_in_flight ? p.wave_tones : undefined);
+    if (!is_running && !active_template_id && !wave_in_flight && !wave_tones) return g;
     return {
       ...g,
       is_running,
       active_template_id,
+      wave_in_flight: wave_in_flight || undefined,
+      wave_tones,
     };
   });
 
@@ -112,13 +145,11 @@ export function mergeEphemeralRunFlags(
     }
   }
 
+  // Lesson 117: merge is for Stop/busy only — never drive row tint from last_run.
   const mergeT = (t: TemplateDto): TemplateDto => {
     if (nestedActive.has(t.id)) {
-      const active = nestedActive.get(t.id);
-      return {
-        ...t,
-        is_running: !!active && active === t.id,
-      };
+      // Trust progress patch on next; do not sticky-OR revive from active alone.
+      return t;
     }
     // Solo run: preserve prev if disk/enrich wiped the flag mid-flight.
     if (t.is_running) return t;
@@ -156,8 +187,8 @@ export function applyTemplatesRunProgress(
   if (p.entityType === "template") {
     next.templates = (next.templates ?? []).map(patchT);
     next.standalone = (next.standalone ?? []).map(patchT);
-    // Nested progress with groupId: exactly one active among siblings.
-    if (p.groupId && p.isRunning) {
+    if (p.groupId && p.isRunning === true) {
+      // Nested start: exactly one active among siblings.
       next.groups = (next.groups ?? []).map((g: TemplateGroupDto) =>
         g.id === p.groupId
           ? { ...g, is_running: true, active_template_id: p.id }
@@ -170,9 +201,11 @@ export function applyTemplatesRunProgress(
       };
       next.templates = (next.templates ?? []).map(clearSiblings);
       next.standalone = (next.standalone ?? []).map(clearSiblings);
-    } else if (!p.groupId && p.isRunning === false) {
-      // Nested runs emit template stop without groupId — drop sticky flag here;
-      // mergeEphemeral will re-apply only if group.active still points at this id.
+    } else if (p.isRunning === false) {
+      // Nested/solo stop: clear running on this template only.
+      // Do NOT null group.active_template_id here — mergeEphemeral `??` would
+      // sticky-restore the previous id and keep warning on the first nested
+      // (lesson 119). Next template start / group active overwrites the cursor.
       const stop = (tpl: TemplateDto): TemplateDto =>
         tpl.id === p.id ? { ...tpl, is_running: false } : tpl;
       next.templates = (next.templates ?? []).map(stop);

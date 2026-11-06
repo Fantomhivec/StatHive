@@ -14,13 +14,18 @@
 
 //! Ручные прогоны шаблонов: отмена + событие `templates.runProgress`.
 
-use serde_json::json;
+use serde_json::{json, Value};
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex, OnceLock};
 use tauri::{AppHandle, Emitter};
+use tokio::sync::mpsc;
 
-static APP: OnceLock<AppHandle> = OnceLock::new();
+/// Replaceable handle: command entry refreshes before a long group run.
+static APP: Mutex<Option<AppHandle>> = Mutex::new(None);
+/// Lesson 120: emit off the command task + yield so WebView paints between nested runs
+/// (same pattern as `calculator::run_log`).
+static EMIT_TX: OnceLock<mpsc::UnboundedSender<Value>> = OnceLock::new();
 static MANUAL_ACTIVE: AtomicUsize = AtomicUsize::new(0);
 const MANUAL_LIMIT: usize = 4;
 
@@ -39,7 +44,25 @@ fn active_tpl_map() -> &'static ActiveTplMap {
 }
 
 pub fn set_app_handle(app: AppHandle) {
-    let _ = APP.set(app);
+    if let Ok(mut slot) = APP.lock() {
+        *slot = Some(app.clone());
+    }
+    if EMIT_TX.get().is_some() {
+        return;
+    }
+    let (tx, mut rx) = mpsc::unbounded_channel::<Value>();
+    if EMIT_TX.set(tx).is_err() {
+        return;
+    }
+    tauri::async_runtime::spawn(async move {
+        while let Some(payload) = rx.recv().await {
+            let handle = APP.lock().ok().and_then(|g| g.clone());
+            if let Some(handle) = handle {
+                let _ = handle.emit("templates.runProgress", payload);
+            }
+            tokio::task::yield_now().await;
+        }
+    });
 }
 
 pub fn register(run_key: &str) -> Arc<AtomicBool> {
@@ -118,9 +141,6 @@ pub fn emit_progress_ex(
     active_template_id: Option<&str>,
     group_id: Option<&str>,
 ) {
-    let Some(app) = APP.get() else {
-        return;
-    };
     let mut payload = json!({
         "entityType": entity_type,
         "id": id,
@@ -138,7 +158,15 @@ pub fn emit_progress_ex(
             obj.insert("groupId".into(), json!(gid));
         }
     }
-    let _ = app.emit("templates.runProgress", payload);
+    if let Some(tx) = EMIT_TX.get() {
+        let _ = tx.send(payload);
+        return;
+    }
+    // Fallback before emitter task is up (should be rare after setup).
+    let app = APP.lock().ok().and_then(|g| g.clone());
+    if let Some(app) = app {
+        let _ = app.emit("templates.runProgress", payload);
+    }
 }
 
 /// Patch snapshot cards with live run flags from cancel_map / active template.

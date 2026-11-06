@@ -13,6 +13,7 @@
 // limitations under the License.
 
 //! GET statistics-api `/api/v1/supplier/orders` — пагинация flag=0 по lastChangeDate.
+//! Вызыватель обычно передаёт dateFrom = начало периода − 1 день; фильтр по полю `date` — снаружи.
 
 use crate::core::rate_profiles::wb_supplier_orders as rate;
 use crate::core::request_sender::{Auth, Limit};

@@ -16,6 +16,7 @@ import { useEffect, useRef, useState } from "react";
 import { hostApi, onEvent } from "../../../bridge/hostApi";
 import { useTabsLayoutCaps } from "../../../bridge/useTabsLayoutCaps";
 import AppCustomWindow from "../../../components/AppCustomWindow";
+import { stickScrollIfNearBottom } from "../../../components/stickScroll";
 import { t } from "../../../i18n";
 
 type Props = {
@@ -141,10 +142,7 @@ export function CalculatorRunLogsDialog({ open, onClose, onError }: Props) {
 
   useEffect(() => {
     if (!open) return;
-    const el = preRef.current;
-    if (!el) return;
-    const dist = el.scrollHeight - el.scrollTop - el.clientHeight;
-    if (dist < 48) el.scrollTop = el.scrollHeight;
+    stickScrollIfNearBottom(preRef.current);
   }, [open, text]);
 
   async function refresh() {

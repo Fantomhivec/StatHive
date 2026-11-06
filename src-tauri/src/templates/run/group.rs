@@ -63,7 +63,7 @@ pub async fn run_group(
             Some(&group.id),
         );
         // Share group cancel flag with each template run (nested register would double-count).
-        match run_one_with_flag(state, &tpl, cancelled.clone(), dry_run).await {
+        match run_one_with_flag(state, &tpl, cancelled.clone(), dry_run, Some(&group.id)).await {
             Ok((rows, msg)) => {
                 total_rows += rows;
                 messages.push(format!("{}: {msg}", tpl.name));

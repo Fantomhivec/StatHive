@@ -70,7 +70,9 @@ async fn run(ctx: &ScriptContext) -> ScriptResult {
         ));
         request_from = min_from;
     } else {
-        ctx.log.info(format!("Период: {period_from}..{period_to}"));
+        ctx.log.info(format!(
+            "Период: {period_from}..{period_to} (запрос API dateFrom −1д)"
+        ));
     }
 
     let (spreadsheet_id, sheet_name) = match common::resolve_spreadsheet_target(ctx) {
@@ -96,7 +98,19 @@ async fn run(ctx: &ScriptContext) -> ScriptResult {
                         .warn(format!("Токен WB не задан для кабинета «{cabinet}»"));
                     return Ok((cabinet, None));
                 }
-                match fetch_cabinet(ctx, &cabinet, token.trim(), request_from, period_to).await {
+                // API flag=0 идёт по lastChangeDate — берём dateFrom на сутки раньше;
+                // в таблицу попадают только заказы с date в [period_from..period_to].
+                let api_from = request_from - Duration::days(1);
+                match fetch_cabinet(
+                    ctx,
+                    &cabinet,
+                    token.trim(),
+                    api_from,
+                    period_from,
+                    period_to,
+                )
+                .await
+                {
                     Ok(data) => Ok((cabinet, Some(data))),
                     Err(e) => {
                         ctx.log.warn(e);
@@ -148,14 +162,17 @@ async fn fetch_cabinet(
     ctx: &ScriptContext,
     cabinet: &str,
     token: &str,
-    from: NaiveDate,
-    to: NaiveDate,
+    api_from: NaiveDate,
+    filter_from: NaiveDate,
+    filter_to: NaiveDate,
 ) -> Result<Vec<Value>, String> {
-    ctx.log.info(format!("Кабинет {cabinet}: старт dateFrom≥{from}, фильтр date≤{to}"));
-    let (orders, duplicates) = fetch_all_unique(ctx, cabinet, token, from).await?;
+    ctx.log.info(format!(
+        "Кабинет {cabinet}: запрос dateFrom={api_from}, фильтр date заказа {filter_from}..{filter_to}"
+    ));
+    let (orders, duplicates) = fetch_all_unique(ctx, cabinet, token, api_from).await?;
     let filtered: Vec<Value> = orders
         .into_iter()
-        .filter(|o| order_date_in_range(o, from, to))
+        .filter(|o| order_date_in_range(o, filter_from, filter_to))
         .collect();
     ctx.log.info(format!(
         "Кабинет {cabinet}: после фильтра={}, дублей при дедупе={duplicates}",

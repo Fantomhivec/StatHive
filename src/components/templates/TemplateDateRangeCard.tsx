@@ -57,6 +57,24 @@ export default function TemplateDateRangeCard({
   return (
     <div className="tpl-dialog-card">
       <h3 className="tpl-dialog-card-header">{period ? t("common.period") : t("common.date")}</h3>
+      <DateRangePicker
+        mode={period ? "range" : "single"}
+        combined={period}
+        valueFrom={tpl.date_from}
+        valueTo={tpl.date_to}
+        disabled={disabled}
+        /* Card header already names the section — no second «Период»/«Дата» label. */
+        singleLabel=""
+        fromLabel=""
+        toLabel={t("templates.editor.dateEnd")}
+        onChange={({ from, to }) =>
+          onPatch({
+            date_from: from,
+            date_to: period ? to : "",
+            date_template_type: "",
+          })
+        }
+      />
       <div className="tpl-date-presets">
         {DATE_TEMPLATES.map((d) => (
           <button
@@ -70,22 +88,6 @@ export default function TemplateDateRangeCard({
           </button>
         ))}
       </div>
-      <DateRangePicker
-        mode={period ? "range" : "single"}
-        valueFrom={tpl.date_from}
-        valueTo={tpl.date_to}
-        disabled={disabled}
-        singleLabel={t("common.date")}
-        fromLabel={t("common.dateFrom")}
-        toLabel={t("common.dateTo")}
-        onChange={({ from, to }) =>
-          onPatch({
-            date_from: from,
-            date_to: period ? to : "",
-            date_template_type: "",
-          })
-        }
-      />
     </div>
   );
 }

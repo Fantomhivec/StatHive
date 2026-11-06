@@ -14,6 +14,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { hostApi, LogLine } from "../bridge/hostApi";
+import { isNearScrollBottom } from "../components/stickScroll";
 import { useT } from "../i18n";
 
 const POLL_MIN_MS = 1500;
@@ -25,6 +26,9 @@ export default function LogsPage() {
   const delayRef = useRef(POLL_MIN_MS);
   const revisionRef = useRef(0);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const panelRef = useRef<HTMLDivElement | null>(null);
+  /** Lesson 122: follow new lines only while the user stays at the bottom. */
+  const stickToBottomRef = useRef(true);
 
   const refresh = useCallback(async (force = false) => {
     const known = force ? 0 : revisionRef.current;
@@ -71,6 +75,13 @@ export default function LogsPage() {
     };
   }, [refresh]);
 
+  useEffect(() => {
+    // After append, distance from bottom grows — use stick flag, not live threshold.
+    if (!stickToBottomRef.current) return;
+    const el = panelRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [lines]);
+
   return (
     <div>
       <h1 className="page-title">{t("logs.title")}</h1>
@@ -86,7 +97,15 @@ export default function LogsPage() {
           {t("common.clear")}
         </button>
       </div>
-      <div className="mono-panel mono-panel--on-panel logs">
+      <div
+        ref={panelRef}
+        className="mono-panel mono-panel--on-panel logs"
+        onScroll={() => {
+          const el = panelRef.current;
+          if (!el) return;
+          stickToBottomRef.current = isNearScrollBottom(el);
+        }}
+      >
         {lines.length === 0 && <div className="page-sub">{t("common.empty")}</div>}
         {lines.map((l, i) => (
           <div key={`${l.ts}-${i}`} className={l.level}>

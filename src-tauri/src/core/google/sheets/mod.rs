@@ -13,14 +13,19 @@
 // limitations under the License.
 
 //! Универсальный клиент Google Sheets (WriteDataSmart):
-//! clearOnlyWrittenRange — clear только колонок данных (`A:I`), затем Values.Update.
-//! Без `spreadsheets.get` и без clear всего листа (на больших книгах зависало).
+//! clear — bounded `A1:{col}{rows}` (не clear по имени листа / всей сетке).
+//! Один `spreadsheets.get` (grid meta) на clear+capacity, затем Values.Update чанками.
 //! Auth: user OAuth (скрипты/калькулятор) или Service Account (лист «Пользователи»).
 
 mod incremental;
 mod normalize;
+mod service;
 pub(crate) mod symbols;
 mod write;
+
+pub use service::{
+    SheetClearScope, SheetWriteMode, SheetWriteOutcome, SheetWriteRequest,
+};
 
 use super::http as google_http;
 use super::oauth;
@@ -34,6 +39,8 @@ pub(crate) const BATCH_ROWS: usize = 10_000;
 pub struct GoogleSheetsClient {
     pub(crate) access_token: String,
     pub(crate) http: reqwest::Client,
+    /// Optional cooperative cancel (lesson 118 — abort between Sheets chunks).
+    pub(crate) cancelled: Option<std::sync::Arc<std::sync::atomic::AtomicBool>>,
 }
 
 impl GoogleSheetsClient {
@@ -53,7 +60,25 @@ impl GoogleSheetsClient {
         Ok(Self {
             access_token,
             http: google_http::client(),
+            cancelled: None,
         })
+    }
+
+    pub fn with_cancel(mut self, flag: std::sync::Arc<std::sync::atomic::AtomicBool>) -> Self {
+        self.cancelled = Some(flag);
+        self
+    }
+
+    pub(crate) fn check_cancelled(&self) -> Result<(), String> {
+        if self
+            .cancelled
+            .as_ref()
+            .is_some_and(|c| c.load(std::sync::atomic::Ordering::Relaxed))
+        {
+            Err(crate::core::i18n::t("errors.cancelled"))
+        } else {
+            Ok(())
+        }
     }
 
     pub async fn test_connection(&self) -> Result<(), String> {
@@ -99,7 +124,7 @@ impl GoogleSheetsClient {
         Ok(normalize_opt_matrix(parsed.values))
     }
 
-    /// Длина колонки без аллокации `Vec<String>` на каждую ячейку (для clear used-range).
+    /// Длина колонки без аллокации ячеек — used-range для clear (не путать с grid.rowCount).
     pub async fn read_values_row_count(
         &self,
         spreadsheet_id: &str,
@@ -118,7 +143,6 @@ impl GoogleSheetsClient {
                 truncate(&text, 200)
             ));
         }
-        // Только длина values[] — строки как IgnoredAny (без String-ячеек).
         #[derive(serde::Deserialize)]
         struct RowCountResp {
             #[serde(default)]
@@ -396,6 +420,7 @@ pub(crate) fn looks_like_missing_sheet(err: &str) -> bool {
         || e.contains("not found")
         || e.contains("unable to parse")
         || e.contains("invalid_argument")
+        || err.contains("не найден")
 }
 
 fn normalize_opt_matrix(values: Option<Vec<Vec<Option<String>>>>) -> Vec<Vec<String>> {

@@ -19,6 +19,10 @@
   --ok: #9ece6a;
   --warn: #e0af68;
   --accent-soft: color-mix(in srgb, var(--accent) 22%, transparent);
+  /* Nested template row tints during group run (session-only UI). Base = .plate --bg. */
+  --tpl-wave-run: color-mix(in srgb, var(--warn) 22%, var(--bg));
+  --tpl-wave-ok: color-mix(in srgb, var(--ok) 18%, var(--bg));
+  --tpl-wave-err: color-mix(in srgb, var(--danger) 16%, var(--bg));
   /* Mix bases + text on saturated fills (hex only here). */
   --shade: #16161e;
   /* Светлый на тёмных/затемнённых заливках (chips, plaque CTA). */
@@ -90,6 +94,9 @@ html[data-theme="light"] {
   --ok: #587539;
   --warn: #8c6c3e;
   --accent-soft: color-mix(in srgb, var(--accent) 14%, transparent);
+  --tpl-wave-run: color-mix(in srgb, var(--warn) 22%, var(--bg));
+  --tpl-wave-ok: color-mix(in srgb, var(--ok) 18%, var(--bg));
+  --tpl-wave-err: color-mix(in srgb, var(--danger) 16%, var(--bg));
   --shade: #000000;
   --on-strong: #ffffff;
   --ink: #1a1b26;

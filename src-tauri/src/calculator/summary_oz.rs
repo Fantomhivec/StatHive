@@ -22,7 +22,9 @@ use crate::calculator::sheet_util::{self, format_ru_num, is_valid_article, try_p
 use crate::calculator::manual_bindings::{self, apply_manual_to_headers};
 use crate::calculator::summary_maps::{cell, load_sheet_map};
 use crate::calculator::summary_oz_orders::build_oz_orders_by_sku;
-use crate::core::google_sheets::GoogleSheetsClient;
+use crate::core::google_sheets::{
+    GoogleSheetsClient, SheetClearScope, SheetWriteMode, SheetWriteRequest,
+};
 use crate::core::log::AppLog;
 use crate::core::sheet_dates;
 use chrono::Local;
@@ -341,7 +343,18 @@ pub async fn rebuild_oz_summary(
     }
 
     run_log::calc_info(log, "[Калькулятор] Карточка Ozon: запись в Google Sheets…");
-    gs.clear_and_write(&sid, &table.sheet_name_tr(), rows, true).await?;
+    gs.write_sheet(
+        SheetWriteRequest {
+            spreadsheet_id: sid.clone(),
+            sheet_name: table.sheet_name_tr(),
+            rows,
+            mode: SheetWriteMode::Replace {
+                clear: SheetClearScope::DataColumns,
+            },
+        },
+        |msg| run_log::calc_info(log, format!("[Калькулятор] {msg}")),
+    )
+    .await?;
     let now = sheet_dates::format_datetime(Local::now().naive_local());
     profile
         .last_updated
