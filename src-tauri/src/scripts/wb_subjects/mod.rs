@@ -159,11 +159,23 @@ async fn fetch_paged(
                 Auth::Bearer(token),
             )
             .await?;
-        let page = v
-            .get("data")
-            .and_then(|d| d.as_array())
-            .cloned()
-            .unwrap_or_default();
+        if v.get("error").and_then(|e| e.as_bool()).unwrap_or(false) {
+            let text = v
+                .get("errorText")
+                .and_then(|t| t.as_str())
+                .unwrap_or("error");
+            let extra = v
+                .get("additionalErrors")
+                .filter(|a| !a.is_null() && a.as_str() != Some(""))
+                .map(|a| format!("; additionalErrors={a}"))
+                .unwrap_or_default();
+            return Err(format!("[{cabinet}] object/all: {text}{extra}"));
+        }
+        let mut v = v;
+        let page = match v.get_mut("data").map(std::mem::take) {
+            Some(Value::Array(a)) => a,
+            _ => Vec::new(),
+        };
         let n = page.len();
         all.extend(page);
         if n == 0 || n < page_limit as usize {
@@ -175,28 +187,13 @@ async fn fetch_paged(
 }
 
 fn field_val(subj: &Value, name: &str) -> String {
-    let keys: &[&str] = match name {
-        "subjectID" => &["subjectID", "subjectId"],
-        "parentID" => &["parentID", "parentId"],
-        "subjectName" => &["subjectName"],
-        "parentName" => &["parentName"],
-        "error" => &["error"],
-        "errorText" => &["errorText"],
-        "additionalErrors" => &["additionalErrors"],
-        _ => &[name],
-    };
-    for k in keys {
-        if let Some(x) = subj.get(*k) {
-            return match x {
-                Value::String(s) => s.clone(),
-                Value::Bool(b) => b.to_string(),
-                Value::Number(n) => n.to_string(),
-                Value::Null => String::new(),
-                other => other.to_string(),
-            };
-        }
+    match subj.get(name) {
+        Some(Value::String(s)) => s.clone(),
+        Some(Value::Bool(b)) => b.to_string(),
+        Some(Value::Number(n)) => n.to_string(),
+        Some(Value::Null) | None => String::new(),
+        Some(other) => other.to_string(),
     }
-    String::new()
 }
 
 fn urlencoding_simple(s: &str) -> String {
@@ -220,8 +217,5 @@ pub fn default_fields() -> Vec<ScriptField> {
         ScriptField::new("parentID", crate::core::i18n::t("fields.subjects_list.parentID"), true),
         ScriptField::new("subjectName", crate::core::i18n::t("fields.subjects_list.subjectName"), true),
         ScriptField::new("parentName", crate::core::i18n::t("fields.subjects_list.parentName"), true),
-        ScriptField::new("error", crate::core::i18n::t("fields.subjects_list.error"), false),
-        ScriptField::new("errorText", crate::core::i18n::t("fields.subjects_list.errorText"), false),
-        ScriptField::new("additionalErrors", crate::core::i18n::t("fields.subjects_list.additionalErrors"), false),
     ]
 }

@@ -85,7 +85,19 @@ async fn run(ctx: &ScriptContext) -> ScriptResult {
                         Auth::Bearer(token.trim()),
                     )
                     .await?;
-                let cats = extract_data_array(&v);
+                if v.get("error").and_then(|e| e.as_bool()).unwrap_or(false) {
+                    let text = v
+                        .get("errorText")
+                        .and_then(|t| t.as_str())
+                        .unwrap_or("error");
+                    let extra = v
+                        .get("additionalErrors")
+                        .filter(|a| !a.is_null() && a.as_str() != Some(""))
+                        .map(|a| format!("; additionalErrors={a}"))
+                        .unwrap_or_default();
+                    return Err(format!("[{cabinet}] parent/all: {text}{extra}"));
+                }
+                let cats = extract_data_array(v);
                 ctx.log
                     .info(format!("Кабинет «{cabinet}»: категорий {}", cats.len()));
                 Ok((cabinet, cats))
@@ -124,11 +136,11 @@ async fn run(ctx: &ScriptContext) -> ScriptResult {
     })
 }
 
-fn extract_data_array(v: &Value) -> Vec<Value> {
-    v.get("data")
-        .and_then(|d| d.as_array())
-        .cloned()
-        .unwrap_or_default()
+fn extract_data_array(mut v: Value) -> Vec<Value> {
+    match v.get_mut("data").map(std::mem::take) {
+        Some(Value::Array(a)) => a,
+        _ => Vec::new(),
+    }
 }
 
 fn field_val(cat: &Value, name: &str) -> String {
@@ -148,8 +160,5 @@ pub fn default_fields() -> Vec<ScriptField> {
         ScriptField::new("name", crate::core::i18n::t("fields.categories_parent.name"), true),
         ScriptField::new("id", crate::core::i18n::t("fields.categories_parent.id"), true),
         ScriptField::new("isVisible", crate::core::i18n::t("fields.categories_parent.isVisible"), true),
-        ScriptField::new("error", crate::core::i18n::t("fields.categories_parent.error"), false),
-        ScriptField::new("errorText", crate::core::i18n::t("fields.categories_parent.errorText"), false),
-        ScriptField::new("additionalErrors", crate::core::i18n::t("fields.categories_parent.additionalErrors"), false),
     ]
 }

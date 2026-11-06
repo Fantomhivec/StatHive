@@ -269,7 +269,8 @@ pub mod content_media_save {
     use super::*;
     pub const SCOPE: &str = "content_media_save|media_save_request";
     pub fn profile() -> RateLimitProfile {
-        RateLimitProfile::token_bucket(1000.0 / 600.0, 1.0, Duration::from_millis(600))
+        // Media: 100 req/min, 600 ms interval (burst ignored — api-rate-no-burst).
+        RateLimitProfile::token_bucket(100.0 / 60.0, 1.0, Duration::from_millis(600))
             .with_429_pause(Duration::from_millis(600))
     }
 }
@@ -278,8 +279,9 @@ pub mod categories_parent {
     use super::*;
     pub const SCOPE: &str = "categories_parent|get_categories_request";
     pub fn profile() -> RateLimitProfile {
-        RateLimitProfile::token_bucket(1000.0 / 610.0, 1.0, Duration::from_millis(610))
-            .with_429_pause(Duration::from_millis(610))
+        // Content: 100 req/min, 600 ms interval (burst ignored — api-rate-no-burst).
+        RateLimitProfile::token_bucket(100.0 / 60.0, 1.0, Duration::from_millis(600))
+            .with_429_pause(Duration::from_millis(600))
     }
 }
 
@@ -287,8 +289,9 @@ pub mod subjects_list {
     use super::*;
     pub const SCOPE: &str = "subjects_list|get_subjects_request";
     pub fn profile() -> RateLimitProfile {
-        RateLimitProfile::token_bucket(1000.0 / 610.0, 1.0, Duration::from_millis(610))
-            .with_429_pause(Duration::from_millis(610))
+        // Content: 100 req/min, 600 ms interval (burst ignored — api-rate-no-burst).
+        RateLimitProfile::token_bucket(100.0 / 60.0, 1.0, Duration::from_millis(600))
+            .with_429_pause(Duration::from_millis(600))
     }
 }
 

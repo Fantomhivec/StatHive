@@ -23,7 +23,8 @@ use std::future::Future;
 use std::pin::Pin;
 
 const URL: &str = "https://content-api.wildberries.ru/content/v3/media/save";
-const MAX_IMAGES: usize = 30;
+/// Docs: up to 30 images + 1 video in `data`.
+const MAX_LINKS: usize = 31;
 
 pub struct ContentMediaSaveScript;
 
@@ -37,7 +38,7 @@ impl Script for ContentMediaSaveScript {
     }
 
     fn default_fields(&self) -> Vec<ScriptField> {
-        vec![ScriptField::new("cabinet", "Кабинет", true)]
+        Vec::new()
     }
 
     fn execute<'a>(
@@ -114,13 +115,13 @@ async fn run(ctx: &ScriptContext) -> ScriptResult {
             ));
             continue;
         }
-        if links.len() > MAX_IMAGES {
+        if links.len() > MAX_LINKS {
             ctx.log.info(format!(
-                "Строка {} (nmID={nm}): ссылок {}, берём первые {MAX_IMAGES}.",
+                "Строка {} (nmID={nm}): ссылок {}, берём первые {MAX_LINKS}.",
                 i + 1,
                 links.len()
             ));
-            links.truncate(MAX_IMAGES);
+            links.truncate(MAX_LINKS);
         }
         let token = common::resolve_wb_token_with_map(ctx, &tokens, cabinet);
         if token.trim().is_empty() {
@@ -156,7 +157,12 @@ async fn run(ctx: &ScriptContext) -> ScriptResult {
                         .get("errorText")
                         .and_then(|x| x.as_str())
                         .unwrap_or("error");
-                    ctx.log.warn(format!("nmID={nm}: {t}"));
+                    let extra = v
+                        .get("additionalErrors")
+                        .filter(|a| !a.is_null())
+                        .map(|a| format!("; additionalErrors={a}"))
+                        .unwrap_or_default();
+                    ctx.log.warn(format!("nmID={nm}: {t}{extra}"));
                 } else {
                     ok += 1;
                 }
