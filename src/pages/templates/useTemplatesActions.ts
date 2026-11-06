@@ -283,6 +283,19 @@ export function useTemplatesActions() {
       } finally {
         runLockRef.current = false;
         setBusyId(null);
+        // Clear optimistic is_running before reload (finish event may lag).
+        setSnap((prev) => {
+          const clear = (tpl: TemplateDto): TemplateDto =>
+            tpl.id === id ? { ...tpl, is_running: false } : tpl;
+          const next: TemplatesSnapshot = {
+            ...prev,
+            templates: (prev.templates ?? []).map(clear),
+            standalone: (prev.standalone ?? []).map(clear),
+          };
+          const m = (next.marketplace === "ozon" ? "ozon" : "wb") as TemplatesMarket;
+          setTemplatesSnapCache(m, next);
+          return next;
+        });
         // С диска: иначе кэш/effect откатывает карточку к старому last_run_*.
         await reloadSnap();
       }

@@ -196,7 +196,6 @@ pub fn templates_save(
     tpl.spreadsheet_id = id;
     tpl.marketplace = normalize_marketplace(&tpl.marketplace);
     let saved = store::upsert(tpl)?;
-    state.log.info(format!("Шаблон сохранён: {}", saved.name));
     Ok(serde_json::json!({ "template": saved }))
 }
 

@@ -527,9 +527,10 @@ body.tpl-picker-dragging * {
   margin-top: 4px;
 }
 
+/* Lesson 105: toggle + label — center on one line (not flex-start + track margin). */
 .tpl-toggle-row {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: flex-start;
   gap: 12px;
   width: 100%;
@@ -538,7 +539,6 @@ body.tpl-picker-dragging * {
 
 .tpl-toggle-row .toggle-track {
   flex-shrink: 0;
-  margin-top: 2px;
 }
 
 .tpl-toggle-label {

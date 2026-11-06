@@ -105,30 +105,24 @@ export function subscribeTemplatesSnap(listener: SnapListener): () => void {
 }
 
 /**
- * Keep ephemeral run flags when disk snapshot / enrich would wipe them.
- * Group members: exactly one active (active_template_id) — never sticky-OR
- * finished nested templates (that caused two «выполняется» at once).
+ * Preserve session wave_* on groups across hydrate/enrich.
+ * Lesson 117/123: never sticky-OR is_running (group / nested / solo) — mid-flight
+ * Stop is busyId; sticky after success left «выполняется…» forever.
  */
 export function mergeEphemeralRunFlags(
   prev: TemplatesSnapshot | null | undefined,
   next: TemplatesSnapshot,
 ): TemplatesSnapshot {
   if (!prev) return next;
-  const prevTpl = new Map(
-    [...(prev.templates ?? []), ...(prev.standalone ?? [])].map((t) => [t.id, t]),
-  );
   const prevGroup = new Map((prev.groups ?? []).map((g) => [g.id, g]));
 
   const groups = (next.groups ?? []).map((g) => {
     const p = prevGroup.get(g.id);
     if (!p) return g;
-    // Lesson 123: trust hydrate/progress `is_running`. Sticky-OR with prev kept
-    // «выполняется…» forever after a finished group (disk already false).
     const is_running = !!g.is_running;
     const active_template_id = is_running
       ? (g.active_template_id ?? p.active_template_id ?? null)
       : null;
-    // Explicit wave mirror from progress bridge wins; else keep prev only while running.
     const wave_in_flight =
       g.wave_in_flight != null
         ? !!g.wave_in_flight
@@ -147,41 +141,11 @@ export function mergeEphemeralRunFlags(
     };
   });
 
-  /** Nested tpl id → active id of its running group (null = group busy, none selected yet). */
-  const nestedActive = new Map<string, string | null>();
-  const groupedIds = new Set<string>();
-  for (const g of groups) {
-    for (const tid of g.template_ids ?? []) {
-      groupedIds.add(tid);
-    }
-    if (!g.is_running) continue;
-    const active = g.active_template_id ?? null;
-    for (const tid of g.template_ids ?? []) {
-      nestedActive.set(tid, active);
-    }
-  }
-
-  // Lesson 117: merge is for Stop/busy only — never drive row tint from last_run.
-  const mergeT = (t: TemplateDto): TemplateDto => {
-    if (nestedActive.has(t.id)) {
-      // Trust progress patch on next; do not sticky-OR revive from active alone.
-      return t;
-    }
-    // Lesson 123: nested members must not sticky-OR is_running after group ends —
-    // that kept groupRunning via nestedRunning + Stop forever while tones already ok.
-    if (groupedIds.has(t.id)) return t;
-    // Solo run: preserve prev if disk/enrich wiped the flag mid-flight.
-    if (t.is_running) return t;
-    const p = prevTpl.get(t.id);
-    if (p?.is_running) return { ...t, is_running: true };
-    return t;
-  };
-
   return {
     ...next,
     groups,
-    templates: (next.templates ?? []).map(mergeT),
-    standalone: (next.standalone ?? []).map(mergeT),
+    templates: next.templates ?? [],
+    standalone: next.standalone ?? [],
   };
 }
 
