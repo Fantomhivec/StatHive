@@ -5,9 +5,9 @@
   max-height: min(80vh, 720px);
 }
 
-/* Редактор шаблона: +5% width / +15% height от прежних 640×720 / 80vh. */
+/* Редактор шаблона: шире под длинные title + api_method · date в script combo. */
 .tpl-dialog--wide {
-  width: min(672px, 100%);
+  width: min(720px, 100%);
   max-height: min(92vh, 828px);
 }
 
@@ -295,6 +295,22 @@ body.tpl-picker-dragging * {
 
 .tpl-script-combo {
   margin-bottom: 0;
+}
+
+/* Dropdown only: −1px vs --control-font so long script rows stay on one line. */
+.tpl-script-combo .app-combo-dropdown .app-combo-item,
+.tpl-script-combo .app-combo-dropdown .app-combo-item-script {
+  font-size: 12px;
+}
+
+.tpl-script-combo .app-combo-dropdown .app-combo-item-script {
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+
+.tpl-script-combo .app-combo-dropdown .app-combo-item-secondary,
+.tpl-script-combo .app-combo-dropdown .app-combo-item-tertiary {
+  font-size: 10px;
 }
 
 /* ID/URL + «Открыть» (SpreadsheetIdField) */

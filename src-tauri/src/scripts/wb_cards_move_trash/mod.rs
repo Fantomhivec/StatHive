@@ -164,8 +164,15 @@ async fn run(ctx: &ScriptContext) -> ScriptResult {
                             .get("errorText")
                             .and_then(|t| t.as_str())
                             .unwrap_or("unknown");
-                        ctx.log
-                            .warn(format!("[{label}] Батч {}: ошибка {text}", bi + 1));
+                        let extra = v
+                            .get("additionalErrors")
+                            .filter(|a| !a.is_null())
+                            .map(|a| format!("; additionalErrors={a}"))
+                            .unwrap_or_default();
+                        ctx.log.warn(format!(
+                            "[{label}] Батч {}: ошибка {text}{extra}",
+                            bi + 1
+                        ));
                     } else {
                         ok_batches += 1;
                         ctx.log.info(format!(

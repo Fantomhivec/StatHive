@@ -16,7 +16,7 @@ use crate::core::http::rate_limit::RateLimitProfile;
 use std::time::Duration;
 
 fn ozon_default(_scope: &'static str) -> RateLimitProfile {
-    RateLimitProfile::token_bucket(50.0, 10.0, Duration::from_millis(20))
+    RateLimitProfile::token_bucket(50.0, 1.0, Duration::from_millis(20))
         .with_429_pause(Duration::from_secs(1))
 }
 
@@ -114,7 +114,7 @@ pub mod download {
     use super::*;
     pub const SCOPE: &str = "ozon|download_bytes";
     pub fn profile() -> RateLimitProfile {
-        RateLimitProfile::token_bucket(5.0, 2.0, Duration::from_millis(200))
+        RateLimitProfile::token_bucket(5.0, 1.0, Duration::from_millis(200))
             .with_429_pause(Duration::from_secs(2))
     }
 }

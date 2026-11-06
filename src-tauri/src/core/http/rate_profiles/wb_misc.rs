@@ -222,8 +222,8 @@ pub mod cards_trash {
     use super::*;
     pub const SCOPE: &str = "cards_trash|get_trash_cards_request";
     pub fn profile() -> RateLimitProfile {
-        // Content category: 100 req/min, 600 ms interval, burst 5.
-        RateLimitProfile::token_bucket(100.0 / 60.0, 5.0, Duration::from_millis(600))
+        // Content: 100 req/min, 600 ms interval (burst ignored — api-rate-no-burst).
+        RateLimitProfile::token_bucket(100.0 / 60.0, 1.0, Duration::from_millis(600))
             .with_429_pause(Duration::from_millis(600))
     }
 }
@@ -232,7 +232,7 @@ pub mod cards_move_to_trash {
     use super::*;
     pub const SCOPE: &str = "cards_move_to_trash|move_cards_request";
     pub fn profile() -> RateLimitProfile {
-        RateLimitProfile::token_bucket(1000.0 / 600.0, 1.0, Duration::from_millis(600))
+        RateLimitProfile::token_bucket(100.0 / 60.0, 1.0, Duration::from_millis(600))
             .with_429_pause(Duration::from_millis(600))
     }
 }
@@ -315,7 +315,7 @@ pub mod feedbacks_archive {
     use super::*;
     pub const SCOPE: &str = "feedbacks_archive|get_feedbacks_archive";
     pub fn profile() -> RateLimitProfile {
-        RateLimitProfile::token_bucket(2.0, 2.0, Duration::from_millis(550))
+        RateLimitProfile::token_bucket(2.0, 1.0, Duration::from_millis(550))
             .with_429_pause(Duration::from_secs(20))
     }
 }
@@ -335,7 +335,7 @@ pub mod promotions {
     use super::*;
     pub const SCOPE: &str = "promotions|get_promotions";
     pub fn profile() -> RateLimitProfile {
-        RateLimitProfile::token_bucket(10.0 / 6.0, 5.0, Duration::from_millis(600))
+        RateLimitProfile::token_bucket(10.0 / 6.0, 1.0, Duration::from_millis(600))
             .with_429_pause(Duration::from_secs(5))
     }
 }

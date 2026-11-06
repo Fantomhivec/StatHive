@@ -30,7 +30,7 @@ use std::pin::Pin;
 const CARDS_URL: &str = "https://content-api.wildberries.ru/content/v2/get/cards/list";
 const UPDATE_URL: &str = "https://content-api.wildberries.ru/content/v2/cards/update";
 const PAGE_LIMIT: i64 = 100;
-const CHUNK: usize = 500;
+const CHUNK: usize = 3000;
 
 pub struct CardsUpdateDimensionsScript;
 
@@ -270,11 +270,7 @@ async fn run(ctx: &ScriptContext) -> ScriptResult {
         let nm_set: HashSet<i64> = desired.keys().copied().collect();
         let mut payloads = Vec::new();
         for card in &cards {
-            let nm = card
-                .get("nmID")
-                .or_else(|| card.get("nmId"))
-                .and_then(|x| x.as_i64())
-                .unwrap_or(0);
+            let nm = card.get("nmID").and_then(|x| x.as_i64()).unwrap_or(0);
             if !nm_set.contains(&nm) {
                 continue;
             }
@@ -331,8 +327,15 @@ async fn run(ctx: &ScriptContext) -> ScriptResult {
                             .get("errorText")
                             .and_then(|x| x.as_str())
                             .unwrap_or("error");
-                        ctx.log
-                            .warn(format!("Кабинет {cabinet}: chunk {}: {t}", ci + 1));
+                        let extra = v
+                            .get("additionalErrors")
+                            .filter(|a| !a.is_null())
+                            .map(|a| format!("; additionalErrors={a}"))
+                            .unwrap_or_default();
+                        ctx.log.warn(format!(
+                            "Кабинет {cabinet}: chunk {}: {t}{extra}",
+                            ci + 1
+                        ));
                     } else {
                         updated += chunk.len();
                         ctx.log.info(format!(
@@ -392,11 +395,11 @@ async fn fetch_cards(
                 &body,
             )
             .await?;
-        let batch = v
-            .get("cards")
-            .and_then(|c| c.as_array())
-            .cloned()
-            .unwrap_or_default();
+        let mut v = v;
+        let batch = match v.get_mut("cards").map(std::mem::take) {
+            Some(Value::Array(a)) => a,
+            _ => Vec::new(),
+        };
         let batch_len = batch.len();
         all.extend(batch);
         let resp_cursor = v.get("cursor");
