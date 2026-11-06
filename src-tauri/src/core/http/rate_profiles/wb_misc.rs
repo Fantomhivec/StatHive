@@ -259,8 +259,9 @@ pub mod cards_move_nm {
     use super::*;
     pub const SCOPE: &str = "cards_move_nm|move_nm_request";
     pub fn profile() -> RateLimitProfile {
-        RateLimitProfile::token_bucket(1000.0 / 900.0, 1.0, Duration::from_millis(900))
-            .with_429_pause(Duration::from_millis(900))
+        // Content: 100 req/min, 600 ms interval (burst ignored — api-rate-no-burst).
+        RateLimitProfile::token_bucket(100.0 / 60.0, 1.0, Duration::from_millis(600))
+            .with_429_pause(Duration::from_millis(600))
     }
 }
 

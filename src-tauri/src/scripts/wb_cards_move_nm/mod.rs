@@ -156,7 +156,13 @@ async fn run(ctx: &ScriptContext) -> ScriptResult {
                             .get("errorText")
                             .and_then(|x| x.as_str())
                             .unwrap_or("error");
-                        ctx.log.warn(format!("Кабинет {cabinet}: nm={nm}: {t}"));
+                        let extra = v
+                            .get("additionalErrors")
+                            .filter(|a| !a.is_null())
+                            .map(|a| format!("; additionalErrors={a}"))
+                            .unwrap_or_default();
+                        ctx.log
+                            .warn(format!("Кабинет {cabinet}: nm={nm}: {t}{extra}"));
                     } else {
                         ok += 1;
                     }

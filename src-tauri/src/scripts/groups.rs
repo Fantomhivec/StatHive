@@ -117,7 +117,7 @@ pub fn list_grouped(registry: &ScriptRegistry, marketplace: &str) -> Vec<ScriptG
                     ("cards_move_to_trash", "POST /content/v2/cards/delete/trash", "06.11.2026"),
                     ("cards_update_dimensions", "POST /content/v2/cards/update", "06.11.2026"),
                     ("cards_error_list", "POST /content/v2/cards/error/list", "06.11.2026"),
-                    ("cards_move_nm", "POST /content/v2/cards/moveNm", ""),
+                    ("cards_move_nm", "POST /content/v2/cards/moveNm", "06.11.2026"),
                     ("content_media_save", "POST /content/v3/media/save", ""),
                     ("categories_parent", "GET /content/v2/object/parent/all", ""),
                     ("subjects_list", "GET /content/v2/object/all", ""),
