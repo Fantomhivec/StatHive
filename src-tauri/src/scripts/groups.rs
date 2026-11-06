@@ -113,7 +113,7 @@ pub fn list_grouped(registry: &ScriptRegistry, marketplace: &str) -> Vec<ScriptG
                 "groups.wb.productsEmoji",
                 &[
                     ("cards_list", "POST /content/v2/get/cards/list", "06.11.2026"),
-                    ("cards_trash", "POST /content/v2/get/cards/trash", ""),
+                    ("cards_trash", "POST /content/v2/get/cards/trash", "06.11.2026"),
                     ("cards_move_to_trash", "POST /content/v2/cards/delete/trash", ""),
                     ("cards_update_dimensions", "POST /content/v2/cards/update", ""),
                     ("cards_error_list", "POST /content/v2/cards/error/list", ""),

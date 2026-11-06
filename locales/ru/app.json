@@ -1106,32 +1106,35 @@
  "cards_trash": {
  "cabinet": "Кабинет",
  "nmID": "Артикул WB",
- "imtID": "ID объединённой карточки",
- "nmUUID": "Внутренний ID карточки (UUID)",
+ "vendorCode": "Артикул продавца",
+ "kizMarked": "КИЗ нанесён (подтверждение)",
  "subjectID": "ID предмета",
  "subjectName": "Предмет",
- "vendorCode": "Артикул продавца",
- "brand": "Бренд",
- "title": "Наименование",
- "description": "Описание",
- "photos": "Фото",
+ "photos": {
+ "big": "Фото 900x1200 (big)",
+ "c246x328": "Фото 246x328",
+ "c516x688": "Фото 516x688",
+ "square": "Фото 600x600 (square)",
+ "tm": "Фото 75x100 (tm)"
+ },
  "video": "Видео",
  "wholesale": {
- "enabled": "Оптовые продажи включены",
+ "enabled": "Опт (B2B only)",
  "quantum": "Кратность опта"
  },
  "dimensions": {
- "length": "Длина",
- "width": "Ширина",
- "height": "Высота",
- "weightBrutto": "Вес брутто"
+ "length": "Длина, см",
+ "width": "Ширина, см",
+ "height": "Высота, см",
+ "weightBrutto": "Вес, кг",
+ "isValid": "Габариты корректны (dimensions.isValid)"
  },
- "isValid": "Габариты корректны",
+ "characteristics": "Характеристики (id:name:value)",
  "sizes": {
- "chrtID": "chrtID (через ;)",
- "techSize": "Tech size (через ;)",
- "wbSize": "WB size (через ;)",
- "skus": "ШК (через ;)"
+ "chrtID": "Размеры: chrtID",
+ "techSize": "Размеры: techSize",
+ "wbSize": "Размеры: wbSize",
+ "skus": "Баркоды"
  },
  "createdAt": "Создана",
  "trashedAt": "Добавлена в корзину"

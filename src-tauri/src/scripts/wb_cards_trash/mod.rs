@@ -131,9 +131,8 @@ async fn fetch_trash(
         }
         let body = serde_json::json!({
             "settings": {
-                "cursor": cursor,
-                "filter": { "withPhoto": -1 },
-                "sort": { "ascending": false }
+                "sort": { "ascending": true },
+                "cursor": cursor
             }
         });
         let v = ctx
@@ -149,11 +148,12 @@ async fn fetch_trash(
                 &body,
             )
             .await?;
-        let batch = v
-            .get("cards")
-            .and_then(|c| c.as_array())
-            .cloned()
-            .unwrap_or_default();
+        // Забрать cards без clone всего массива Value.
+        let mut v = v;
+        let batch = match v.get_mut("cards").map(std::mem::take) {
+            Some(Value::Array(a)) => a,
+            _ => Vec::new(),
+        };
         let batch_len = batch.len();
         ctx.log.info(format!("Страница {page}: {batch_len} карт"));
         all.extend(batch);

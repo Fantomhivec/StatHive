@@ -12,39 +12,52 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! DefaultFields корзины WB (паритет CardsTrashScript.DefaultFields).
+//! DefaultFields корзины WB — schema /content/v2/get/cards/trash + cabinet.
 
 use crate::core::script_field::ScriptField;
 use crate::core::sheet_dates;
 use serde_json::Value;
 
+fn f(name: &str, title_key: &str, selected: bool) -> ScriptField {
+    ScriptField::new(name, crate::core::i18n::t(title_key), selected)
+}
+
 pub fn default_fields() -> Vec<ScriptField> {
     vec![
-        ScriptField::new("cabinet", crate::core::i18n::t("fields.cards_trash.cabinet"), true),
-        ScriptField::new("nmID", crate::core::i18n::t("fields.cards_trash.nmID"), true),
-        ScriptField::new("imtID", crate::core::i18n::t("fields.cards_trash.imtID"), false),
-        ScriptField::new("nmUUID", crate::core::i18n::t("fields.cards_trash.nmUUID"), false),
-        ScriptField::new("subjectID", crate::core::i18n::t("fields.cards_trash.subjectID"), false),
-        ScriptField::new("subjectName", crate::core::i18n::t("fields.cards_trash.subjectName"), true),
-        ScriptField::new("vendorCode", crate::core::i18n::t("fields.cards_trash.vendorCode"), true),
-        ScriptField::new("brand", crate::core::i18n::t("fields.cards_trash.brand"), true),
-        ScriptField::new("title", crate::core::i18n::t("fields.cards_trash.title"), true),
-        ScriptField::new("description", crate::core::i18n::t("fields.cards_trash.description"), false),
-        ScriptField::new("photos", crate::core::i18n::t("fields.cards_trash.photos"), false),
-        ScriptField::new("video", crate::core::i18n::t("fields.cards_trash.video"), false),
-        ScriptField::new("wholesale.enabled", crate::core::i18n::t("fields.cards_trash.wholesale.enabled"), false),
-        ScriptField::new("wholesale.quantum", crate::core::i18n::t("fields.cards_trash.wholesale.quantum"), false),
-        ScriptField::new("dimensions.length", crate::core::i18n::t("fields.cards_trash.dimensions.length"), false),
-        ScriptField::new("dimensions.width", crate::core::i18n::t("fields.cards_trash.dimensions.width"), false),
-        ScriptField::new("dimensions.height", crate::core::i18n::t("fields.cards_trash.dimensions.height"), false),
-        ScriptField::new("dimensions.weightBrutto", crate::core::i18n::t("fields.cards_trash.dimensions.weightBrutto"), false),
-        ScriptField::new("isValid", crate::core::i18n::t("fields.cards_trash.isValid"), false),
-        ScriptField::new("sizes.chrtID", crate::core::i18n::t("fields.cards_trash.sizes.chrtID"), false),
-        ScriptField::new("sizes.techSize", crate::core::i18n::t("fields.cards_trash.sizes.techSize"), false),
-        ScriptField::new("sizes.wbSize", crate::core::i18n::t("fields.cards_trash.sizes.wbSize"), false),
-        ScriptField::new("sizes.skus", crate::core::i18n::t("fields.cards_trash.sizes.skus"), false),
-        ScriptField::new("createdAt", crate::core::i18n::t("fields.cards_trash.createdAt"), true),
-        ScriptField::new("trashedAt", crate::core::i18n::t("fields.cards_trash.trashedAt"), true),
+        f("cabinet", "fields.cards_trash.cabinet", true),
+        f("nmID", "fields.cards_trash.nmID", true),
+        f("vendorCode", "fields.cards_trash.vendorCode", true),
+        f("kizMarked", "fields.cards_trash.kizMarked", false),
+        f("subjectID", "fields.cards_trash.subjectID", false),
+        f("subjectName", "fields.cards_trash.subjectName", true),
+        f("photos.big", "fields.cards_trash.photos.big", false),
+        f("photos.c246x328", "fields.cards_trash.photos.c246x328", false),
+        f("photos.c516x688", "fields.cards_trash.photos.c516x688", false),
+        f("photos.square", "fields.cards_trash.photos.square", false),
+        f("photos.tm", "fields.cards_trash.photos.tm", false),
+        f("video", "fields.cards_trash.video", false),
+        f("wholesale.enabled", "fields.cards_trash.wholesale.enabled", false),
+        f("wholesale.quantum", "fields.cards_trash.wholesale.quantum", false),
+        f("dimensions.length", "fields.cards_trash.dimensions.length", false),
+        f("dimensions.width", "fields.cards_trash.dimensions.width", false),
+        f("dimensions.height", "fields.cards_trash.dimensions.height", false),
+        f(
+            "dimensions.weightBrutto",
+            "fields.cards_trash.dimensions.weightBrutto",
+            false,
+        ),
+        f(
+            "dimensions.isValid",
+            "fields.cards_trash.dimensions.isValid",
+            false,
+        ),
+        f("characteristics", "fields.cards_trash.characteristics", false),
+        f("sizes.chrtID", "fields.cards_trash.sizes.chrtID", false),
+        f("sizes.techSize", "fields.cards_trash.sizes.techSize", false),
+        f("sizes.wbSize", "fields.cards_trash.sizes.wbSize", false),
+        f("sizes.skus", "fields.cards_trash.sizes.skus", false),
+        f("createdAt", "fields.cards_trash.createdAt", true),
+        f("trashedAt", "fields.cards_trash.trashedAt", true),
     ]
 }
 
@@ -68,87 +81,116 @@ pub fn build_rows(cabinet: &str, cards: &[Value], fields: &[ScriptField]) -> Vec
 fn cell(cabinet: &str, card: &Value, name: &str) -> String {
     match name {
         "cabinet" => cabinet.to_string(),
-        "nmID" => jstr(card, &["nmID", "nmId"]),
-        "imtID" => jstr(card, &["imtID", "imtId"]),
-        "nmUUID" => jstr(card, &["nmUUID", "nmUuid"]),
-        "subjectID" => jstr(card, &["subjectID", "subjectId"]),
-        "subjectName" => jstr(card, &["subjectName"]),
-        "vendorCode" => jstr(card, &["vendorCode"]),
-        "brand" => jstr(card, &["brand"]),
-        "title" => jstr(card, &["title"]),
-        "description" => jstr(card, &["description"]),
-        "photos" => photos(card),
-        "video" => jstr(card, &["video"]),
-        "wholesale.enabled" => path(card, &["wholesale", "enabled"]),
-        "wholesale.quantum" => path(card, &["wholesale", "quantum"]),
-        "dimensions.length" => path(card, &["dimensions", "length"]),
-        "dimensions.width" => path(card, &["dimensions", "width"]),
-        "dimensions.height" => path(card, &["dimensions", "height"]),
-        "dimensions.weightBrutto" => path(card, &["dimensions", "weightBrutto"]),
-        "isValid" => jstr(card, &["isValid"]),
-        "sizes.chrtID" => sizes_join(card, "chrtID", ";"),
-        "sizes.techSize" => sizes_join(card, "techSize", ";"),
-        "sizes.wbSize" => sizes_join(card, "wbSize", ";"),
+        "nmID" => json_str(card, "nmID"),
+        "vendorCode" => json_str(card, "vendorCode"),
+        "kizMarked" => json_str(card, "kizMarked"),
+        "subjectID" => json_str(card, "subjectID"),
+        "subjectName" => json_str(card, "subjectName"),
+        "photos.big" => photos_join(card, "big"),
+        "photos.c246x328" => photos_join(card, "c246x328"),
+        "photos.c516x688" => photos_join(card, "c516x688"),
+        "photos.square" => photos_join(card, "square"),
+        "photos.tm" => photos_join(card, "tm"),
+        "video" => json_str(card, "video"),
+        "wholesale.enabled" => path_str(card, &["wholesale", "enabled"]),
+        "wholesale.quantum" => path_str(card, &["wholesale", "quantum"]),
+        "dimensions.length" => path_str(card, &["dimensions", "length"]),
+        "dimensions.width" => path_str(card, &["dimensions", "width"]),
+        "dimensions.height" => path_str(card, &["dimensions", "height"]),
+        "dimensions.weightBrutto" => path_str(card, &["dimensions", "weightBrutto"]),
+        "dimensions.isValid" => path_str(card, &["dimensions", "isValid"]),
+        "characteristics" => characteristics_cell(card),
+        "sizes.chrtID" => sizes_join(card, "chrtID"),
+        "sizes.techSize" => sizes_join(card, "techSize"),
+        "sizes.wbSize" => sizes_join(card, "wbSize"),
         "sizes.skus" => sizes_skus(card),
-        "createdAt" => sheet_dates::format_wb_timestamp(&jstr(card, &["createdAt"])),
-        "trashedAt" => sheet_dates::format_wb_timestamp(&jstr(card, &["trashedAt"])),
+        "createdAt" => sheet_dates::format_wb_timestamp(&json_str(card, "createdAt")),
+        "trashedAt" => sheet_dates::format_wb_timestamp(&json_str(card, "trashedAt")),
         _ => String::new(),
     }
 }
 
-fn jstr(v: &Value, keys: &[&str]) -> String {
-    for k in keys {
-        if let Some(x) = v.get(*k) {
-            return match x {
-                Value::String(s) => s.clone(),
-                Value::Null => String::new(),
-                other => other.to_string().trim_matches('"').to_string(),
-            };
+fn json_str(v: &Value, key: &str) -> String {
+    match v.get(key) {
+        Some(Value::String(s)) => s.clone(),
+        Some(Value::Null) | None => String::new(),
+        Some(other) => other.to_string().trim_matches('"').to_string(),
+    }
+}
+
+fn path_str(root: &Value, parts: &[&str]) -> String {
+    let mut cur = root;
+    for (i, p) in parts.iter().enumerate() {
+        match cur.get(*p) {
+            Some(next) if i + 1 == parts.len() => {
+                return match next {
+                    Value::String(s) => s.clone(),
+                    Value::Bool(b) => b.to_string(),
+                    Value::Number(n) => n.to_string(),
+                    Value::Null => String::new(),
+                    other => other.to_string().trim_matches('"').to_string(),
+                };
+            }
+            Some(next) => cur = next,
+            None => return String::new(),
         }
     }
     String::new()
 }
 
-fn path(v: &Value, keys: &[&str]) -> String {
-    let mut cur = v;
-    for k in keys {
-        match cur.get(*k) {
-            Some(n) => cur = n,
-            None => return String::new(),
-        }
-    }
-    match cur {
-        Value::String(s) => s.clone(),
-        Value::Null => String::new(),
-        other => other.to_string().trim_matches('"').to_string(),
-    }
-}
-
-fn photos(card: &Value) -> String {
+fn photos_join(card: &Value, key: &str) -> String {
     let Some(arr) = card.get("photos").and_then(|p| p.as_array()) else {
         return String::new();
     };
     arr.iter()
-        .take(30)
-        .filter_map(|p| {
-            p.get("big")
-                .or_else(|| p.get("c246x328"))
-                .and_then(|x| x.as_str())
-                .map(|s| s.to_string())
-        })
+        .filter_map(|p| p.get(key).and_then(|x| x.as_str()).map(|s| s.to_string()))
         .collect::<Vec<_>>()
-        .join(" ")
+        .join(";")
 }
 
-fn sizes_join(card: &Value, key: &str, sep: &str) -> String {
+fn characteristics_cell(card: &Value) -> String {
+    let Some(arr) = card.get("characteristics").and_then(|c| c.as_array()) else {
+        return String::new();
+    };
+    arr.iter()
+        .filter_map(|ch| {
+            let id = json_str(ch, "id");
+            let name = ch.get("name").and_then(|n| n.as_str()).unwrap_or("");
+            let val = ch
+                .get("value")
+                .map(|v| match v {
+                    Value::Array(a) => a
+                        .iter()
+                        .map(|x| match x {
+                            Value::String(s) => s.clone(),
+                            other => other.to_string().trim_matches('"').to_string(),
+                        })
+                        .filter(|s| !s.is_empty())
+                        .collect::<Vec<_>>()
+                        .join(", "),
+                    Value::String(s) => s.clone(),
+                    other => other.to_string().trim_matches('"').to_string(),
+                })
+                .unwrap_or_default();
+            if id.is_empty() && name.is_empty() && val.is_empty() {
+                None
+            } else {
+                Some(format!("{id}:{name}:{val}"))
+            }
+        })
+        .collect::<Vec<_>>()
+        .join("; ")
+}
+
+fn sizes_join(card: &Value, key: &str) -> String {
     let Some(arr) = card.get("sizes").and_then(|s| s.as_array()) else {
         return String::new();
     };
     arr.iter()
-        .map(|s| jstr(s, &[key]))
+        .map(|s| json_str(s, key))
         .filter(|s| !s.is_empty())
         .collect::<Vec<_>>()
-        .join(sep)
+        .join(";")
 }
 
 fn sizes_skus(card: &Value) -> String {
@@ -161,4 +203,66 @@ fn sizes_skus(card: &Value) -> String {
         .filter_map(|x| x.as_str().map(|s| s.to_string()))
         .collect::<Vec<_>>()
         .join(";")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn maps_kiz_and_dimensions_is_valid() {
+        let card = json!({
+            "kizMarked": true,
+            "isValid": true,
+            "dimensions": {
+                "length": 55,
+                "isValid": false
+            }
+        });
+        assert_eq!(cell("cab", &card, "kizMarked"), "true");
+        assert_eq!(cell("cab", &card, "dimensions.isValid"), "false");
+        assert!(cell("cab", &card, "isValid").is_empty());
+    }
+
+    #[test]
+    fn characteristics_include_id() {
+        let card = json!({
+            "characteristics": [
+                { "id": 14177449, "name": "Цвет", "value": ["красно-сиреневый"] }
+            ]
+        });
+        let s = cell("c", &card, "characteristics");
+        assert!(s.contains("14177449:Цвет:красно-сиреневый"));
+    }
+
+    #[test]
+    fn photo_columns_use_exact_size_keys() {
+        let card = json!({
+            "photos": [
+                {
+                    "big": "https://example/big.webp",
+                    "c246x328": "https://example/246.webp",
+                    "c516x688": "https://example/516.webp",
+                    "square": "https://example/sq.webp",
+                    "tm": "https://example/tm.webp"
+                },
+                {
+                    "big": "https://example/big2.webp",
+                    "c246x328": "https://example/246b.webp"
+                }
+            ]
+        });
+        assert_eq!(
+            cell("c", &card, "photos.big"),
+            "https://example/big.webp;https://example/big2.webp"
+        );
+        assert_eq!(
+            cell("c", &card, "photos.c246x328"),
+            "https://example/246.webp;https://example/246b.webp"
+        );
+        assert_eq!(cell("c", &card, "photos.c516x688"), "https://example/516.webp");
+        assert_eq!(cell("c", &card, "photos.square"), "https://example/sq.webp");
+        assert_eq!(cell("c", &card, "photos.tm"), "https://example/tm.webp");
+    }
 }

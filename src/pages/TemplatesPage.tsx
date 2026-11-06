@@ -40,14 +40,14 @@ export default function TemplatesPage() {
         <h1 className="page-title u-m-0">{title}</h1>
         <div className="form-actions tpl-toolbar">
           <button
-            className="btn btn-ghost"
+            className="btn"
             type="button"
             disabled={!!a.busyId}
             onClick={() => a.setGroupEditor({ groupId: null })}
           >
             {t("templates.addGroup")}
           </button>
-          <button className="btn" type="button" onClick={() => a.setEditorId(null)}>
+          <button className="btn btn-primary" type="button" onClick={() => a.setEditorId(null)}>
             {t("templates.addTemplate")}
           </button>
         </div>

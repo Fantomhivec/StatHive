@@ -222,7 +222,8 @@ pub mod cards_trash {
     use super::*;
     pub const SCOPE: &str = "cards_trash|get_trash_cards_request";
     pub fn profile() -> RateLimitProfile {
-        RateLimitProfile::token_bucket(1000.0 / 600.0, 1.0, Duration::from_millis(600))
+        // Content category: 100 req/min, 600 ms interval, burst 5.
+        RateLimitProfile::token_bucket(100.0 / 60.0, 5.0, Duration::from_millis(600))
             .with_429_pause(Duration::from_millis(600))
     }
 }
