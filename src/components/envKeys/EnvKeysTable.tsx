@@ -68,14 +68,14 @@ export default function EnvKeysTable({
                   >
                     <button
                       type="button"
-                      className="btn btn-ghost"
+                      className="btn"
                       onClick={() => onEdit(r)}
                     >
                       {t("common.refresh")}
                     </button>
                     <button
                       type="button"
-                      className="btn btn-ghost"
+                      className="btn btn-danger"
                       onClick={() => onDelete(r)}
                     >
                       {t("common.delete")}
