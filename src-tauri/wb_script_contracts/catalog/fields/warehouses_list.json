@@ -1,0 +1,16 @@
+{
+  "required": [
+    {
+      "path": "id",
+      "type": "integer"
+    },
+    {
+      "path": "name",
+      "type": "string"
+    },
+    {
+      "path": "officeId",
+      "type": "integer"
+    }
+  ]
+}

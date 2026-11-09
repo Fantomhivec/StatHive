@@ -120,16 +120,15 @@ pub async fn download_report(
 }
 
 pub fn is_done_status(status: &str) -> bool {
-    matches!(
-        status.trim().to_ascii_lowercase().as_str(),
-        "done" | "success" | "completed"
-    )
+    // Docs: done — report is generated
+    status.trim().eq_ignore_ascii_case("done")
 }
 
 pub fn is_failed_status(status: &str) -> bool {
+    // Docs: canceled — declined; purged — report is deleted
     matches!(
         status.trim().to_ascii_lowercase().as_str(),
-        "failed" | "error" | "canceled" | "cancelled" | "purged"
+        "canceled" | "purged"
     )
 }
 

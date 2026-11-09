@@ -284,7 +284,6 @@ fn expand_hit(
         }
         let id = wh
             .get("warehouseID")
-            .or_else(|| wh.get("warehouseId"))
             .and_then(|v| v.as_i64())
             .unwrap_or(0);
         out.push(OutRow {
@@ -384,11 +383,7 @@ async fn load_warehouse_names(
         Ok(list) => {
             let mut map = HashMap::new();
             for w in list {
-                let id = w
-                    .get("ID")
-                    .or_else(|| w.get("id"))
-                    .and_then(|v| v.as_i64())
-                    .unwrap_or(0);
+                let id = w.get("ID").and_then(|v| v.as_i64()).unwrap_or(0);
                 if id <= 0 {
                     continue;
                 }

@@ -39,6 +39,20 @@
 3. `MemberOk(...)` в `scripts/mod.rs` — только если скрипт **только** тянет данные с API маркетплейса и **не** обязан читать Google Sheets (ID/диапазоны/task id). Без OAuth результат уйдёт в Excel. Не оборачивать: upload / set / move / trash / media / create-task / auto, download/status по id из листа, утилиты Sheets (copy/symbols/cells), выборки «по списку из таблицы».
 4. Проверьте: Admin видит всё; ограниченный пресет — только свои ключи; без права — нет в комбо и run отклоняется.
 
-## 3. Документация
+## 3. WB API + контракты
+
+Для WB-скрипта (не Sheets-utils) после кода и ACL:
+
+1. Сверка schema по актуальной официальной доке API → `default_fields` / mapping → `api_updated` в `groups.rs` (`dd.MM.yyyy`). Ссылки на внешние API docs в репозиторий не класть.
+2. Rate profile в `core/http/rate_profiles/**` по personal docs; `token_bucket` capacity **1.0**; без burst.
+3. Каталог `src-tauri/wb_script_contracts/catalog/`:
+   - строка в `scripts.json` (`kind: "api"` или `"sheets"`);
+   - `rates_ours.json` / `rates_expected.json` (для API);
+   - `fields/<key>.json` + фикстуры `fixtures/<key>/{ok,empty,error}.json` (для API; Sheets — skip).
+4. Команды: `cargo check -p stathive` (0 warnings); `cargo test -p wb_script_contracts`.
+
+Crate контрактов **не** подключать к `stathive`.
+
+## 4. Документация
 
 Права пользователей — [USER_ACCESS.md](./USER_ACCESS.md). Оглавление — [README.md](./README.md).

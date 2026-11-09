@@ -1,0 +1,416 @@
+[
+  {
+    "key": "cards_list",
+    "api": "POST /content/v2/get/cards/list",
+    "kind": "api",
+    "api_updated": "06.11.2026"
+  },
+  {
+    "key": "cards_trash",
+    "api": "POST /content/v2/get/cards/trash",
+    "kind": "api",
+    "api_updated": "06.11.2026"
+  },
+  {
+    "key": "cards_move_to_trash",
+    "api": "POST /content/v2/cards/delete/trash",
+    "kind": "api",
+    "api_updated": "06.11.2026"
+  },
+  {
+    "key": "cards_update_dimensions",
+    "api": "POST /content/v2/cards/update",
+    "kind": "api",
+    "api_updated": "06.11.2026"
+  },
+  {
+    "key": "cards_error_list",
+    "api": "POST /content/v2/cards/error/list",
+    "kind": "api",
+    "api_updated": "06.11.2026"
+  },
+  {
+    "key": "cards_move_nm",
+    "api": "POST /content/v2/cards/moveNm",
+    "kind": "api",
+    "api_updated": "06.11.2026"
+  },
+  {
+    "key": "content_media_save",
+    "api": "POST /content/v3/media/save",
+    "kind": "api",
+    "api_updated": "06.11.2026"
+  },
+  {
+    "key": "categories_parent",
+    "api": "GET /content/v2/object/parent/all",
+    "kind": "api",
+    "api_updated": "06.11.2026"
+  },
+  {
+    "key": "subjects_list",
+    "api": "GET /content/v2/object/all",
+    "kind": "api",
+    "api_updated": "06.11.2026"
+  },
+  {
+    "key": "wb_tnved_codes",
+    "api": "GET /content/v2/directory/tnved",
+    "kind": "api",
+    "api_updated": "09.11.2026"
+  },
+  {
+    "key": "wb_object_charcs",
+    "api": "GET /content/v2/object/charcs/{subjectId}",
+    "kind": "api",
+    "api_updated": "09.11.2026"
+  },
+  {
+    "key": "prices_export",
+    "api": "GET /api/v2/list/goods/filter",
+    "kind": "api",
+    "api_updated": "09.11.2026"
+  },
+  {
+    "key": "prices_by_nm",
+    "api": "POST /api/v2/list/goods/filter",
+    "kind": "api",
+    "api_updated": "09.11.2026"
+  },
+  {
+    "key": "prices_upload",
+    "api": "POST /api/v2/upload/task",
+    "kind": "api",
+    "api_updated": "09.11.2026"
+  },
+  {
+    "key": "prices_set",
+    "api": "POST /api/v2/upload/task",
+    "kind": "api",
+    "api_updated": "09.11.2026"
+  },
+  {
+    "key": "prices_history_task",
+    "api": "GET /api/v2/history/goods/task",
+    "kind": "api",
+    "api_updated": "09.11.2026"
+  },
+  {
+    "key": "report_realization_v5",
+    "api": "POST /api/finance/v1/sales-reports/detailed",
+    "kind": "api",
+    "api_updated": "09.11.2026"
+  },
+  {
+    "key": "sales_reports_list",
+    "api": "POST /api/finance/v1/sales-reports/list",
+    "kind": "api",
+    "api_updated": "09.11.2026"
+  },
+  {
+    "key": "paid_storage_create_task",
+    "api": "GET /api/v1/paid_storage",
+    "kind": "api",
+    "api_updated": "09.11.2026"
+  },
+  {
+    "key": "paid_storage_status",
+    "api": "GET /api/v1/paid_storage/tasks/{id}/status",
+    "kind": "api",
+    "api_updated": "09.11.2026"
+  },
+  {
+    "key": "paid_storage_download",
+    "api": "GET /api/v1/paid_storage/tasks/{id}/download",
+    "kind": "api",
+    "api_updated": "09.11.2026"
+  },
+  {
+    "key": "paid_storage_auto",
+    "api": "GET paid_storage create+status+download",
+    "kind": "api",
+    "api_updated": "09.11.2026"
+  },
+  {
+    "key": "warehouse_self_purchases",
+    "api": "GET /api/v1/analytics/antifraud-details",
+    "kind": "api",
+    "api_updated": "09.11.2026"
+  },
+  {
+    "key": "goods_labeling",
+    "api": "GET /api/v1/analytics/goods-labeling",
+    "kind": "api",
+    "api_updated": "09.11.2026"
+  },
+  {
+    "key": "analytics_deductions",
+    "api": "GET /api/analytics/v1/deductions",
+    "kind": "api",
+    "api_updated": "09.11.2026"
+  },
+  {
+    "key": "tariffs_commission",
+    "api": "GET /api/v1/tariffs/commission",
+    "kind": "api",
+    "api_updated": "09.11.2026"
+  },
+  {
+    "key": "tariffs_box",
+    "api": "GET /api/v1/tariffs/box",
+    "kind": "api",
+    "api_updated": "09.11.2026"
+  },
+  {
+    "key": "adv_campaigns_list",
+    "api": "GET adv/v1/promotion/count",
+    "kind": "api",
+    "api_updated": "09.11.2026"
+  },
+  {
+    "key": "wb_adv_campaigns_stats_new",
+    "api": "GET /api/advert/v2/adverts",
+    "kind": "api",
+    "api_updated": "09.11.2026"
+  },
+  {
+    "key": "wb_adv_fullstats",
+    "api": "GET /adv/v3/fullstats",
+    "kind": "api",
+    "api_updated": "09.11.2026"
+  },
+  {
+    "key": "wb_adv_norm_query_stats",
+    "api": "POST /adv/v1/normquery/stats",
+    "kind": "api",
+    "api_updated": "09.11.2026"
+  },
+  {
+    "key": "wb_adv_norm_query_bids",
+    "api": "POST /adv/v0/normquery/get-bids",
+    "kind": "api",
+    "api_updated": "09.11.2026"
+  },
+  {
+    "key": "wb_adv_search_texts",
+    "api": "POST /api/v2/search-report/product/search-texts",
+    "kind": "api",
+    "api_updated": "09.11.2026"
+  },
+  {
+    "key": "wb_adv_search_report_main",
+    "api": "POST /api/v2/search-report/report",
+    "kind": "api",
+    "api_updated": "09.11.2026"
+  },
+  {
+    "key": "wb_adv_upd",
+    "api": "GET /adv/v1/upd",
+    "kind": "api",
+    "api_updated": "09.11.2026"
+  },
+  {
+    "key": "promotions",
+    "api": "GET /api/v1/calendar/promotions",
+    "kind": "api",
+    "api_updated": "09.11.2026"
+  },
+  {
+    "key": "sales_funnel_products",
+    "api": "POST /api/analytics/v3/sales-funnel/products",
+    "kind": "api",
+    "api_updated": "09.11.2026"
+  },
+  {
+    "key": "sales_funnel_products_history",
+    "api": "POST /api/analytics/v3/sales-funnel/products/history",
+    "kind": "api",
+    "api_updated": "09.11.2026"
+  },
+  {
+    "key": "order_feed",
+    "api": "POST /api/analytics/v1/order-feed",
+    "kind": "api",
+    "api_updated": "09.11.2026"
+  },
+  {
+    "key": "wb_supplier_orders",
+    "api": "GET /api/v1/supplier/orders",
+    "kind": "api",
+    "api_updated": "09.11.2026"
+  },
+  {
+    "key": "orders_fbs",
+    "api": "GET /api/v3/orders",
+    "kind": "api",
+    "api_updated": "09.11.2026"
+  },
+  {
+    "key": "orders_fbs_status",
+    "api": "POST /api/v3/orders/status",
+    "kind": "api",
+    "api_updated": "09.11.2026"
+  },
+  {
+    "key": "nm_report_downloads",
+    "api": "POST /api/v2/nm-report/downloads",
+    "kind": "api",
+    "api_updated": "09.11.2026"
+  },
+  {
+    "key": "nm_report_downloads_list",
+    "api": "GET /api/v2/nm-report/downloads",
+    "kind": "api",
+    "api_updated": "09.11.2026"
+  },
+  {
+    "key": "nm_report_download_file",
+    "api": "GET /api/v2/nm-report/downloads/file/{id}",
+    "kind": "api",
+    "api_updated": "09.11.2026"
+  },
+  {
+    "key": "nm_report_downloads_auto",
+    "api": "nm-report create+list+file",
+    "kind": "api",
+    "api_updated": "09.11.2026"
+  },
+  {
+    "key": "nm_report_stock_history_auto",
+    "api": "STOCK_HISTORY_DAILY_CSV auto",
+    "kind": "api",
+    "api_updated": "09.11.2026"
+  },
+  {
+    "key": "wb_stocks",
+    "api": "POST /api/analytics/v1/stocks-report/seller-warehouses",
+    "kind": "api",
+    "api_updated": "09.11.2026"
+  },
+  {
+    "key": "wb_stock_fbo_report",
+    "api": "POST /api/analytics/v1/stocks-report/wb-warehouses",
+    "kind": "api",
+    "api_updated": "09.11.2026"
+  },
+  {
+    "key": "warehouse_remains_create_task",
+    "api": "GET /api/v1/warehouse_remains",
+    "kind": "api",
+    "api_updated": "09.11.2026"
+  },
+  {
+    "key": "warehouse_remains_status",
+    "api": "GET /api/v1/warehouse_remains/tasks/{id}/status",
+    "kind": "api",
+    "api_updated": "09.11.2026"
+  },
+  {
+    "key": "warehouse_remains_download",
+    "api": "GET /api/v1/warehouse_remains/tasks/{id}/download",
+    "kind": "api",
+    "api_updated": "09.11.2026"
+  },
+  {
+    "key": "warehouse_remains_auto",
+    "api": "create→status→download warehouse_remains",
+    "kind": "api",
+    "api_updated": "09.11.2026"
+  },
+  {
+    "key": "warehouses_list",
+    "api": "GET /api/v3/warehouses",
+    "kind": "api",
+    "api_updated": "09.11.2026"
+  },
+  {
+    "key": "wb_offices",
+    "api": "GET /api/v3/offices",
+    "kind": "api",
+    "api_updated": "09.11.2026"
+  },
+  {
+    "key": "supplies",
+    "api": "GET /api/v3/supplies",
+    "kind": "api",
+    "api_updated": "09.11.2026"
+  },
+  {
+    "key": "supplies_fbo",
+    "api": "POST /api/v1/supplies",
+    "kind": "api",
+    "api_updated": "09.11.2026"
+  },
+  {
+    "key": "supply_info",
+    "api": "GET /api/v3/supplies/{id}",
+    "kind": "api",
+    "api_updated": "09.11.2026"
+  },
+  {
+    "key": "supplies_goods",
+    "api": "GET /api/v1/supplies/{id}/goods",
+    "kind": "api",
+    "api_updated": "09.11.2026"
+  },
+  {
+    "key": "supplies_warehouses",
+    "api": "GET /api/v1/warehouses",
+    "kind": "api",
+    "api_updated": "09.11.2026"
+  },
+  {
+    "key": "acceptance_options",
+    "api": "POST /api/v1/acceptance/options",
+    "kind": "api",
+    "api_updated": "09.11.2026"
+  },
+  {
+    "key": "transit_tariffs",
+    "api": "GET /api/v1/transit-tariffs",
+    "kind": "api",
+    "api_updated": "09.11.2026"
+  },
+  {
+    "key": "item_rating",
+    "api": "POST /api/analytics/v2/item-rating",
+    "kind": "api",
+    "api_updated": "09.11.2026"
+  },
+  {
+    "key": "feedbacks_archive",
+    "api": "GET /api/v1/feedbacks/archive",
+    "kind": "api",
+    "api_updated": "09.11.2026"
+  },
+  {
+    "key": "feedbacks_count",
+    "api": "GET /api/v1/feedbacks/count",
+    "kind": "api",
+    "api_updated": "09.11.2026"
+  },
+  {
+    "key": "claims_list",
+    "api": "GET /api/v1/claims",
+    "kind": "api",
+    "api_updated": "09.11.2026"
+  },
+  {
+    "key": "copy_data",
+    "api": "Sheets copy range",
+    "kind": "sheets",
+    "api_updated": "09.11.2026"
+  },
+  {
+    "key": "symbols_check",
+    "api": "Sheets textFormatRuns EN/RU",
+    "kind": "sheets",
+    "api_updated": "09.11.2026"
+  },
+  {
+    "key": "cells_count",
+    "api": "Sheets grid cell count",
+    "kind": "sheets",
+    "api_updated": "09.11.2026"
+  }
+]

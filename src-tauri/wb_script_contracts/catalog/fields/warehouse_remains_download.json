@@ -1,0 +1,12 @@
+{
+  "required": [
+    {
+      "path": "nmId",
+      "type": "integer"
+    },
+    {
+      "path": "brand",
+      "type": "string"
+    }
+  ]
+}

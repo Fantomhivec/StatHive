@@ -1,0 +1,8 @@
+{
+  "required": [
+    {
+      "path": "cards",
+      "type": "array"
+    }
+  ]
+}

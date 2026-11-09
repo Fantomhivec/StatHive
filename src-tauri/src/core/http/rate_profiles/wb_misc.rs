@@ -179,8 +179,9 @@ pub mod supplies_fbo {
     use super::*;
     pub const SCOPE: &str = "supplies_fbo|POST|/api/v1/supplies";
     pub fn profile() -> RateLimitProfile {
-        RateLimitProfile::token_bucket(5.0, 1.0, Duration::from_millis(200))
-            .with_429_pause(Duration::from_millis(200))
+        // Personal: 30 / min, interval 2 s
+        RateLimitProfile::sliding_window(30, Duration::from_secs(60), Duration::from_secs(2))
+            .with_429_pause(Duration::from_secs(5))
     }
 }
 
@@ -197,8 +198,8 @@ pub mod supplies_goods {
     use super::*;
     pub const SCOPE: &str = "supplies_goods|GET|/api/v1/supplies/{id}/goods";
     pub fn profile() -> RateLimitProfile {
-        RateLimitProfile::token_bucket(5.0, 1.0, Duration::from_millis(200))
-            .with_429_pause(Duration::from_millis(200))
+        RateLimitProfile::sliding_window(30, Duration::from_secs(60), Duration::from_secs(2))
+            .with_429_pause(Duration::from_secs(5))
     }
 }
 
@@ -206,8 +207,9 @@ pub mod supplies_warehouses {
     use super::*;
     pub const SCOPE: &str = "supplies_warehouses|GET|/api/v1/warehouses";
     pub fn profile() -> RateLimitProfile {
-        RateLimitProfile::token_bucket(5.0, 1.0, Duration::from_millis(200))
-            .with_429_pause(Duration::from_millis(200))
+        // Personal: 6 / min, interval 10 s
+        RateLimitProfile::sliding_window(6, Duration::from_secs(60), Duration::from_secs(10))
+            .with_429_pause(Duration::from_secs(10))
     }
 }
 
@@ -312,7 +314,8 @@ pub mod claims_list {
     use super::*;
     pub const SCOPE: &str = "claims_list|get_claims_paged";
     pub fn profile() -> RateLimitProfile {
-        RateLimitProfile::sliding_window(1, Duration::from_secs(3), Duration::from_secs(3))
+        // Personal: 20 / min, interval 3 s
+        RateLimitProfile::sliding_window(20, Duration::from_secs(60), Duration::from_secs(3))
             .with_429_pause(Duration::from_secs(3))
     }
 }
@@ -322,8 +325,9 @@ pub mod feedbacks_archive {
     use super::*;
     pub const SCOPE: &str = "feedbacks_archive|get_feedbacks_archive";
     pub fn profile() -> RateLimitProfile {
-        RateLimitProfile::token_bucket(2.0, 1.0, Duration::from_millis(550))
-            .with_429_pause(Duration::from_secs(20))
+        // Feedbacks category: 3 / s, interval 333 ms
+        RateLimitProfile::token_bucket(3.0, 1.0, Duration::from_millis(333))
+            .with_429_pause(Duration::from_secs(1))
     }
 }
 
@@ -332,8 +336,8 @@ pub mod feedbacks_count {
     use super::*;
     pub const SCOPE: &str = "feedbacks_count|get_feedbacks_count";
     pub fn profile() -> RateLimitProfile {
-        RateLimitProfile::sliding_window(3, Duration::from_secs(1), Duration::from_millis(400))
-            .with_429_pause(Duration::from_secs(20))
+        RateLimitProfile::token_bucket(3.0, 1.0, Duration::from_millis(333))
+            .with_429_pause(Duration::from_secs(1))
     }
 }
 

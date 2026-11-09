@@ -1,0 +1,8 @@
+{
+  "required": [
+    {
+      "path": "data.items",
+      "type": "array"
+    }
+  ]
+}

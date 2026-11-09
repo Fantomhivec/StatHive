@@ -1,0 +1,12 @@
+{
+  "required": [
+    {
+      "path": "id",
+      "type": "string"
+    },
+    {
+      "path": "done",
+      "type": "boolean"
+    }
+  ]
+}

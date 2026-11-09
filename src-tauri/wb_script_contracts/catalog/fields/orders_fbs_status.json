@@ -1,0 +1,16 @@
+{
+  "required": [
+    {
+      "path": "id",
+      "type": "integer"
+    },
+    {
+      "path": "supplierStatus",
+      "type": "string"
+    },
+    {
+      "path": "wbStatus",
+      "type": "string"
+    }
+  ]
+}

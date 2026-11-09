@@ -1,0 +1,8 @@
+{
+  "required": [
+    {
+      "path": "data.status",
+      "type": "string"
+    }
+  ]
+}

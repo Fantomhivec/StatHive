@@ -1,0 +1,23 @@
+[package]
+name = "wb_script_contracts"
+version = "0.0.0"
+edition = "2021"
+description = "Offline WB script contract tests (rates + JSON fixtures). Not linked into stathive."
+license = "Apache-2.0"
+publish = false
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[[test]]
+name = "rates_match"
+path = "tests/rates_match.rs"
+
+[[test]]
+name = "response_shapes"
+path = "tests/response_shapes.rs"
+
+[[test]]
+name = "coverage"
+path = "tests/coverage.rs"

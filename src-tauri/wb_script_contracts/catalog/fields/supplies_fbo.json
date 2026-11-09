@@ -1,0 +1,12 @@
+{
+  "required": [
+    {
+      "path": "supplyID",
+      "type": "integer"
+    },
+    {
+      "path": "statusID",
+      "type": "integer"
+    }
+  ]
+}

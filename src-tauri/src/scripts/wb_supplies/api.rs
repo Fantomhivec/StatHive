@@ -162,13 +162,10 @@ pub async fn supply_goods(
                 Auth::Raw(token),
             )
             .await?;
+        // Schema: GoodInSupply[] at root
         let page = match v {
             Value::Array(a) => a,
-            other => other
-                .get("goods")
-                .and_then(|x| x.as_array())
-                .cloned()
-                .unwrap_or_default(),
+            _ => Vec::new(),
         };
         let n = page.len() as i64;
         out.extend(page);
@@ -235,16 +232,6 @@ fn json_cell(it: &Value, name: &str) -> String {
     }
 }
 
-fn first_cell(it: &Value, keys: &[&str]) -> String {
-    for k in keys {
-        let v = json_cell(it, k);
-        if !v.is_empty() {
-            return v;
-        }
-    }
-    String::new()
-}
-
 fn status_id_name(id: &str) -> String {
     match id.trim() {
         "1" => "Не запланировано".into(),
@@ -276,19 +263,7 @@ pub fn field(prefix: &str, name: &str, selected: bool) -> ScriptField {
 }
 
 pub fn list_fields() -> Vec<ScriptField> {
-    [
-        "cabinet",
-        "id",
-        "name",
-        "done",
-        "closedAt",
-        "scanDt",
-        "createdAt",
-        "cargoType",
-    ]
-    .into_iter()
-    .map(|n| field("supplies", n, true))
-    .collect()
+    fbs_supply_fields("supplies")
 }
 
 pub fn fbo_fields() -> Vec<ScriptField> {
@@ -313,18 +288,32 @@ pub fn fbo_fields() -> Vec<ScriptField> {
 }
 
 pub fn info_fields() -> Vec<ScriptField> {
+    fbs_supply_fields("supply_info")
+}
+
+fn fbs_supply_fields(prefix: &str) -> Vec<ScriptField> {
     [
         "cabinet",
         "id",
         "name",
         "done",
+        "createdAt",
         "closedAt",
         "scanDt",
-        "createdAt",
         "cargoType",
+        "isB2b",
+        "isPickupPointShipmentAllowed",
+        "crossBorderType",
+        "destinationOfficeId",
+        "recommendedWhId",
+        "shippingDt",
+        "shippingPointId",
+        "shippingType",
+        "waybillUuid",
+        "spotAvailable",
     ]
     .into_iter()
-    .map(|n| field("supply_info", n, true))
+    .map(|n| field(prefix, n, n == "cabinet" || n == "id" || n == "name" || n == "done" || n == "createdAt" || n == "cargoType"))
     .collect()
 }
 
@@ -353,7 +342,7 @@ pub fn goods_fields() -> Vec<ScriptField> {
 pub fn warehouses_fields() -> Vec<ScriptField> {
     [
         "cabinet",
-        "id",
+        "ID",
         "name",
         "address",
         "workTime",
@@ -383,23 +372,8 @@ pub fn row_from(
                 }
             }
             match f.name.as_str() {
-                "supplyID" | "supplyId" => {
-                    first_cell(it, &["supplyID", "supplyId", "id", "ID"])
-                }
-                "preorderID" | "preorderId" => first_cell(it, &["preorderID", "preorderId"]),
-                "statusID" | "statusId" => first_cell(it, &["statusID", "statusId"]),
-                "boxTypeID" | "boxTypeId" => first_cell(it, &["boxTypeID", "boxTypeId"]),
-                "statusIDName" => {
-                    status_id_name(&first_cell(it, &["statusID", "statusId"]))
-                }
-                "boxTypeIDName" => {
-                    box_type_id_name(&first_cell(it, &["boxTypeID", "boxTypeId"]))
-                }
-                "nmID" | "nmId" => first_cell(it, &["nmID", "nmId"]),
-                "id" => first_cell(it, &["ID", "id"]),
-                "createdAt" | "createDate" => {
-                    first_cell(it, &["createdAt", "createDate"])
-                }
+                "statusIDName" => status_id_name(&json_cell(it, "statusID")),
+                "boxTypeIDName" => box_type_id_name(&json_cell(it, "boxTypeID")),
                 _ => json_cell(it, f.name.as_str()),
             }
         })

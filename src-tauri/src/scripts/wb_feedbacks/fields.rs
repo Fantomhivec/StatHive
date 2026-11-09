@@ -133,16 +133,14 @@ fn token<'a>(name: &str, fb: &'a Value) -> Option<&'a Value> {
         "supplierName" => details("supplierName"),
         "brandName" => details("brandName"),
         "size" => details("size"),
-        "userName" => present(details("userName")).or(present(fb.get("userName"))),
-        "orderStatus" => present(details("orderStatus")).or(present(fb.get("orderStatus"))),
-        "matchingSize" => present(details("matchingSize")).or(present(fb.get("matchingSize"))),
-        "wasViewed" => present(details("wasViewed")).or(present(fb.get("wasViewed"))),
-        "lastOrderCreatedAt" => {
-            present(details("lastOrderCreatedAt")).or(present(fb.get("lastOrderCreatedAt")))
-        }
-        "color" => present(details("color")).or(present(fb.get("color"))),
-        "subjectId" => present(details("subjectId")).or(present(fb.get("subjectId"))),
-        "subjectName" => present(details("subjectName")).or(present(fb.get("subjectName"))),
+        "userName" => details("userName"),
+        "orderStatus" => details("orderStatus"),
+        "matchingSize" => details("matchingSize"),
+        "wasViewed" => details("wasViewed"),
+        "lastOrderCreatedAt" => details("lastOrderCreatedAt"),
+        "color" => details("color"),
+        "subjectId" => details("subjectId"),
+        "subjectName" => details("subjectName"),
         "parentFeedbackId" => fb.get("parentFeedbackId"),
         "childFeedbackId" => fb.get("childFeedbackId"),
         "videoPreviewImage" => nested(fb, "video", "previewImage"),
@@ -157,10 +155,6 @@ fn nested<'a>(v: &'a Value, a: &str, b: &str) -> Option<&'a Value> {
         return None;
     }
     first.get(b)
-}
-
-fn present(v: Option<&Value>) -> Option<&Value> {
-    v.filter(|x| !x.is_null())
 }
 
 fn scalar(v: Option<&Value>) -> String {

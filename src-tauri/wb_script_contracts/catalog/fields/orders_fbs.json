@@ -1,0 +1,16 @@
+{
+  "required": [
+    {
+      "path": "id",
+      "type": "integer"
+    },
+    {
+      "path": "nmId",
+      "type": "integer"
+    },
+    {
+      "path": "createdAt",
+      "type": "string"
+    }
+  ]
+}

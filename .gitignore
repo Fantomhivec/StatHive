@@ -24,7 +24,7 @@ src/**/*.js.map
 **/*.tsbuildinfo
 .vite/
 
-# Cursor IDE (local only — not for the public tree)
+# Local editor / agent config (not part of the product tree)
 .cursor/
 
 # Local secrets / env — never commit

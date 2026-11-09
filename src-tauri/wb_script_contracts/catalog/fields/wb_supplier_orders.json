@@ -1,0 +1,16 @@
+{
+  "required": [
+    {
+      "path": "srid",
+      "type": "string"
+    },
+    {
+      "path": "nmId",
+      "type": "integer"
+    },
+    {
+      "path": "date",
+      "type": "string"
+    }
+  ]
+}

@@ -78,11 +78,11 @@ pub fn build_rows(cabinet: &str, goods: &[Value], fields: &[ScriptField]) -> Vec
 fn cell(name: &str, cabinet: &str, it: &Value, sz: Option<&Value>, sizes: &[Value]) -> String {
     match name {
         "cabinet" => cabinet.to_string(),
-        "nmID" | "nmId" => num(it, "nmID"),
+        "nmID" => num(it, "nmID"),
         "vendorCode" => str(it, "vendorCode"),
         "discount" => num(it, "discount"),
         "clubDiscount" => num(it, "clubDiscount"),
-        "currencyIsoCode4217" | "currency" => str(it, "currencyIsoCode4217"),
+        "currencyIsoCode4217" => str(it, "currencyIsoCode4217"),
         "editableSizePrice" => bool_str(it, "editableSizePrice"),
         "price" => sz.map(|s| num(s, "price")).unwrap_or_else(|| "0".into()),
         "discountedPrice" => sz
@@ -91,7 +91,7 @@ fn cell(name: &str, cabinet: &str, it: &Value, sz: Option<&Value>, sizes: &[Valu
         "clubDiscountedPrice" => sz
             .map(|s| num(s, "clubDiscountedPrice"))
             .unwrap_or_else(|| "0".into()),
-        "sizeID" | "sizeId" => sz.map(|s| num(s, "sizeID")).unwrap_or_else(|| "0".into()),
+        "sizeID" => sz.map(|s| num(s, "sizeID")).unwrap_or_else(|| "0".into()),
         "techSizeName" => sz
             .map(|s| str(s, "techSizeName"))
             .unwrap_or_default(),

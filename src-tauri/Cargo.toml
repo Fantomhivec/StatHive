@@ -1,5 +1,5 @@
 [workspace]
-members = [".", "updater"]
+members = [".", "updater", "wb_script_contracts"]
 resolver = "2"
 
 [package]

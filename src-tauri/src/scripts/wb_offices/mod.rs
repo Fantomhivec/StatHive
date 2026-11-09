@@ -136,6 +136,7 @@ fn default_fields() -> Vec<ScriptField> {
         "name",
         "address",
         "city",
+        "federalDistrict",
         "longitude",
         "latitude",
         "cargoType",

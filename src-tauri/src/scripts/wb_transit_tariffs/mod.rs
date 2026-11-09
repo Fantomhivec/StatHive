@@ -198,13 +198,10 @@ async fn fetch(
             Auth::Raw(token),
         )
         .await?;
+    // Schema: TransitTariff[] at root
     Ok(match v {
         Value::Array(a) => a,
-        other => other
-            .get("data")
-            .and_then(|d| d.as_array())
-            .cloned()
-            .unwrap_or_default(),
+        _ => Vec::new(),
     })
 }
 
