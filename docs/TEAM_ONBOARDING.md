@@ -1,6 +1,6 @@
 # Команда: установка и первый вход
 
-Лист «Пользователи» читает/пишет **Service Account** (участникам Drive writer на эту таблицу **не** выдаётся). Скрипты и калькулятор — **user OAuth**. OAuth Desktop JSON вставляет **Admin** при setup и публикует на лист **TeamOAuth** той же таблицы; в код UR3 OAuth **не** входит. SA JSON — у Admin локально и внутри UR3 под **паролем кода**.
+Лист «Пользователи» читает/пишет **Service Account** (участникам Drive writer на эту таблицу **не** выдаётся). Скрипты и калькулятор — **user OAuth**. OAuth Desktop JSON вставляет **Admin** при первой настройке и публикует на лист **TeamOAuth** той же таблицы; в код UR3 OAuth **не** входит. SA JSON — у Admin локально и внутри UR3 под **паролем кода**.
 
 Ключи WB/Ozon — файл формата `.env` **рядом с приложением** (имя любое: `.env`, `keys.env`, `cab.env`, …; содержимое `KEY=VALUE`). Копии в AppData удаляются. Участникам файл **не передают**; в UI — «Выбрать .env» (диалог в папке exe). Экспорт — plaintext-бэкап на доверенный носитель.
 
@@ -10,9 +10,16 @@
 2. «Я Admin» → вставьте OAuth Desktop JSON → Connect Google → приложение создаёт Admin (по умолчанию `Admin` / `Admin123`) и пускает в настройку; при сбое — форма регистрации со своими логином/паролем.
    - Название команды (например `URI`) можно задать на форме регистрации или позже на вкладке Пользователи — в Drive таблица **`URI - Команда`**.
    - На экране Admin инструкция по OAuth **всегда** видна; если client уже сохранён — текущий client и внизу **«Новый OAuth»**.
-   - Кратко создать клиент: [Google Cloud Console](https://console.cloud.google.com/) → страна **Germany** (первый вход) → проект → **Google Auth Platform** (Overview: Application name, User support email) → **Audience** External + **Test users** (gmail Admin) → **Clients** → OAuth client → **Desktop app** → Download JSON → включить **Sheets API** и **Drive API**.
-   - Redirect loopback StatHive: `http://localhost:8765/`.
-   - Scopes обычной работы: `spreadsheets`, `drive`, `drive.file`, `userinfo.email`, `openid`. Scope `cloud-platform` нужен **только** если создаёте Service Account кнопкой из приложения.
+   - Создать Desktop-клиент (те же шаги, что в панели приложения):
+     1. Откройте [Google Cloud Console](https://console.cloud.google.com/) под Gmail Admin. При первом входе в Console выберите страну **Germany** (если спросят).
+     2. Слева вверху **Select a project** → **New project** (или существующий). Имя проекта любое; убедитесь, что выбран нужный проект.
+     3. **Google Auth Platform** (или APIs & Services → OAuth consent / Branding): **Application name**, **User support email** = Gmail Admin.
+     4. **Audience** → **External**; завершите первоначальную настройку consent. В статусе **Testing** входят только Test users.
+     5. **Audience → Test users**: добавьте Gmail Admin (и при необходимости Gmail участников с полным доступом к Sheets).
+     6. **Clients → Create OAuth client** → тип **Desktop app** → Download JSON (`client_id`, `client_secret`, обычно `project_id`).
+     7. **APIs & Services → Library** → включите **Google Sheets API** и **Google Drive API**.
+     8. В StatHive вставьте JSON → «Сохранить и подключить Google» → браузерный consent под Gmail Admin.
+   - Redirect loopback: `http://localhost:8765/`. Обычные scopes: Sheets + Drive + Drive.file + email/openid. Scope Cloud Platform — **только** при «Создать Service Account» из приложения.
 3. Вкладка **Пользователи**:
     - **Название команды** — Admin может переименовать таблицу/команду (Drive + локальный конфиг); затем заново **«Скопировать код команды»** для новых участников;
     - **Service Account** — JSON вручную (без `cloud-platform`) или «Создать для этой таблицы» (запросит Cloud-права; SA только на таблицу этой команды). При утечке ключа/кода — **«Заменить Service Account»**, затем новый код всем участникам;
@@ -66,7 +73,7 @@
 5. Google OAuth (user token / командный Desktop client) нужен, если в пресете есть скрипты/таблицы без пометки «без OAuth»:
    - если Admin выдал грант TeamOAuth — Desktop client подтягивается при входе; на «Проверка ключей» — **Проверить подключение** (браузер consent);
    - без гранта кнопка не показывается, а локальный `oauth_client.json` при таком логине **удаляется** (потом снова создаётся auto-pull при логине с грантом);
-   - вставку Desktop JSON делает **только main Admin при setup** (не Keys Check).
+   - вставку Desktop JSON делает **только main Admin при первой настройке** (не Keys Check).
 
 Права на скрипты, калькулятор, вкладки «Пользователи» / «Проверка ключей» и режимы с/без своего Google OAuth — см. **[USER_ACCESS.md](./USER_ACCESS.md)** (роли, пресет, `HasOauth`, грант TeamOAuth, `memberOk`, tables view-only).
 

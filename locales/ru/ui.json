@@ -204,16 +204,16 @@
     "noProjectAccess": "Нет прав на проект",
     "oauthGuide": {
       "title": "OAuth Desktop для StatHive",
-      "lead": "Только Admin на первом setup. После Connect Google создаётся Admin и можно настраивать приложение. Участникам: код UR3 + пароль.",
-      "step1": "При первом входе в Console выберите страну Germany.",
-      "step2": "Слева вверху Select a project — существующий или New project.",
-      "step3": "Google Auth Platform → Overview: название приложения (команда), User support email = gmail Admin.",
-      "step4": "Audience → External; завершите первоначальную настройку.",
-      "step5": "Audience → Test users: gmail Admin; при необходимости — gmail с полным доступом к шаблонам.",
-      "step6": "Clients → Create OAuth client → Desktop app → скачайте JSON, храните надёжно.",
-      "step7": "Меню проекта → APIs & Services → включите Google Sheets API и Google Drive API.",
-      "step8": "Вставьте JSON сюда → «Сохранить и подключить Google» → создание Admin / вход для настройки.",
-      "scopes": "Redirect: http://localhost:8765/. Обычный вход: Sheets + Drive + email/openid. Cloud Platform — только для создания SA из приложения."
+      "lead": "Свой Google OAuth Desktop app. JSON вставляет только Admin при первой настройке (или «Новый OAuth»). Участникам — код UR3 и пароль кода, без JSON.",
+      "step1": "Откройте Google Cloud Console (console.cloud.google.com) под Gmail Admin. При первом входе выберите страну Germany (если спросят).",
+      "step2": "Select a project → New project (или существующий). Имя любое (StatHive / команда). Дождитесь создания и выберите этот проект.",
+      "step3": "Google Auth Platform (или APIs & Services → OAuth consent / Branding): Application name и User support email = Gmail Admin.",
+      "step4": "Audience → External. Завершите настройку consent. В статусе Testing входят только Test users.",
+      "step5": "Audience → Test users → Add users: Gmail Admin; позже — Gmail участников с полным доступом к Sheets (до Verification).",
+      "step6": "Clients → Create OAuth client → Desktop app → Download JSON. Нужны client_id, client_secret, обычно project_id. Храните файл надёжно.",
+      "step7": "APIs & Services → Library: включите Google Sheets API и Google Drive API.",
+      "step8": "Вставьте JSON сюда → «Сохранить и подключить Google» → в браузере войдите тем же Gmail Admin и разрешите доступ.",
+      "scopes": "Redirect: http://localhost:8765/. Scopes: Sheets + Drive + Drive.file + email/openid. Cloud Platform — только для «Создать Service Account»."
     }
   },
   "profile": {
@@ -352,9 +352,9 @@
     "teamCodePassphraseLabel": "Пароль кода команды (мин. 8 символов)",
     "teamCodePassphraseMin": "Пароль кода команды — минимум 8 символов.",
     "tabOauth": "OAuth команды",
-    "oauthTabIntro": "Лист TeamOAuth: опубликуйте Desktop client, сохранённый при первом setup Admin (экран OAuth), и выдайте доступ участникам. Без своего JSON они смогут пользоваться командным OAuth. Builtin Admin всегда допущен.",
+    "oauthTabIntro": "Лист TeamOAuth: опубликуйте Desktop client, сохранённый при первой настройке Admin (экран OAuth), и выдайте доступ участникам. Без своего JSON они смогут пользоваться командным OAuth. Builtin Admin всегда допущен.",
     "oauthPublished": "На листе есть client ({hint}).",
-    "oauthNotPublished": "OAuth команды ещё не опубликован. Desktop JSON задаётся только при setup Admin (экран «Я Admin» → OAuth). Когда client уже сохранён локально — нажмите «Опубликовать».",
+    "oauthNotPublished": "OAuth команды ещё не опубликован. Desktop JSON задаётся только при первой настройке Admin (экран «Я Admin» → OAuth). Когда client уже сохранён локально — нажмите «Опубликовать».",
     "oauthPublish": "Опубликовать локальный OAuth",
     "oauthPublishOk": "OAuth опубликован на лист TeamOAuth.",
     "oauthGrantsTitle": "Кому разрешён team OAuth",

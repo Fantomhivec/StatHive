@@ -51,62 +51,71 @@ export function LoginOauthSection({
   const t = useT();
   return (
     <div className="login-stack login-stack--oauth">
-      <LoginOauthGuidePanel />
+      <div className="login-oauth-layout">
+        <LoginOauthGuidePanel />
 
-      {showOauthForm ? (
-        <>
-          <p className="muted">{t("login.oauthJsonHint")}</p>
-          <div className="field">
-            <label htmlFor="oauth-json">OAuth client JSON</label>
-            <textarea
-              id="oauth-json"
-              className="input input-mono login-oauth-json"
-              value={oauthJson}
-              onChange={(e) => onOauthJsonChange(e.target.value)}
-              disabled={busy}
-              rows={4}
-              placeholder='{"installed":{"client_id":"...","client_secret":"..."}}'
-            />
-          </div>
-          <div className="form-actions">
-            <button
-              className="btn btn-primary"
-              type="button"
-              disabled={busy || !oauthJson.trim()}
-              onClick={onSaveOauth}
-            >
-              {t("login.saveAndConnectGoogle")}
-            </button>
-            {oauthReplacing ? (
-              <button type="button" className="btn btn-ghost" disabled={busy} onClick={onCancelReplace}>
-                {t("common.cancel")}
-              </button>
-            ) : null}
-          </div>
-        </>
-      ) : (
-        <div className="wb-card login-oauth-current">
-          <p className="muted u-m-0">{t("login.oauthSavedHint")}</p>
-          {oauthClientHint ? (
-            <p className="mono u-m-0">{t("login.oauthCurrentClient", { id: oauthClientHint })}</p>
-          ) : null}
-          <p className="muted u-m-0">
-            {googleConnected && googleEmail.trim()
-              ? t("login.oauthCurrentGoogle", { email: googleEmail.trim() })
-              : t("login.oauthCurrentGoogleNone")}
-          </p>
-          {!googleConnected ? (
-            <button
-              className="btn btn-primary"
-              type="button"
-              disabled={busy}
-              onClick={onConnectGoogle}
-            >
-              {t("login.connectGoogle")}
-            </button>
-          ) : null}
+        <div className="login-oauth-side">
+          {showOauthForm ? (
+            <>
+              <p className="muted login-oauth-side-hint">{t("login.oauthJsonHint")}</p>
+              <div className="field field-flush">
+                <label htmlFor="oauth-json">OAuth client JSON</label>
+                <textarea
+                  id="oauth-json"
+                  className="input input-mono login-oauth-json"
+                  value={oauthJson}
+                  onChange={(e) => onOauthJsonChange(e.target.value)}
+                  disabled={busy}
+                  rows={6}
+                  placeholder='{"installed":{"client_id":"...","client_secret":"..."}}'
+                />
+              </div>
+              <div className="form-actions">
+                <button
+                  className="btn btn-primary"
+                  type="button"
+                  disabled={busy || !oauthJson.trim()}
+                  onClick={onSaveOauth}
+                >
+                  {t("login.saveAndConnectGoogle")}
+                </button>
+                {oauthReplacing ? (
+                  <button
+                    type="button"
+                    className="btn btn-ghost"
+                    disabled={busy}
+                    onClick={onCancelReplace}
+                  >
+                    {t("common.cancel")}
+                  </button>
+                ) : null}
+              </div>
+            </>
+          ) : (
+            <div className="wb-card login-oauth-current">
+              <p className="muted u-m-0">{t("login.oauthSavedHint")}</p>
+              {oauthClientHint ? (
+                <p className="mono u-m-0">{t("login.oauthCurrentClient", { id: oauthClientHint })}</p>
+              ) : null}
+              <p className="muted u-m-0">
+                {googleConnected && googleEmail.trim()
+                  ? t("login.oauthCurrentGoogle", { email: googleEmail.trim() })
+                  : t("login.oauthCurrentGoogleNone")}
+              </p>
+              {!googleConnected ? (
+                <button
+                  className="btn btn-primary"
+                  type="button"
+                  disabled={busy}
+                  onClick={onConnectGoogle}
+                >
+                  {t("login.connectGoogle")}
+                </button>
+              ) : null}
+            </div>
+          )}
         </div>
-      )}
+      </div>
 
       <div className="login-oauth-footer form-actions">
         {oauthConfigured && !oauthReplacing ? (
