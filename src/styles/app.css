@@ -73,6 +73,21 @@
   --formula-chip-logistics: #14b8a6;
   --formula-chip-tax: #ef4444;
   --formula-chip-purchase: #8b5cf6;
+  /* Template tab color presets: soft face + readable text (dark). */
+  --tpl-tab-teal-face: color-mix(in srgb, #73daca 28%, var(--panel));
+  --tpl-tab-teal-text: #b4f0e4;
+  --tpl-tab-blue-face: color-mix(in srgb, #7aa2f7 30%, var(--panel));
+  --tpl-tab-blue-text: #c0d4ff;
+  --tpl-tab-violet-face: color-mix(in srgb, #bb9af7 30%, var(--panel));
+  --tpl-tab-violet-text: #e0d0ff;
+  --tpl-tab-coral-face: color-mix(in srgb, #f7768e 28%, var(--panel));
+  --tpl-tab-coral-text: #ffc0cb;
+  --tpl-tab-amber-face: color-mix(in srgb, #e0af68 30%, var(--panel));
+  --tpl-tab-amber-text: #f0d9a8;
+  --tpl-tab-green-face: color-mix(in srgb, #9ece6a 28%, var(--panel));
+  --tpl-tab-green-text: #d4f0a8;
+  --tpl-tab-rose-face: color-mix(in srgb, #e056c8 26%, var(--panel));
+  --tpl-tab-rose-text: #f5c0ea;
   --nav-w: 200px;
   font-family: "Segoe UI", system-ui, sans-serif;
 }
@@ -137,6 +152,21 @@ html[data-theme="light"] {
   --formula-chip-logistics: #14b8a6;
   --formula-chip-tax: #ef4444;
   --formula-chip-purchase: #8b5cf6;
+  /* Template tab presets (light): pale face + dark text. */
+  --tpl-tab-teal-face: color-mix(in srgb, #007197 16%, var(--panel));
+  --tpl-tab-teal-text: #005a7a;
+  --tpl-tab-blue-face: color-mix(in srgb, #2e5aac 16%, var(--panel));
+  --tpl-tab-blue-text: #1e3a8a;
+  --tpl-tab-violet-face: color-mix(in srgb, #7c3aed 14%, var(--panel));
+  --tpl-tab-violet-text: #5b21b6;
+  --tpl-tab-coral-face: color-mix(in srgb, #f52a65 14%, var(--panel));
+  --tpl-tab-coral-text: #b01040;
+  --tpl-tab-amber-face: color-mix(in srgb, #b45309 16%, var(--panel));
+  --tpl-tab-amber-text: #92400e;
+  --tpl-tab-green-face: color-mix(in srgb, #587539 18%, var(--panel));
+  --tpl-tab-green-text: #3f5428;
+  --tpl-tab-rose-face: color-mix(in srgb, #cb11ab 14%, var(--panel));
+  --tpl-tab-rose-text: #9d0280;
 }
 
 * {

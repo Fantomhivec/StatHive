@@ -14,10 +14,16 @@
 
 use crate::templates::trigger::{normalize_triggers, TimeTrigger};
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
-
-use super::filters::{default_marketplace, default_tab_name, default_tabs, default_true};
+use super::filters::{
+    default_marketplace, default_tab_name, default_tabs, default_true, normalize_tab_color,
+};
 use super::template::{Template, TemplateCard};
+
+fn tab_colors_empty(m: &HashMap<String, String>) -> bool {
+    m.is_empty()
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TemplateGroup {
@@ -59,6 +65,9 @@ pub struct MarketplaceBundle {
     pub selected_tab: String,
     #[serde(default = "default_tab_name")]
     pub default_tab: String,
+    /// Имя вкладки → id пресета (`teal`, …). Пусто / нет ключа = без цвета.
+    #[serde(default, skip_serializing_if = "tab_colors_empty")]
+    pub tab_colors: HashMap<String, String>,
     #[serde(default)]
     pub templates: Vec<Template>,
     #[serde(default)]
@@ -73,6 +82,7 @@ impl Default for MarketplaceBundle {
             tabs,
             selected_tab: tab.clone(),
             default_tab: tab,
+            tab_colors: HashMap::new(),
             templates: Vec::new(),
             groups: Vec::new(),
         }
@@ -98,6 +108,24 @@ impl MarketplaceBundle {
         if self.selected_tab.trim().is_empty() || !self.tabs.contains(&self.selected_tab) {
             self.selected_tab = self.default_tab.clone();
         }
+        self.normalize_tab_colors();
+    }
+
+    pub fn normalize_tab_colors(&mut self) {
+        let tab_set: std::collections::HashSet<&str> =
+            self.tabs.iter().map(|s| s.as_str()).collect();
+        self.tab_colors.retain(|name, color| {
+            if !tab_set.contains(name.as_str()) {
+                return false;
+            }
+            match normalize_tab_color(color) {
+                Some(id) => {
+                    *color = id.to_string();
+                    true
+                }
+                None => false,
+            }
+        });
     }
 }
 
@@ -160,6 +188,8 @@ pub struct TemplatesSnapshot {
     pub tabs: Vec<String>,
     pub selected_tab: String,
     pub default_tab: String,
+    #[serde(skip_serializing_if = "tab_colors_empty")]
+    pub tab_colors: HashMap<String, String>,
     pub templates: Vec<TemplateCard>,
     pub groups: Vec<TemplateGroup>,
     pub standalone: Vec<TemplateCard>,

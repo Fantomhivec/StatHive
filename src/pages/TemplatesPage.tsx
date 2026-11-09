@@ -14,6 +14,7 @@
 
 import { lazy, Suspense } from "react";
 import { hostApi } from "../bridge/hostApi";
+import { TPL_TAB_COLOR_IDS } from "../bridge/hostApi.types";
 import { GroupCard, StandaloneCard } from "./templates/TemplateCards";
 import { useTemplatesActions } from "./templates/useTemplatesActions";
 import "./TemplatesPage.css";
@@ -27,6 +28,27 @@ const GroupPickDialog = lazy(() => import("../components/templates/dialogs/Group
 function isSystemTab(name: string, t: (key: string) => string): boolean {
   const n = name.trim();
   return n === t("templates.defaultTab") || n === t("templates.calculatorTab");
+}
+
+function tabColorLabel(id: string, t: (key: string) => string): string {
+  switch (id) {
+    case "teal":
+      return t("templates.tabColorTeal");
+    case "blue":
+      return t("templates.tabColorBlue");
+    case "violet":
+      return t("templates.tabColorViolet");
+    case "coral":
+      return t("templates.tabColorCoral");
+    case "amber":
+      return t("templates.tabColorAmber");
+    case "green":
+      return t("templates.tabColorGreen");
+    case "rose":
+      return t("templates.tabColorRose");
+    default:
+      return id;
+  }
 }
 
 export default function TemplatesPage() {
@@ -71,24 +93,24 @@ export default function TemplatesPage() {
       </div>
 
       <div className="tpl-tabs-strip">
-        {snap.tabs.map((tabName) => (
+        {snap.tabs.map((tabName) => {
+          const color = snap.tab_colors?.[tabName]?.trim() || undefined;
+          return (
           <button
             key={tabName}
             type="button"
             className={"btn-tab" + (tabName === snap.selected_tab ? " is-active" : "")}
+            data-tab-color={color}
             onClick={() => void a.withReload(() => hostApi.templatesSelectTab(market, tabName))}
             onContextMenu={(e) => {
               e.preventDefault();
-              if (isSystemTab(tabName, t)) {
-                void a.alert(t("templates.systemTabLocked"), t("common.error"), "error");
-                return;
-              }
               a.setTabMenu({ name: tabName, x: e.clientX, y: e.clientY });
             }}
           >
             {tabName}
           </button>
-        ))}
+          );
+        })}
         <button
           type="button"
           className="btn-tab btn-tab-add"
@@ -216,49 +238,105 @@ export default function TemplatesPage() {
           style={{ left: a.tabMenu.x, top: a.tabMenu.y }}
           onClick={(e) => e.stopPropagation()}
         >
-          <button
-            type="button"
-            className="menu-item"
-            onClick={() => {
-              const from = a.tabMenu!.name;
-              a.setTabMenu(null);
-              void (async () => {
-                const name = await a.prompt(
-                  t("templates.renameTabPrompt"),
-                  t("templates.renameTabTitle"),
-                  from,
-                );
-                if (!name?.trim() || name.trim() === from) return;
-                await a.withReload(() => hostApi.templatesRenameTab(market, from, name.trim()));
-              })();
-            }}
-          >
-            {t("common.rename")}
-          </button>
-          <button
-            type="button"
-            className="menu-item"
-            onClick={() => {
-              const name = a.tabMenu!.name;
-              a.setTabMenu(null);
-              void (async () => {
-                if (name === snap.default_tab || snap.tabs.length <= 1) {
-                  await a.alert(t("templates.deleteMainTabError"), t("common.error"), "error");
-                  return;
+          <div className="tpl-tab-color-block">
+            <div className="tpl-tab-color-label">{t("templates.tabColor")}</div>
+            <div className="tpl-tab-swatches" role="group" aria-label={t("templates.tabColor")}>
+              <button
+                type="button"
+                className={
+                  "tpl-tab-swatch tpl-tab-swatch--none" +
+                  (!(snap.tab_colors?.[a.tabMenu.name]?.trim())
+                    ? " is-selected"
+                    : "")
                 }
-                if (
-                  !(await a.confirm(
-                    t("templates.deleteTabConfirm", { name }),
-                    t("dialogs.confirm"),
-                  ))
-                )
-                  return;
-                await a.withReload(() => hostApi.templatesDeleteTab(market, name));
-              })();
-            }}
-          >
-            {t("common.delete")}
-          </button>
+                title={t("templates.tabColorNone")}
+                aria-label={t("templates.tabColorNone")}
+                onClick={() => {
+                  const name = a.tabMenu!.name;
+                  a.setTabMenu(null);
+                  void a.withReload(() =>
+                    hostApi.templatesSetTabColor(market, name, ""),
+                  );
+                }}
+              />
+              {TPL_TAB_COLOR_IDS.map((id) => {
+                const selected =
+                  (snap.tab_colors?.[a.tabMenu!.name] ?? "").trim() === id;
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    className={"tpl-tab-swatch" + (selected ? " is-selected" : "")}
+                    data-tab-color={id}
+                    title={tabColorLabel(id, t)}
+                    aria-label={tabColorLabel(id, t)}
+                    onClick={() => {
+                      const name = a.tabMenu!.name;
+                      a.setTabMenu(null);
+                      void a.withReload(() =>
+                        hostApi.templatesSetTabColor(market, name, id),
+                      );
+                    }}
+                  />
+                );
+              })}
+            </div>
+          </div>
+          {!isSystemTab(a.tabMenu.name, t) ? (
+            <>
+              <button
+                type="button"
+                className="menu-item"
+                onClick={() => {
+                  const from = a.tabMenu!.name;
+                  a.setTabMenu(null);
+                  void (async () => {
+                    const name = await a.prompt(
+                      t("templates.renameTabPrompt"),
+                      t("templates.renameTabTitle"),
+                      from,
+                    );
+                    if (!name?.trim() || name.trim() === from) return;
+                    await a.withReload(() =>
+                      hostApi.templatesRenameTab(market, from, name.trim()),
+                    );
+                  })();
+                }}
+              >
+                {t("common.rename")}
+              </button>
+              <button
+                type="button"
+                className="menu-item"
+                onClick={() => {
+                  const name = a.tabMenu!.name;
+                  a.setTabMenu(null);
+                  void (async () => {
+                    if (name === snap.default_tab || snap.tabs.length <= 1) {
+                      await a.alert(
+                        t("templates.deleteMainTabError"),
+                        t("common.error"),
+                        "error",
+                      );
+                      return;
+                    }
+                    if (
+                      !(await a.confirm(
+                        t("templates.deleteTabConfirm", { name }),
+                        t("dialogs.confirm"),
+                      ))
+                    )
+                      return;
+                    await a.withReload(() =>
+                      hostApi.templatesDeleteTab(market, name),
+                    );
+                  })();
+                }}
+              >
+                {t("common.delete")}
+              </button>
+            </>
+          ) : null}
         </div>
       ) : null}
 

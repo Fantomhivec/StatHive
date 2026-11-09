@@ -50,6 +50,7 @@ pub fn snapshot(marketplace: &str) -> Result<TemplatesSnapshot, String> {
             tabs: bundle.tabs.clone(),
             selected_tab: bundle.selected_tab.clone(),
             default_tab: bundle.default_tab.clone(),
+            tab_colors: bundle.tab_colors.clone(),
             templates,
             groups,
             standalone,

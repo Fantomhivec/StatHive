@@ -170,6 +170,85 @@
   overflow: hidden;
 }
 
+.tpl-tab-color-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px 8px;
+}
+
+.tpl-tab-color-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.tpl-tab-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.tpl-tab-swatch {
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border-radius: var(--control-radius-sm);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  flex-shrink: 0;
+  background: var(--panel);
+}
+
+.tpl-tab-swatch[data-tab-color="teal"] {
+  background: var(--tpl-tab-teal-face);
+  border-color: color-mix(in srgb, var(--tpl-tab-teal-text) 45%, var(--border));
+}
+.tpl-tab-swatch[data-tab-color="blue"] {
+  background: var(--tpl-tab-blue-face);
+  border-color: color-mix(in srgb, var(--tpl-tab-blue-text) 45%, var(--border));
+}
+.tpl-tab-swatch[data-tab-color="violet"] {
+  background: var(--tpl-tab-violet-face);
+  border-color: color-mix(in srgb, var(--tpl-tab-violet-text) 45%, var(--border));
+}
+.tpl-tab-swatch[data-tab-color="coral"] {
+  background: var(--tpl-tab-coral-face);
+  border-color: color-mix(in srgb, var(--tpl-tab-coral-text) 45%, var(--border));
+}
+.tpl-tab-swatch[data-tab-color="amber"] {
+  background: var(--tpl-tab-amber-face);
+  border-color: color-mix(in srgb, var(--tpl-tab-amber-text) 45%, var(--border));
+}
+.tpl-tab-swatch[data-tab-color="green"] {
+  background: var(--tpl-tab-green-face);
+  border-color: color-mix(in srgb, var(--tpl-tab-green-text) 45%, var(--border));
+}
+.tpl-tab-swatch[data-tab-color="rose"] {
+  background: var(--tpl-tab-rose-face);
+  border-color: color-mix(in srgb, var(--tpl-tab-rose-text) 45%, var(--border));
+}
+
+.tpl-tab-swatch--none {
+  background: var(--control-face);
+  position: relative;
+}
+
+.tpl-tab-swatch--none::after {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border-top: 1px solid var(--muted);
+  transform: rotate(-45deg);
+  transform-origin: center;
+}
+
+.tpl-tab-swatch.is-selected {
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
 .tpl-pick-list {
   display: flex;
   flex-direction: column;

@@ -13,7 +13,8 @@
 // limitations under the License.
 
 use super::args::{
-    AddToGroupArgs, GroupExpandArgs, MoveGroupArgs, MoveTemplateArgs, TabNameArgs, TabRenameArgs,
+    AddToGroupArgs, GroupExpandArgs, MoveGroupArgs, MoveTemplateArgs, TabColorArgs, TabNameArgs,
+    TabRenameArgs,
     TemplatesCancelArgs, TemplatesIdArgs,
 };
 use crate::app_state::AppState;
@@ -114,6 +115,16 @@ pub fn templates_delete_tab(
 ) -> Result<serde_json::Value, String> {
     access_gate::require_any_script(&state)?;
     let snap = store::delete_tab(&args.marketplace, args.name.trim())?;
+    Ok(serde_json::to_value(snap).map_err(|e| e.to_string())?)
+}
+
+#[tauri::command]
+pub fn templates_set_tab_color(
+    state: State<'_, Arc<AppState>>,
+    args: TabColorArgs,
+) -> Result<serde_json::Value, String> {
+    access_gate::require_any_script(&state)?;
+    let snap = store::set_tab_color(&args.marketplace, args.name.trim(), args.color.trim())?;
     Ok(serde_json::to_value(snap).map_err(|e| e.to_string())?)
 }
 

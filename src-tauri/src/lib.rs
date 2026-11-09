@@ -148,6 +148,7 @@ pub fn run() {
             templates::templates_add_tab,
             templates::templates_rename_tab,
             templates::templates_delete_tab,
+            templates::templates_set_tab_color,
             templates::templates_save_group,
             templates::templates_delete_group,
             templates::templates_set_group_expanded,

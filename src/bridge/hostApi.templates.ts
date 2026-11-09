@@ -105,6 +105,15 @@ export const hostApiTemplates = {
     invoke<TemplatesSnapshot>("templates_delete_tab", {
       args: { marketplace, name },
     }),
+  /** `color` пусто / none — сброс пресета. */
+  templatesSetTabColor: (
+    marketplace: "wb" | "ozon",
+    name: string,
+    color: string,
+  ) =>
+    invoke<TemplatesSnapshot>("templates_set_tab_color", {
+      args: { marketplace, name, color },
+    }),
   templatesSaveGroup: (group: TemplateGroupDto) =>
     invoke<{ group: TemplateGroupDto }>("templates_save_group", { group }),
   templatesDeleteGroup: (id: string) =>

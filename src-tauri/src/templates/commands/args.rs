@@ -92,6 +92,17 @@ pub struct TabRenameArgs {
 }
 
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TabColorArgs {
+    #[serde(default = "default_wb")]
+    pub marketplace: String,
+    pub name: String,
+    /// Id пресета или пусто / none — сброс.
+    #[serde(default)]
+    pub color: String,
+}
+
+#[derive(Deserialize)]
 pub struct GroupExpandArgs {
     pub id: String,
     pub expanded: bool,

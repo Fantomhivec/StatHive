@@ -19,5 +19,5 @@ mod template;
 
 pub use file::{normalize_marketplace, TemplateGroup, TemplatesFile, TemplatesSnapshot};
 pub(crate) use filters::is_system_tab;
-pub use filters::SubjectsListFilters;
+pub use filters::{normalize_tab_color, SubjectsListFilters};
 pub use template::{Template, TemplateCard};

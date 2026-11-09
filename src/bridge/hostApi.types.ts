@@ -323,10 +323,25 @@ export type TemplatesSnapshot = {
   tabs: string[];
   selected_tab: string;
   default_tab: string;
+  /** Имя вкладки → id пресета (teal, blue, …). */
+  tab_colors?: Record<string, string>;
   templates: TemplateDto[];
   groups: TemplateGroupDto[];
   standalone: TemplateDto[];
 };
+
+/** Пресеты цвета вкладок шаблонов (токены --tpl-tab-*-face/text). */
+export const TPL_TAB_COLOR_IDS = [
+  "teal",
+  "blue",
+  "violet",
+  "coral",
+  "amber",
+  "green",
+  "rose",
+] as const;
+
+export type TplTabColorId = (typeof TPL_TAB_COLOR_IDS)[number];
 
 export type TabLayoutItem = {
   tabKey: string;

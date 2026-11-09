@@ -89,6 +89,9 @@ pub fn rename_tab(marketplace: &str, from: &str, to: &str) -> Result<TemplatesSn
                 g.tab_name = to.to_string();
             }
         }
+        if let Some(color) = bundle.tab_colors.remove(from) {
+            bundle.tab_colors.insert(to.to_string(), color);
+        }
         Ok(((), true))
     })?;
     snapshot(marketplace)
@@ -112,10 +115,40 @@ pub fn delete_tab(marketplace: &str, name: &str) -> Result<TemplatesSnapshot, St
         bundle.tabs.retain(|t| t != name);
         bundle.templates.retain(|t| t.tab_name != name);
         bundle.groups.retain(|g| g.tab_name != name);
+        bundle.tab_colors.remove(name);
         if bundle.selected_tab == name {
             bundle.selected_tab = bundle.default_tab.clone();
         }
         bundle.ensure_tabs();
+        Ok(((), true))
+    })?;
+    snapshot(marketplace)
+}
+
+pub fn set_tab_color(
+    marketplace: &str,
+    name: &str,
+    color: &str,
+) -> Result<TemplatesSnapshot, String> {
+    let name = name.trim();
+    if name.is_empty() {
+        return Err(t("errors.templates.tabNameRequired"));
+    }
+    with_file_mut(|file| {
+        let bundle = file.market_mut(marketplace);
+        if !bundle.tabs.iter().any(|t| t == name) {
+            return Err(tf("errors.templates.tabNotFound", &[("tab", name)]));
+        }
+        match crate::templates::model::normalize_tab_color(color) {
+            Some(id) => {
+                bundle
+                    .tab_colors
+                    .insert(name.to_string(), id.to_string());
+            }
+            None => {
+                bundle.tab_colors.remove(name);
+            }
+        }
         Ok(((), true))
     })?;
     snapshot(marketplace)

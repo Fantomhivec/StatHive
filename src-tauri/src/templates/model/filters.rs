@@ -43,6 +43,23 @@ pub(crate) fn default_tabs() -> Vec<String> {
     vec![default_tab_name(), calculator_tab_name()]
 }
 
+/// Пресеты цвета вкладки (токены `--tpl-tab-{id}-face/text` в app.css).
+pub const TAB_COLOR_IDS: &[&str] = &[
+    "teal", "blue", "violet", "coral", "amber", "green", "rose",
+];
+
+/// Пусто / неизвестное → None (сброс цвета).
+pub fn normalize_tab_color(raw: &str) -> Option<&'static str> {
+    let t = raw.trim().to_ascii_lowercase();
+    if t.is_empty() || t == "none" || t == "default" {
+        return None;
+    }
+    TAB_COLOR_IDS
+        .iter()
+        .copied()
+        .find(|id| id.eq_ignore_ascii_case(&t))
+}
+
 pub(crate) fn default_subjects_locale() -> String {
     "ru".into()
 }
