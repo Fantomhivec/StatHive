@@ -85,6 +85,16 @@ async fn run(ctx: &ScriptContext) -> ScriptResult {
     };
 
     let g = group_by_from_ctx(ctx);
+    let filter_pics = ctx
+        .params
+        .get("filter_pics")
+        .and_then(|s| s.trim().parse().ok())
+        .unwrap_or(0);
+    let filter_volume = ctx
+        .params
+        .get("filter_volume")
+        .and_then(|s| s.trim().parse().ok())
+        .unwrap_or(0);
     let wb_tokens = common::load_wb_tokens()?;
     let create_p = rate::profile_create();
     let parts = common::map_cabinets_chunked(
@@ -105,6 +115,8 @@ async fn run(ctx: &ScriptContext) -> ScriptResult {
                     rate::SCOPE_CREATE,
                     &create_p,
                     g,
+                    filter_pics,
+                    filter_volume,
                 )
                 .await
                 {

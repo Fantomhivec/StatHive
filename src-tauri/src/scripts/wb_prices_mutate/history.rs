@@ -177,6 +177,7 @@ fn hist_cell(name: &str, cabinet: &str, upload_id: i64, it: &Value) -> String {
             Some(n) => n.to_string(),
             None => json_str(it, "status"),
         },
+        "statusRaw" => json_num(it, "status"),
         "nmID" => json_num(it, "nmID"),
         "vendorCode" => json_str(it, "vendorCode"),
         "sizeID" => json_num(it, "sizeID"),
@@ -219,6 +220,7 @@ pub fn default_fields() -> Vec<ScriptField> {
         field("discount", true),
         field("clubDiscount", false),
         field("status", true),
+        field("statusRaw", false),
         field("errorText", true),
     ]
 }

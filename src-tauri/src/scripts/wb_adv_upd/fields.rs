@@ -30,6 +30,7 @@ pub fn default_fields() -> Vec<ScriptField> {
         field("advertType", true),
         field("paymentType", true),
         field("advertStatus", true),
+        field("advertStatusName", false),
     ]
 }
 
@@ -104,7 +105,8 @@ pub fn format_upd_time(raw: &str) -> String {
 pub fn row_from_item(cabinet: &str, item: &Value, fields: &[ScriptField]) -> Vec<String> {
     let selected: Vec<&ScriptField> = fields.iter().filter(|f| f.selected).collect();
     let upd_time_raw = json_str(item, "updTime");
-    let status = map_advert_status(json_i64(item, "advertStatus"));
+    let status_code = json_i64(item, "advertStatus");
+    let status_name = map_advert_status(status_code);
     selected
         .iter()
         .map(|f| match f.name.as_str() {
@@ -116,7 +118,8 @@ pub fn row_from_item(cabinet: &str, item: &Value, fields: &[ScriptField]) -> Vec
             "campName" => json_str(item, "campName"),
             "advertType" => json_num_str(item, "advertType"),
             "paymentType" => json_str(item, "paymentType"),
-            "advertStatus" => status.clone(),
+            "advertStatus" => status_code.map(|s| s.to_string()).unwrap_or_default(),
+            "advertStatusName" => status_name.clone(),
             _ => String::new(),
         })
         .collect()

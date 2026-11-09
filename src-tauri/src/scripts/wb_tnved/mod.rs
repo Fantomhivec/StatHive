@@ -91,7 +91,7 @@ async fn run(ctx: &ScriptContext) -> ScriptResult {
         let url = format!(
             "https://content-api.wildberries.ru/content/v2/directory/tnved?subjectID={sid}&locale=ru"
         );
-        let v = match ctx
+        let mut v = match ctx
             .request
             .get_json(
                 Limit {
@@ -111,10 +111,24 @@ async fn run(ctx: &ScriptContext) -> ScriptResult {
                 continue;
             }
         };
+        if v.get("error").and_then(|e| e.as_bool()).unwrap_or(false) {
+            let text = v
+                .get("errorText")
+                .and_then(|t| t.as_str())
+                .unwrap_or("error=true");
+            let extra = v
+                .get("additionalErrors")
+                .filter(|a| !a.is_null() && a.as_str() != Some(""))
+                .map(|a| format!("; additionalErrors={a}"))
+                .unwrap_or_default();
+            ctx.log
+                .warn(format!("subjectID={sid}: {text}{extra}"));
+            continue;
+        }
         let items = v
-            .get("data")
-            .and_then(|d| d.as_array())
-            .cloned()
+            .get_mut("data")
+            .and_then(|d| d.as_array_mut())
+            .map(std::mem::take)
             .unwrap_or_default();
         for item in &items {
             let mut row = Vec::with_capacity(selected.len());
@@ -122,8 +136,8 @@ async fn run(ctx: &ScriptContext) -> ScriptResult {
                 row.push(match f.name.as_str() {
                     "subjectID" => sid.to_string(),
                     "subjectName" => sname.clone(),
-                    "tnved" => jstr(item, &["tnved", "tnVed"]),
-                    "isKiz" => jstr(item, &["isKiz", "isKIZ"]),
+                    "tnved" => jstr(item, "tnved"),
+                    "isKiz" => jstr(item, "isKiz"),
                     _ => String::new(),
                 });
             }
@@ -184,7 +198,7 @@ pub(crate) async fn fetch_all_subjects(
         let url = format!(
             "https://content-api.wildberries.ru/content/v2/object/all?locale=ru&limit={page_limit}&offset={offset}"
         );
-        let v = ctx
+        let mut v = ctx
             .request
             .get_json(
                 Limit {
@@ -196,18 +210,26 @@ pub(crate) async fn fetch_all_subjects(
                 Auth::Bearer(token),
             )
             .await?;
+        if v.get("error").and_then(|e| e.as_bool()).unwrap_or(false) {
+            let text = v
+                .get("errorText")
+                .and_then(|t| t.as_str())
+                .unwrap_or("error=true");
+            let extra = v
+                .get("additionalErrors")
+                .filter(|a| !a.is_null() && a.as_str() != Some(""))
+                .map(|a| format!("; additionalErrors={a}"))
+                .unwrap_or_default();
+            return Err(format!("object/all: {text}{extra}"));
+        }
         let page = v
-            .get("data")
-            .and_then(|d| d.as_array())
-            .cloned()
+            .get_mut("data")
+            .and_then(|d| d.as_array_mut())
+            .map(std::mem::take)
             .unwrap_or_default();
         let n = page.len();
         for s in page {
-            let id = s
-                .get("subjectID")
-                .or_else(|| s.get("subjectId"))
-                .and_then(|x| x.as_i64())
-                .unwrap_or(0);
+            let id = s.get("subjectID").and_then(|x| x.as_i64()).unwrap_or(0);
             if id <= 0 {
                 continue;
             }
@@ -297,17 +319,12 @@ pub(crate) async fn load_custom_subjects(
     Ok(out)
 }
 
-fn jstr(v: &Value, keys: &[&str]) -> String {
-    for k in keys {
-        if let Some(x) = v.get(*k) {
-            return match x {
-                Value::String(s) => s.clone(),
-                Value::Bool(b) => b.to_string(),
-                Value::Number(n) => n.to_string(),
-                Value::Null => String::new(),
-                other => other.to_string(),
-            };
-        }
+fn jstr(v: &Value, key: &str) -> String {
+    match v.get(key) {
+        Some(Value::String(s)) => s.clone(),
+        Some(Value::Bool(b)) => b.to_string(),
+        Some(Value::Number(n)) => n.to_string(),
+        Some(Value::Null) | None => String::new(),
+        Some(other) => other.to_string(),
     }
-    String::new()
 }

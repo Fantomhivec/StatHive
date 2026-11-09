@@ -81,9 +81,9 @@ async fn run(ctx: &ScriptContext) -> ScriptResult {
     for (i, (sid, fallback_name)) in subjects.iter().enumerate() {
         ctx.check_cancelled().map_err(|e| e.to_string())?;
         let url = format!(
-            "https://content-api.wildberries.ru/content/v2/object/charcs/{sid}"
+            "https://content-api.wildberries.ru/content/v2/object/charcs/{sid}?locale=ru"
         );
-        let v = match ctx
+        let mut v = match ctx
             .request
             .get_json(
                 Limit {
@@ -98,7 +98,7 @@ async fn run(ctx: &ScriptContext) -> ScriptResult {
         {
             Ok(v) => v,
             Err(e) => {
-                ctx.log.warn(format!("subjectId={sid}: {e}"));
+                ctx.log.warn(format!("subjectID={sid}: {e}"));
                 continue;
             }
         };
@@ -107,13 +107,18 @@ async fn run(ctx: &ScriptContext) -> ScriptResult {
                 .get("errorText")
                 .and_then(|t| t.as_str())
                 .unwrap_or("error=true");
-            ctx.log.warn(format!("subjectId={sid}: {text}"));
+            let extra = v
+                .get("additionalErrors")
+                .filter(|a| !a.is_null() && a.as_str() != Some(""))
+                .map(|a| format!("; additionalErrors={a}"))
+                .unwrap_or_default();
+            ctx.log.warn(format!("subjectID={sid}: {text}{extra}"));
             continue;
         }
         let items = v
-            .get("data")
-            .and_then(|d| d.as_array())
-            .cloned()
+            .get_mut("data")
+            .and_then(|d| d.as_array_mut())
+            .map(std::mem::take)
             .unwrap_or_default();
         for item in &items {
             let row = selected
@@ -141,8 +146,8 @@ async fn run(ctx: &ScriptContext) -> ScriptResult {
 
 fn cell(name: &str, sid: i64, fallback_name: &str, item: &Value) -> String {
     match name {
-        "subjectId" => {
-            let api = scalar(item.get("subjectID").or_else(|| item.get("subjectId")));
+        "subjectID" => {
+            let api = scalar(item.get("subjectID"));
             if api.is_empty() {
                 sid.to_string()
             } else {
@@ -157,23 +162,17 @@ fn cell(name: &str, sid: i64, fallback_name: &str, item: &Value) -> String {
                 api
             }
         }
-        "charcID" => scalar(item.get("charcID").or_else(|| item.get("charcId"))),
+        "charcID" => scalar(item.get("charcID")),
         "name" => scalar(item.get("name")),
         "required" => bool_cell(item.get("required")),
         "unitName" => scalar(item.get("unitName")),
         "maxCount" => scalar(item.get("maxCount")),
         "popular" => bool_cell(item.get("popular")),
-        "charcType" => map_charc_type(item.get("charcType").and_then(|v| v.as_i64()).unwrap_or(-1)),
+        "charcType" => scalar(item.get("charcType")),
+        "hasFilter" => bool_cell(item.get("hasFilter")),
+        "isVariable" => bool_cell(item.get("isVariable")),
+        "existNamedField" => bool_cell(item.get("existNamedField")),
         _ => String::new(),
-    }
-}
-
-fn map_charc_type(n: i64) -> String {
-    match n {
-        1 => "массив строк".into(),
-        4 => "число (целое или с десятичной дробью)".into(),
-        0 => "характеристика не используется".into(),
-        other => format!("неизвестный тип ({other})"),
     }
 }
 
@@ -197,7 +196,7 @@ fn scalar(v: Option<&Value>) -> String {
 
 fn default_fields() -> Vec<ScriptField> {
     [
-        "subjectId",
+        "subjectID",
         "subjectName",
         "charcID",
         "name",
@@ -206,6 +205,9 @@ fn default_fields() -> Vec<ScriptField> {
         "maxCount",
         "popular",
         "charcType",
+        "hasFilter",
+        "isVariable",
+        "existNamedField",
     ]
     .into_iter()
     .map(|n| ScriptField {

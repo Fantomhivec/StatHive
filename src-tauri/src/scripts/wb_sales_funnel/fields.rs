@@ -24,6 +24,7 @@ pub fn default_fields() -> Vec<ScriptField> {
         field("brandName", false),
         field("subjectId", false),
         field("subjectName", false),
+        field("tags", false),
         field("productRating", false),
         field("feedbackRating", false),
         field("stocks.wb", false),
@@ -59,6 +60,8 @@ pub fn default_fields() -> Vec<ScriptField> {
         field("selected.conversions.addToCartPercent", false),
         field("selected.conversions.cartToOrderPercent", false),
         field("selected.conversions.buyoutPercent", false),
+        field("past.period.start", false),
+        field("past.period.end", false),
         field("past.openCount", false),
         field("past.cartCount", false),
         field("past.orderCount", false),
@@ -67,9 +70,29 @@ pub fn default_fields() -> Vec<ScriptField> {
         field("past.buyoutSum", false),
         field("past.cancelCount", false),
         field("past.cancelSum", false),
+        field("past.avgPrice", false),
+        field("past.avgOrdersCountPerDay", false),
+        field("past.shareOrderPercent", false),
+        field("past.addToWishlist", false),
+        field("past.conversions.addToCartPercent", false),
+        field("past.conversions.cartToOrderPercent", false),
+        field("past.conversions.buyoutPercent", false),
         field("comparison.openCountDynamic", false),
+        field("comparison.cartCountDynamic", false),
         field("comparison.orderCountDynamic", false),
+        field("comparison.orderSumDynamic", false),
         field("comparison.buyoutCountDynamic", false),
+        field("comparison.buyoutSumDynamic", false),
+        field("comparison.cancelCountDynamic", false),
+        field("comparison.cancelSumDynamic", false),
+        field("comparison.avgOrdersCountPerDayDynamic", false),
+        field("comparison.avgPriceDynamic", false),
+        field("comparison.shareOrderPercentDynamic", false),
+        field("comparison.addToWishlistDynamic", false),
+        field("comparison.conversions.addToCartPercent", false),
+        field("comparison.conversions.cartToOrderPercent", false),
+        field("comparison.conversions.buyoutPercent", false),
+        field("currency", false),
     ]
 }
 
@@ -99,6 +122,12 @@ fn cell(name: &str, cabinet: &str, rec: &Value) -> String {
     if name.eq_ignore_ascii_case("cabinet") {
         return cabinet.to_string();
     }
+    if name == "tags" {
+        return join_tags(rec.pointer("/product/tags"));
+    }
+    if name == "currency" {
+        return dig(rec, "currency");
+    }
     let path = if name.starts_with("stocks.")
         || (!name.contains('.')
             && !name.starts_with("selected.")
@@ -110,6 +139,31 @@ fn cell(name: &str, cabinet: &str, rec: &Value) -> String {
         format!("statistic.{name}")
     };
     dig(rec, &path)
+}
+
+fn join_tags(v: Option<&Value>) -> String {
+    let Some(Value::Array(a)) = v else {
+        return String::new();
+    };
+    a.iter()
+        .map(|t| {
+            let id = t.get("id").map(|x| x.to_string()).unwrap_or_default();
+            let name = t
+                .get("name")
+                .and_then(|x| x.as_str())
+                .unwrap_or("")
+                .to_string();
+            if id.is_empty() {
+                name
+            } else if name.is_empty() {
+                id
+            } else {
+                format!("{id}:{name}")
+            }
+        })
+        .filter(|s| !s.is_empty())
+        .collect::<Vec<_>>()
+        .join(";")
 }
 
 fn dig(v: &Value, dotted: &str) -> String {

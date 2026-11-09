@@ -162,30 +162,21 @@ pub async fn download_file_rows(
 }
 
 fn extract_list(v: &Value) -> Vec<Value> {
-    if let Some(a) = v.as_array() {
-        return a.clone();
-    }
+    // Schema: { data: object[] }
     if let Some(a) = v.pointer("/data").and_then(|x| x.as_array()) {
-        return a.clone();
-    }
-    if let Some(a) = v.pointer("/data/reports").and_then(|x| x.as_array()) {
         return a.clone();
     }
     Vec::new()
 }
 
 pub fn is_success(status: &str) -> bool {
-    matches!(
-        status.trim().to_ascii_lowercase().as_str(),
-        "success" | "done" | "completed" | "ready"
-    )
+    // Docs: SUCCESS — ready
+    status.trim().eq_ignore_ascii_case("SUCCESS")
 }
 
 pub fn is_failed(status: &str) -> bool {
-    matches!(
-        status.trim().to_ascii_lowercase().as_str(),
-        "failed" | "error" | "canceled" | "cancelled"
-    )
+    // Docs: FAILED
+    status.trim().eq_ignore_ascii_case("FAILED")
 }
 
 pub fn item_status(it: &Value) -> String {
@@ -196,14 +187,11 @@ pub fn item_status(it: &Value) -> String {
 }
 
 pub fn item_id(it: &Value) -> String {
-    it.get("id")
-        .or_else(|| it.get("downloadId"))
-        .map(|x| match x {
-            Value::String(s) => s.clone(),
-            Value::Number(n) => n.to_string(),
-            _ => String::new(),
-        })
-        .unwrap_or_default()
+    match it.get("id") {
+        Some(Value::String(s)) => s.clone(),
+        Some(Value::Number(n)) => n.to_string(),
+        _ => String::new(),
+    }
 }
 
 pub fn create_row(cabinet: &str, from: NaiveDate, to: NaiveDate, id: &str, report_type: &str) -> Vec<String> {
@@ -221,7 +209,7 @@ pub fn list_cell(name: &str, cabinet: &str, it: &Value) -> String {
         "cabinet" => cabinet.to_string(),
         "downloadId" => item_id(it),
         "status" => item_status(it),
-        "name" => str_any(it, "name").or_else(|| str_any(it, "userReportName")).unwrap_or_default(),
+        "name" => str_any(it, "name").unwrap_or_default(),
         "createdAt" => {
             let raw = str_any(it, "createdAt").unwrap_or_default();
             if raw.is_empty() {
@@ -231,26 +219,16 @@ pub fn list_cell(name: &str, cabinet: &str, it: &Value) -> String {
             }
         }
         "size" => any(it, "size"),
-        "startDate" => period_edge(it, true),
-        "endDate" => period_edge(it, false),
+        "startDate" | "endDate" => {
+            let raw = str_any(it, name).unwrap_or_default();
+            if raw.is_empty() {
+                raw
+            } else {
+                sheet_dates::format_wb_timestamp(&raw)
+            }
+        }
         _ => any(it, name),
     }
-}
-
-fn period_edge(it: &Value, start: bool) -> String {
-    let key = if start { "startDate" } else { "endDate" };
-    if let Some(s) = str_any(it, key) {
-        return sheet_dates::format_wb_timestamp(&s);
-    }
-    let path = if start {
-        "/params/startDate"
-    } else {
-        "/params/endDate"
-    };
-    it.pointer(path)
-        .and_then(|x| x.as_str())
-        .map(sheet_dates::format_wb_timestamp)
-        .unwrap_or_default()
 }
 
 fn str_any(v: &Value, key: &str) -> Option<String> {

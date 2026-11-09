@@ -65,6 +65,13 @@ fn group_by_from_ctx(ctx: &ScriptContext) -> GroupBy {
     }
 }
 
+fn param_i32(ctx: &ScriptContext, key: &str, default: i32) -> i32 {
+    ctx.params
+        .get(key)
+        .and_then(|s| s.trim().parse().ok())
+        .unwrap_or(default)
+}
+
 async fn run(ctx: &ScriptContext) -> ScriptResult {
     ctx.log.info("Warehouse remains create: старт");
     let cabinets = common::resolve_cabinets(ctx);
@@ -77,6 +84,8 @@ async fn run(ctx: &ScriptContext) -> ScriptResult {
     };
 
     let g = group_by_from_ctx(ctx);
+    let filter_pics = param_i32(ctx, "filter_pics", 0);
+    let filter_volume = param_i32(ctx, "filter_volume", 0);
     let fields = common::resolve_fields(ctx, create_fields());
     let selected: Vec<&ScriptField> = fields.iter().filter(|f| f.selected).collect();
     let wb_tokens = common::load_wb_tokens()?;
@@ -99,6 +108,8 @@ async fn run(ctx: &ScriptContext) -> ScriptResult {
                     rate::SCOPE,
                     &profile,
                     g,
+                    filter_pics,
+                    filter_volume,
                 )
                 .await
                 {

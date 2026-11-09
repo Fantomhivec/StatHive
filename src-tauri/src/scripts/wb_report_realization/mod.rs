@@ -178,7 +178,6 @@ async fn fetch_detailed(
             break;
         }
         rrd_id = last_rrd;
-        tokio::time::sleep(std::time::Duration::from_secs(61)).await;
     }
     Ok(all)
 }

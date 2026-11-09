@@ -18,6 +18,7 @@
 // --- upload_api (merged) ---
 use crate::core::request_sender::{Auth, Limit, RequestSender};
 use crate::core::rate_limit::RateLimitProfile;
+use crate::core::script::ScriptLog;
 use serde_json::{json, Value};
 
 const URL: &str = "https://discounts-prices-api.wildberries.ru/api/v2/upload/task";
@@ -32,6 +33,7 @@ pub struct PriceItem {
 
 pub async fn upload_batches(
     request: &RequestSender,
+    log: &ScriptLog,
     cabinet: &str,
     token: &str,
     scope: &str,
@@ -87,7 +89,29 @@ pub async fn upload_batches(
                 )
                 .await
             {
-                Ok(_) => {
+                Ok(v) => {
+                    if v.get("error").and_then(|e| e.as_bool()).unwrap_or(false) {
+                        last_err = v
+                            .get("errorText")
+                            .and_then(|t| t.as_str())
+                            .unwrap_or("error=true")
+                            .to_string();
+                        tokio::time::sleep(std::time::Duration::from_secs(2)).await;
+                        continue;
+                    }
+                    let id = v
+                        .pointer("/data/id")
+                        .and_then(|x| x.as_i64())
+                        .map(|n| n.to_string())
+                        .unwrap_or_else(|| "?".into());
+                    let already = v
+                        .pointer("/data/alreadyExists")
+                        .and_then(|x| x.as_bool())
+                        .unwrap_or(false);
+                    log.info(format!(
+                        "Кабинет {cabinet}: uploadID={id}, alreadyExists={already}, items={}",
+                        data.len()
+                    ));
                     ok = true;
                     break;
                 }
@@ -233,6 +257,7 @@ async fn run(ctx: &ScriptContext) -> ScriptResult {
         }
         let n = upload_batches(
             &ctx.request,
+            &ctx.log,
             &label,
             token.trim(),
             rate::SCOPE,

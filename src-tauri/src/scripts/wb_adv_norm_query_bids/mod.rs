@@ -183,14 +183,16 @@ fn param<'a>(ctx: &'a ScriptContext, key: &str) -> Option<&'a str> {
         .filter(|s| !s.trim().is_empty())
 }
 
-// --- fields (merged) ---
+// --- fields (merged) — schema snake_case keys ---
 pub fn default_fields() -> Vec<ScriptField> {
     vec![
         field("cabinet", true),
-        field("advertId", true),
-        field("nmId", true),
-        field("normQuery", true),
+        field("advert_id", true),
+        field("nm_id", true),
+        field("norm_query", true),
         field("bid", true),
+        field("bid_kopecks", false),
+        field("currency", false),
     ]
 }
 
@@ -218,19 +220,17 @@ pub fn append_bid_rows(
         .cloned()
         .unwrap_or_default();
     for b in &bids {
-        let advert_id = first_num(b, &["advert_id", "advertId"]);
-        let nm_id = first_num(b, &["nm_id", "nmId"]);
-        let norm_query = first_str(b, &["norm_query", "normQuery"]);
-        let bid = first_num(b, &["bid"]);
         out.push(
             selected
                 .iter()
                 .map(|f| match f.name.as_str() {
                     "cabinet" => cabinet.to_string(),
-                    "advertId" => advert_id.clone(),
-                    "nmId" => nm_id.clone(),
-                    "normQuery" => norm_query.clone(),
-                    "bid" => bid.clone(),
+                    "advert_id" => json_num(b, "advert_id"),
+                    "nm_id" => json_num(b, "nm_id"),
+                    "norm_query" => json_str(b, "norm_query"),
+                    "bid" => json_num(b, "bid"),
+                    "bid_kopecks" => json_num(b, "bid_kopecks"),
+                    "currency" => json_str(b, "currency"),
                     _ => String::new(),
                 })
                 .collect(),
@@ -238,24 +238,17 @@ pub fn append_bid_rows(
     }
 }
 
-fn first_str(v: &Value, keys: &[&str]) -> String {
-    for k in keys {
-        if let Some(Value::String(s)) = v.get(*k) {
-            if !s.is_empty() {
-                return s.clone();
-            }
-        }
-    }
-    String::new()
+fn json_str(v: &Value, key: &str) -> String {
+    v.get(key)
+        .and_then(|x| x.as_str())
+        .unwrap_or("")
+        .to_string()
 }
 
-fn first_num(v: &Value, keys: &[&str]) -> String {
-    for k in keys {
-        match v.get(*k) {
-            Some(Value::Number(n)) => return n.to_string(),
-            Some(Value::String(s)) if !s.trim().is_empty() => return s.clone(),
-            _ => {}
-        }
+fn json_num(v: &Value, key: &str) -> String {
+    match v.get(key) {
+        Some(Value::Number(n)) => n.to_string(),
+        Some(Value::String(s)) => s.clone(),
+        _ => String::new(),
     }
-    String::new()
 }

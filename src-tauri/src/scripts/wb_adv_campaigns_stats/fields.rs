@@ -23,12 +23,14 @@ pub fn default_fields() -> Vec<ScriptField> {
         field("cabinet", true),
         field("advertId", true),
         field("bidType", true),
+        field("currency", false),
         field("status", true),
         field("statusName", true),
         field("paymentType", true),
         field("campaignName", true),
         field("placementsSearch", true),
         field("placementsRecommendations", true),
+        field("canChangeNms", false),
         field("created", true),
         field("updated", true),
         field("started", true),
@@ -74,6 +76,7 @@ pub fn append_advert_rows(
     }
     let advert_id = json_num_str(advert, "id");
     let bid_type = json_str(advert, "bid_type");
+    let currency = json_str(advert, "currency");
     let status = json_num_str(advert, "status");
     let status_name = map_status_name(&status);
     let settings = advert.get("settings");
@@ -87,6 +90,10 @@ pub fn append_advert_rows(
     let placements_rec = placements
         .and_then(|p| p.get("recommendations"))
         .map(|v| bool_str(v))
+        .unwrap_or_default();
+    let can_change_nms = advert
+        .pointer("/restrictions/can_change_nms")
+        .map(bool_str)
         .unwrap_or_default();
     let timestamps = advert.get("timestamps");
     let created = fmt_ts(timestamps.map(|t| json_str(t, "created")).unwrap_or_default());
@@ -106,12 +113,14 @@ pub fn append_advert_rows(
             cabinet,
             &advert_id,
             &bid_type,
+            &currency,
             &status,
             &status_name,
             &payment_type,
             &campaign_name,
             &placements_search,
             &placements_rec,
+            &can_change_nms,
             &created,
             &updated,
             &started,
@@ -138,12 +147,14 @@ pub fn append_advert_rows(
             cabinet,
             &advert_id,
             &bid_type,
+            &currency,
             &status,
             &status_name,
             &payment_type,
             &campaign_name,
             &placements_search,
             &placements_rec,
+            &can_change_nms,
             &created,
             &updated,
             &started,
@@ -162,12 +173,14 @@ fn build_row(
     cabinet: &str,
     advert_id: &str,
     bid_type: &str,
+    currency: &str,
     status: &str,
     status_name: &str,
     payment_type: &str,
     campaign_name: &str,
     placements_search: &str,
     placements_rec: &str,
+    can_change_nms: &str,
     created: &str,
     updated: &str,
     started: &str,
@@ -184,12 +197,14 @@ fn build_row(
             "cabinet" => cabinet.to_string(),
             "advertId" => advert_id.to_string(),
             "bidType" => bid_type.to_string(),
+            "currency" => currency.to_string(),
             "status" => status.to_string(),
             "statusName" => status_name.to_string(),
             "paymentType" => payment_type.to_string(),
             "campaignName" => campaign_name.to_string(),
             "placementsSearch" => placements_search.to_string(),
             "placementsRecommendations" => placements_rec.to_string(),
+            "canChangeNms" => can_change_nms.to_string(),
             "created" => created.to_string(),
             "updated" => updated.to_string(),
             "started" => started.to_string(),

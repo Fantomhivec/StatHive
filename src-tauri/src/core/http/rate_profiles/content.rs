@@ -28,8 +28,9 @@ pub mod prices_export {
     use super::*;
     pub const SCOPE: &str = "prices_export|get_prices_paged";
     pub fn profile() -> RateLimitProfile {
-        RateLimitProfile::token_bucket(5.0 / 3.0, 1.0, Duration::from_millis(600))
-            .with_429_pause(Duration::from_millis(600))
+        // Prices personal: 10 req / 6 s, 600 ms interval (burst ignored).
+        RateLimitProfile::sliding_window(10, Duration::from_secs(6), Duration::from_millis(600))
+            .with_429_pause(Duration::from_secs(2))
     }
 }
 
@@ -37,6 +38,7 @@ pub mod prices_by_nm {
     use super::*;
     pub const SCOPE: &str = "prices_by_nm|get_prices_for_nm_list";
     pub fn profile() -> RateLimitProfile {
+        // Prices personal: 10 req / 6 s, 600 ms interval (burst ignored).
         RateLimitProfile::sliding_window(10, Duration::from_secs(6), Duration::from_millis(600))
             .with_429_pause(Duration::from_secs(2))
     }
@@ -55,8 +57,9 @@ pub mod prices_upload {
     use super::*;
     pub const SCOPE: &str = "prices_upload|upload_task";
     pub fn profile() -> RateLimitProfile {
-        RateLimitProfile::token_bucket(5.0 / 3.0, 1.0, Duration::from_millis(600))
-            .with_429_pause(Duration::from_millis(600))
+        // Prices personal: 10 req / 6 s, 600 ms interval (burst ignored).
+        RateLimitProfile::sliding_window(10, Duration::from_secs(6), Duration::from_millis(600))
+            .with_429_pause(Duration::from_secs(2))
     }
 }
 
@@ -64,8 +67,9 @@ pub mod prices_set {
     use super::*;
     pub const SCOPE: &str = "prices_set|upload_task";
     pub fn profile() -> RateLimitProfile {
-        RateLimitProfile::token_bucket(5.0 / 3.0, 1.0, Duration::from_millis(600))
-            .with_429_pause(Duration::from_millis(600))
+        // Prices personal: 10 req / 6 s, 600 ms interval (burst ignored).
+        RateLimitProfile::sliding_window(10, Duration::from_secs(6), Duration::from_millis(600))
+            .with_429_pause(Duration::from_secs(2))
     }
 }
 
@@ -73,8 +77,9 @@ pub mod prices_history_task {
     use super::*;
     pub const SCOPE: &str = "prices_history_task|get_history_goods_task";
     pub fn profile() -> RateLimitProfile {
-        RateLimitProfile::token_bucket(5.0 / 3.0, 1.0, Duration::from_millis(600))
-            .with_429_pause(Duration::from_millis(600))
+        // Prices personal: 10 req / 6 s, 600 ms interval (burst ignored).
+        RateLimitProfile::sliding_window(10, Duration::from_secs(6), Duration::from_millis(600))
+            .with_429_pause(Duration::from_secs(2))
     }
 }
 
@@ -128,8 +133,9 @@ pub mod tariffs_commission {
     use super::*;
     pub const SCOPE: &str = "tariffs_commission|get_tariffs_commission";
     pub fn profile() -> RateLimitProfile {
-        RateLimitProfile::sliding_window(2, Duration::from_secs(60), Duration::ZERO)
-            .with_429_pause(Duration::from_secs(6))
+        // Personal: 1 req / 1 min (burst not modeled).
+        RateLimitProfile::token_bucket(1.0 / 60.0, 1.0, Duration::from_secs(60))
+            .with_429_pause(Duration::from_secs(60))
     }
 }
 

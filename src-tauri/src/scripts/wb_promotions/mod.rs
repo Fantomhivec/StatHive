@@ -212,14 +212,21 @@ fn require_period(ctx: &ScriptContext) -> Result<(NaiveDate, NaiveDate), String>
 }
 
 fn default_fields() -> Vec<ScriptField> {
-    ["id", "name", "start_date_time", "end_date_time", "type", "cabinet"]
-        .into_iter()
-        .map(|n| ScriptField {
-            name: n.into(),
-            title: crate::core::i18n::t(&format!("fields.promotions.{n}")),
-            selected: true,
-        })
-        .collect()
+    [
+        "cabinet",
+        "id",
+        "name",
+        "startDateTime",
+        "endDateTime",
+        "type",
+    ]
+    .into_iter()
+    .map(|n| ScriptField {
+        name: n.into(),
+        title: crate::core::i18n::t(&format!("fields.promotions.{n}")),
+        selected: true,
+    })
+    .collect()
 }
 
 fn cell(name: &str, cabinet: &str, promo: &Value) -> String {
@@ -227,8 +234,8 @@ fn cell(name: &str, cabinet: &str, promo: &Value) -> String {
         "cabinet" => cabinet.to_string(),
         "id" => scalar(promo.get("id")),
         "name" => scalar(promo.get("name")),
-        "start_date_time" => stamp(promo.get("startDateTime")),
-        "end_date_time" => stamp(promo.get("endDateTime")),
+        "startDateTime" => stamp(promo.get("startDateTime")),
+        "endDateTime" => stamp(promo.get("endDateTime")),
         "type" => scalar(promo.get("type")),
         _ => String::new(),
     }

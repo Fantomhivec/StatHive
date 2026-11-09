@@ -149,7 +149,6 @@ async fn fetch_list(
         if n < LIMIT {
             break;
         }
-        tokio::time::sleep(std::time::Duration::from_secs(61)).await;
     }
     Ok(all)
 }
@@ -165,7 +164,7 @@ pub fn default_fields() -> Vec<ScriptField> {
         field("createDate", true),
         field("currency", true),
         field("reportType", true),
-        field("reportTypeName", true),
+        field("reportTypeName", false),
         field("retailAmountSum", true),
         field("forPaySum", true),
         field("avgSalePercent", true),

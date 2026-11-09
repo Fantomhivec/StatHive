@@ -203,20 +203,29 @@ fn param<'a>(ctx: &'a ScriptContext, key: &str) -> Option<&'a str> {
         .filter(|s| !s.trim().is_empty())
 }
 
-// --- fields (merged) ---
+// --- fields (merged) — schema TableSearchTextItem ---
 pub fn default_fields() -> Vec<ScriptField> {
     vec![
         field("cabinet", true),
         field("nmId", true),
         field("text", true),
+        field("subjectName", false),
+        field("brandName", false),
+        field("vendorCode", false),
+        field("name", false),
+        field("isCardRated", false),
+        field("rating", false),
+        field("feedbackRating", false),
         field("frequency", true),
+        field("weekFrequency", false),
+        field("medianPosition", false),
         field("avgPosition", true),
         field("openCard", true),
         field("addToCart", true),
-        field("orders", true),
-        field("visibility", true),
         field("openToCart", true),
+        field("orders", true),
         field("cartToOrder", true),
+        field("visibility", true),
     ]
 }
 
@@ -239,31 +248,42 @@ pub fn append_text_rows(
     if selected.is_empty() {
         return;
     }
-    let data = root.get("data").unwrap_or(root);
-    let items = data
-        .get("items")
-        .or_else(|| data.get("searchTexts"))
-        .or_else(|| data.as_array().map(|_| data))
+    let items = root
+        .pointer("/data/items")
         .and_then(|a| a.as_array())
         .cloned()
         .unwrap_or_default();
     for it in &items {
-        let text = first_str(it, &["text", "searchText", "name"]);
+        let row_nm = json_num(it, "nmId");
+        let nm_cell = if row_nm.is_empty() {
+            nm_id.to_string()
+        } else {
+            row_nm
+        };
         out.push(
             selected
                 .iter()
                 .map(|f| match f.name.as_str() {
                     "cabinet" => cabinet.to_string(),
-                    "nmId" => nm_id.to_string(),
-                    "text" => text.clone(),
-                    "frequency" => first_num(it, &["frequency", "freq"]),
-                    "avgPosition" => first_num(it, &["avgPosition", "avg_position"]),
-                    "openCard" => first_num(it, &["openCard", "open_card"]),
-                    "addToCart" => first_num(it, &["addToCart", "add_to_cart"]),
-                    "orders" => first_num(it, &["orders"]),
-                    "visibility" => first_num(it, &["visibility"]),
-                    "openToCart" => first_num(it, &["openToCart", "open_to_cart"]),
-                    "cartToOrder" => first_num(it, &["cartToOrder", "cart_to_order"]),
+                    "nmId" => nm_cell.clone(),
+                    "text" => json_str(it, "text"),
+                    "subjectName" => json_str(it, "subjectName"),
+                    "brandName" => json_str(it, "brandName"),
+                    "vendorCode" => json_str(it, "vendorCode"),
+                    "name" => json_str(it, "name"),
+                    "isCardRated" => json_bool(it, "isCardRated"),
+                    "rating" => json_num(it, "rating"),
+                    "feedbackRating" => json_num(it, "feedbackRating"),
+                    "frequency" => metric_current(it, "frequency"),
+                    "weekFrequency" => json_num(it, "weekFrequency"),
+                    "medianPosition" => metric_current(it, "medianPosition"),
+                    "avgPosition" => metric_current(it, "avgPosition"),
+                    "openCard" => metric_current(it, "openCard"),
+                    "addToCart" => metric_current(it, "addToCart"),
+                    "openToCart" => metric_current(it, "openToCart"),
+                    "orders" => metric_current(it, "orders"),
+                    "cartToOrder" => metric_current(it, "cartToOrder"),
+                    "visibility" => metric_current(it, "visibility"),
                     _ => String::new(),
                 })
                 .collect(),
@@ -271,24 +291,33 @@ pub fn append_text_rows(
     }
 }
 
-fn first_str(v: &Value, keys: &[&str]) -> String {
-    for k in keys {
-        if let Some(Value::String(s)) = v.get(*k) {
-            if !s.is_empty() {
-                return s.clone();
-            }
-        }
+fn metric_current(v: &Value, key: &str) -> String {
+    match v.pointer(&format!("/{key}/current")) {
+        Some(Value::Number(n)) => n.to_string(),
+        Some(Value::String(s)) => s.clone(),
+        _ => String::new(),
     }
-    String::new()
 }
 
-fn first_num(v: &Value, keys: &[&str]) -> String {
-    for k in keys {
-        match v.get(*k) {
-            Some(Value::Number(n)) => return n.to_string(),
-            Some(Value::String(s)) if !s.trim().is_empty() => return s.clone(),
-            _ => {}
-        }
+fn json_str(v: &Value, key: &str) -> String {
+    v.get(key)
+        .and_then(|x| x.as_str())
+        .unwrap_or("")
+        .to_string()
+}
+
+fn json_num(v: &Value, key: &str) -> String {
+    match v.get(key) {
+        Some(Value::Number(n)) => n.to_string(),
+        Some(Value::String(s)) => s.clone(),
+        _ => String::new(),
     }
-    String::new()
+}
+
+fn json_bool(v: &Value, key: &str) -> String {
+    match v.get(key) {
+        Some(Value::Bool(b)) => b.to_string(),
+        Some(Value::String(s)) => s.clone(),
+        _ => String::new(),
+    }
 }

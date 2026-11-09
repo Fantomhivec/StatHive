@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! Поля `wb_adv_norm_query_stats`.
+//! Поля `wb_adv_norm_query_stats` — schema `POST /adv/v1/normquery/stats`.
 
 use crate::core::script_field::ScriptField;
 use crate::core::sheet_dates;
@@ -23,17 +23,18 @@ pub fn default_fields() -> Vec<ScriptField> {
         field("cabinet", true),
         field("advertId", true),
         field("nmId", true),
-        field("normQuery", true),
         field("date", true),
+        field("normQuery", true),
         field("views", true),
         field("clicks", true),
-        field("ctr", true),
-        field("cpc", true),
-        field("sum", true),
         field("atbs", true),
         field("orders", true),
-        field("cr", true),
-        field("avgPosition", true),
+        field("ctr", true),
+        field("cpc", true),
+        field("cpm", true),
+        field("avgPos", true),
+        field("shks", true),
+        field("spend", true),
     ]
 }
 
@@ -56,51 +57,40 @@ pub fn append_stats_rows(
         return;
     }
     let items = root
-        .get("stats")
-        .or_else(|| root.get("items"))
-        .or_else(|| root.as_array().map(|_| root))
+        .get("items")
         .and_then(|v| v.as_array())
         .cloned()
-        .unwrap_or_else(|| {
-            if root.is_object() {
-                vec![root.clone()]
-            } else {
-                Vec::new()
-            }
-        });
+        .unwrap_or_default();
     for item in &items {
-        let advert_id = first_num(item, &["advert_id", "advertId", "advertID"]);
-        let nm_id = first_num(item, &["nm_id", "nmId", "nmID"]);
-        let norm_query = first_str(item, &["norm_query", "normQuery", "query"]);
-        let days = item
-            .get("days")
-            .or_else(|| item.get("stats"))
+        let advert_id = json_num(item, "advertId");
+        let nm_id = json_num(item, "nmId");
+        let daily = item
+            .get("dailyStats")
             .and_then(|d| d.as_array())
             .cloned()
             .unwrap_or_default();
-        if days.is_empty() {
-            out.push(row(
-                &selected,
-                cabinet,
-                &advert_id,
-                &nm_id,
-                &norm_query,
-                &fmt_date(first_str(item, &["date", "dt"])),
-                item,
-            ));
-            continue;
+        for day in &daily {
+            let date = fmt_date(json_str(day, "date"));
+            for st in day_stats(day) {
+                out.push(row(
+                    &selected,
+                    cabinet,
+                    &advert_id,
+                    &nm_id,
+                    &date,
+                    st,
+                ));
+            }
         }
-        for day in &days {
-            out.push(row(
-                &selected,
-                cabinet,
-                &advert_id,
-                &nm_id,
-                &norm_query,
-                &fmt_date(first_str(day, &["date", "dt"])),
-                day,
-            ));
-        }
+    }
+}
+
+/// `stat` — объект или массив объектов schema.
+fn day_stats(day: &Value) -> Vec<&Value> {
+    match day.get("stat") {
+        Some(Value::Array(a)) => a.iter().collect(),
+        Some(obj) if obj.is_object() => vec![obj],
+        _ => Vec::new(),
     }
 }
 
@@ -109,7 +99,6 @@ fn row(
     cabinet: &str,
     advert_id: &str,
     nm_id: &str,
-    norm_query: &str,
     date: &str,
     m: &Value,
 ) -> Vec<String> {
@@ -119,17 +108,18 @@ fn row(
             "cabinet" => cabinet.to_string(),
             "advertId" => advert_id.to_string(),
             "nmId" => nm_id.to_string(),
-            "normQuery" => norm_query.to_string(),
             "date" => date.to_string(),
-            "views" => first_num(m, &["views", "views_count"]),
-            "clicks" => first_num(m, &["clicks"]),
-            "ctr" => first_num(m, &["ctr"]),
-            "cpc" => first_num(m, &["cpc"]),
-            "sum" => first_num(m, &["sum", "spend"]),
-            "atbs" => first_num(m, &["atbs", "add_to_cart"]),
-            "orders" => first_num(m, &["orders"]),
-            "cr" => first_num(m, &["cr"]),
-            "avgPosition" => first_num(m, &["avg_position", "avgPosition"]),
+            "normQuery" => json_str(m, "normQuery"),
+            "views" => json_num(m, "views"),
+            "clicks" => json_num(m, "clicks"),
+            "atbs" => json_num(m, "atbs"),
+            "orders" => json_num(m, "orders"),
+            "ctr" => json_num(m, "ctr"),
+            "cpc" => json_num(m, "cpc"),
+            "cpm" => json_num(m, "cpm"),
+            "avgPos" => json_num(m, "avgPos"),
+            "shks" => json_num(m, "shks"),
+            "spend" => json_num(m, "spend"),
             _ => String::new(),
         })
         .collect()
@@ -146,24 +136,17 @@ fn fmt_date(raw: String) -> String {
     sheet_dates::format_wb_timestamp(t)
 }
 
-fn first_str(v: &Value, keys: &[&str]) -> String {
-    for k in keys {
-        match v.get(*k) {
-            Some(Value::String(s)) if !s.is_empty() => return s.clone(),
-            Some(Value::Number(n)) => return n.to_string(),
-            _ => {}
-        }
-    }
-    String::new()
+fn json_str(v: &Value, key: &str) -> String {
+    v.get(key)
+        .and_then(|x| x.as_str())
+        .unwrap_or("")
+        .to_string()
 }
 
-fn first_num(v: &Value, keys: &[&str]) -> String {
-    for k in keys {
-        match v.get(*k) {
-            Some(Value::Number(n)) => return n.to_string(),
-            Some(Value::String(s)) if !s.trim().is_empty() => return s.clone(),
-            _ => {}
-        }
+fn json_num(v: &Value, key: &str) -> String {
+    match v.get(key) {
+        Some(Value::Number(n)) => n.to_string(),
+        Some(Value::String(s)) => s.clone(),
+        _ => String::new(),
     }
-    String::new()
 }

@@ -210,6 +210,7 @@ pub fn default_fields() -> Vec<ScriptField> {
         field("title", false),
         field("vendorCode", true),
         field("brandName", false),
+        field("subjectId", false),
         field("subjectName", false),
         field("date", true),
         field("openCount", true),
@@ -222,6 +223,7 @@ pub fn default_fields() -> Vec<ScriptField> {
         field("addToCartConversion", false),
         field("cartToOrderConversion", false),
         field("addToWishlistCount", false),
+        field("currency", false),
     ]
 }
 
@@ -233,22 +235,22 @@ fn field(name: &str, selected: bool) -> ScriptField {
     }
 }
 
-/// Разворачивает product.history[] в строки.
+/// Разворачивает `history[]` в строки (schema: product + history на одном уровне).
 pub fn build_rows(cabinet: &str, products: &[Value], fields: &[ScriptField]) -> Vec<Vec<String>> {
     let selected: Vec<&ScriptField> = fields.iter().filter(|f| f.selected).collect();
     let mut rows = vec![selected.iter().map(|f| f.title.clone()).collect()];
     for item in products {
         let product = item.get("product").unwrap_or(item);
+        let currency = str(item, "currency");
         let history = item
             .get("history")
-            .or_else(|| product.get("history"))
             .and_then(|h| h.as_array())
             .cloned()
             .unwrap_or_default();
         if history.is_empty() {
             let mut row = Vec::with_capacity(selected.len());
             for f in &selected {
-                row.push(cell(f.name.as_str(), cabinet, product, None));
+                row.push(cell(f.name.as_str(), cabinet, product, None, &currency));
             }
             rows.push(row);
             continue;
@@ -256,7 +258,13 @@ pub fn build_rows(cabinet: &str, products: &[Value], fields: &[ScriptField]) -> 
         for day in &history {
             let mut row = Vec::with_capacity(selected.len());
             for f in &selected {
-                row.push(cell(f.name.as_str(), cabinet, product, Some(day)));
+                row.push(cell(
+                    f.name.as_str(),
+                    cabinet,
+                    product,
+                    Some(day),
+                    &currency,
+                ));
             }
             rows.push(row);
         }
@@ -264,14 +272,22 @@ pub fn build_rows(cabinet: &str, products: &[Value], fields: &[ScriptField]) -> 
     rows
 }
 
-fn cell(name: &str, cabinet: &str, product: &Value, day: Option<&Value>) -> String {
+fn cell(
+    name: &str,
+    cabinet: &str,
+    product: &Value,
+    day: Option<&Value>,
+    currency: &str,
+) -> String {
     match name {
         "cabinet" => cabinet.to_string(),
         "nmId" => num(product, "nmId"),
         "title" => str(product, "title"),
         "vendorCode" => str(product, "vendorCode"),
         "brandName" => str(product, "brandName"),
+        "subjectId" => num(product, "subjectId"),
         "subjectName" => str(product, "subjectName"),
+        "currency" => currency.to_string(),
         "date" => {
             let raw = day.map(|d| str(d, "date")).unwrap_or_default();
             if raw.is_empty() {
@@ -280,9 +296,7 @@ fn cell(name: &str, cabinet: &str, product: &Value, day: Option<&Value>) -> Stri
                 sheet_dates::format_wb_timestamp(&raw)
             }
         }
-        other => day
-            .map(|d| any(d, other))
-            .unwrap_or_default(),
+        other => day.map(|d| any(d, other)).unwrap_or_default(),
     }
 }
 

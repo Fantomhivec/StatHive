@@ -29,7 +29,9 @@ pub fn default_fields() -> Vec<ScriptField> {
         ScriptField::new("createdAt", crate::core::i18n::t("fields.order_feed.createdAt"), true),
         ScriptField::new("updatedAt", crate::core::i18n::t("fields.order_feed.updatedAt"), true),
         ScriptField::new("status", crate::core::i18n::t("fields.order_feed.status"), true),
+        ScriptField::new("statusName", crate::core::i18n::t("fields.order_feed.statusName"), false),
         ScriptField::new("cancelType", crate::core::i18n::t("fields.order_feed.cancelType"), false),
+        ScriptField::new("cancelTypeName", crate::core::i18n::t("fields.order_feed.cancelTypeName"), false),
         ScriptField::new("warehouseName", crate::core::i18n::t("fields.order_feed.warehouseName"), false),
         ScriptField::new("warehouseRegion", crate::core::i18n::t("fields.order_feed.warehouseRegion"), false),
         ScriptField::new("isMp", crate::core::i18n::t("fields.order_feed.isMp"), false),
@@ -74,8 +76,10 @@ fn field_value(
         "nmId" | "chrtId" => num_str(o.get(name)),
         "srid" => json_str(o.get("srid")),
         "createdAt" | "updatedAt" => sheet_dates::format_wb_timestamp(&json_str(o.get(name))),
-        "status" => translate_status(&json_str(o.get("status"))),
-        "cancelType" => translate_cancel(
+        "status" => json_str(o.get("status")),
+        "statusName" => translate_status(&json_str(o.get("status"))),
+        "cancelType" => json_str(o.get("cancelType")),
+        "cancelTypeName" => translate_cancel(
             &json_str(o.get("status")),
             &json_str(o.get("cancelType")),
         ),

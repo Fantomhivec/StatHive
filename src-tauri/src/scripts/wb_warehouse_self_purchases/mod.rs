@@ -138,7 +138,7 @@ use crate::core::sheet_dates;
 pub fn default_fields() -> Vec<ScriptField> {
     vec![
         field("cabinet", true),
-        field("nmId", true),
+        field("nmID", true),
         field("sum", true),
         field("currency", true),
         field("dateFrom", true),
@@ -175,11 +175,11 @@ pub fn append_rows(
                 .iter()
                 .map(|f| match f.name.as_str() {
                     "cabinet" => cabinet.to_string(),
-                    "nmId" => first_num(d, &["nmID", "nmId", "nm_id"]),
-                    "sum" => first_num(d, &["sum"]),
-                    "currency" => first_str(d, &["currency"]),
-                    "dateFrom" => fmt_date(first_str(d, &["dateFrom", "date_from"])),
-                    "dateTo" => fmt_date(first_str(d, &["dateTo", "date_to"])),
+                    "nmID" => json_num(d, "nmID"),
+                    "sum" => json_num(d, "sum"),
+                    "currency" => json_str(d, "currency"),
+                    "dateFrom" => fmt_date(json_str(d, "dateFrom")),
+                    "dateTo" => fmt_date(json_str(d, "dateTo")),
                     _ => String::new(),
                 })
                 .collect(),
@@ -198,24 +198,17 @@ fn fmt_date(raw: String) -> String {
     sheet_dates::format_wb_timestamp(t)
 }
 
-fn first_str(v: &Value, keys: &[&str]) -> String {
-    for k in keys {
-        if let Some(Value::String(s)) = v.get(*k) {
-            if !s.is_empty() {
-                return s.clone();
-            }
-        }
-    }
-    String::new()
+fn json_str(v: &Value, key: &str) -> String {
+    v.get(key)
+        .and_then(|x| x.as_str())
+        .unwrap_or("")
+        .to_string()
 }
 
-fn first_num(v: &Value, keys: &[&str]) -> String {
-    for k in keys {
-        match v.get(*k) {
-            Some(Value::Number(n)) => return n.to_string(),
-            Some(Value::String(s)) if !s.trim().is_empty() => return s.clone(),
-            _ => {}
-        }
+fn json_num(v: &Value, key: &str) -> String {
+    match v.get(key) {
+        Some(Value::Number(n)) => n.to_string(),
+        Some(Value::String(s)) => s.clone(),
+        _ => String::new(),
     }
-    String::new()
 }

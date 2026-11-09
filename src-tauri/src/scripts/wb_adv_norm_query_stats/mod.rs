@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! Статистика поисковых кластеров: `POST /adv/v0/normquery/stats`.
+//! Статистика поисковых кластеров: `POST /adv/v1/normquery/stats`.
 
 pub mod fields;
 
@@ -29,7 +29,7 @@ use std::collections::{HashMap, HashSet};
 use std::future::Future;
 use std::pin::Pin;
 
-const STATS_URL: &str = "https://advert-api.wildberries.ru/adv/v0/normquery/stats";
+const STATS_URL: &str = "https://advert-api.wildberries.ru/adv/v1/normquery/stats";
 const BATCH: usize = 100;
 
 pub struct AdvNormQueryStatsScript;
@@ -129,16 +129,21 @@ async fn run(ctx: &ScriptContext) -> ScriptResult {
                     return Ok((cabinet, Vec::<Vec<String>>::new()));
                 }
                 let mut rows = Vec::new();
-                for chunk in items.chunks(BATCH) {
+                // Schema requires advertId + nmId per item.
+                let with_nm: Vec<(i64, i64)> = items
+                    .into_iter()
+                    .filter_map(|(adv, nm)| nm.map(|n| (adv, n)))
+                    .collect();
+                if with_nm.is_empty() {
+                    ctx.log.warn(format!(
+                        "Кабинет «{cabinet}»: нет пар advertId+nmId для normquery/stats"
+                    ));
+                    return Ok((cabinet, rows));
+                }
+                for chunk in with_nm.chunks(BATCH) {
                     let body_items: Vec<Value> = chunk
                         .iter()
-                        .map(|(adv, nm)| {
-                            let mut o = json!({ "advert_id": adv });
-                            if let Some(n) = nm {
-                                o["nm_ids"] = json!([n]);
-                            }
-                            o
-                        })
+                        .map(|(adv, nm)| json!({ "advertId": adv, "nmId": nm }))
                         .collect();
                     let body = json!({
                         "from": from_s,

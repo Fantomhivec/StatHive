@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! Поля `analytics_deductions` (подмены / неверные вложения).
+//! Поля `analytics_deductions` — schema `data.reports[]`.
 
 use crate::core::script_field::ScriptField;
 use crate::core::sheet_dates;
@@ -25,12 +25,16 @@ pub fn default_fields() -> Vec<ScriptField> {
         field("nmId", true),
         field("bonusSumm", true),
         field("bonusType", true),
-        field("oldVendorCode", true),
-        field("newVendorCode", true),
-        field("oldSku", true),
-        field("newSku", true),
+        field("oldShkId", true),
+        field("oldColor", true),
         field("oldSize", true),
+        field("oldSku", true),
+        field("oldVendorCode", true),
+        field("newShkId", true),
+        field("newColor", true),
         field("newSize", true),
+        field("newSku", true),
+        field("newVendorCode", true),
         field("photoUrls", true),
     ]
 }
@@ -75,16 +79,20 @@ pub fn append_rows(
                 .iter()
                 .map(|f| match f.name.as_str() {
                     "cabinet" => cabinet.to_string(),
-                    "dtBonus" => fmt_ts(first_str(d, &["dtBonus", "dt_bonus"])),
-                    "nmId" => first_num(d, &["nmId", "nmID"]),
-                    "bonusSumm" => first_num(d, &["bonusSumm", "bonus_summ"]),
-                    "bonusType" => first_str(d, &["bonusType", "bonus_type"]),
-                    "oldVendorCode" => first_str(d, &["oldVendorCode"]),
-                    "newVendorCode" => first_str(d, &["newVendorCode"]),
-                    "oldSku" => first_str(d, &["oldSku"]),
-                    "newSku" => first_str(d, &["newSku"]),
-                    "oldSize" => first_str(d, &["oldSize"]),
-                    "newSize" => first_str(d, &["newSize"]),
+                    "dtBonus" => fmt_ts(json_str(d, "dtBonus")),
+                    "nmId" => json_num(d, "nmId"),
+                    "bonusSumm" => json_num(d, "bonusSumm"),
+                    "bonusType" => json_str(d, "bonusType"),
+                    "oldShkId" => json_num(d, "oldShkId"),
+                    "oldColor" => json_str(d, "oldColor"),
+                    "oldSize" => json_str(d, "oldSize"),
+                    "oldSku" => json_str(d, "oldSku"),
+                    "oldVendorCode" => json_str(d, "oldVendorCode"),
+                    "newShkId" => json_num(d, "newShkId"),
+                    "newColor" => json_str(d, "newColor"),
+                    "newSize" => json_str(d, "newSize"),
+                    "newSku" => json_str(d, "newSku"),
+                    "newVendorCode" => json_str(d, "newVendorCode"),
                     "photoUrls" => photos.clone(),
                     _ => String::new(),
                 })
@@ -97,7 +105,6 @@ pub fn total_count(root: &Value) -> Option<i64> {
     root.get("data")
         .and_then(|d| d.get("total"))
         .and_then(|t| t.as_i64())
-        .or_else(|| root.get("total").and_then(|t| t.as_i64()))
 }
 
 fn fmt_ts(raw: String) -> String {
@@ -108,24 +115,17 @@ fn fmt_ts(raw: String) -> String {
     sheet_dates::format_wb_timestamp(t)
 }
 
-fn first_str(v: &Value, keys: &[&str]) -> String {
-    for k in keys {
-        if let Some(Value::String(s)) = v.get(*k) {
-            if !s.is_empty() {
-                return s.clone();
-            }
-        }
-    }
-    String::new()
+fn json_str(v: &Value, key: &str) -> String {
+    v.get(key)
+        .and_then(|x| x.as_str())
+        .unwrap_or("")
+        .to_string()
 }
 
-fn first_num(v: &Value, keys: &[&str]) -> String {
-    for k in keys {
-        match v.get(*k) {
-            Some(Value::Number(n)) => return n.to_string(),
-            Some(Value::String(s)) if !s.trim().is_empty() => return s.clone(),
-            _ => {}
-        }
+fn json_num(v: &Value, key: &str) -> String {
+    match v.get(key) {
+        Some(Value::Number(n)) => n.to_string(),
+        Some(Value::String(s)) => s.clone(),
+        _ => String::new(),
     }
-    String::new()
 }

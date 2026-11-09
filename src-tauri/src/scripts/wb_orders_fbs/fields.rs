@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! Поля `orders_fbs` / `orders_fbs_status`.
+//! Поля `orders_fbs` / `orders_fbs_status` — schema marketplace v3.
 
 use crate::core::script_field::ScriptField;
 use crate::core::sheet_dates;
@@ -25,22 +25,30 @@ pub fn orders_fields() -> Vec<ScriptField> {
         f("rid", false),
         f("createdAt", true),
         f("warehouseId", false),
+        f("officeId", false),
         f("offices", false),
-        f("address", false),
-        f("userStatus", false),
+        f("address.fullAddress", false),
+        f("address.longitude", false),
+        f("address.latitude", false),
         f("nmId", true),
         f("chrtId", false),
         f("article", true),
+        f("colorCode", false),
+        f("skus", false),
+        f("price", false),
         f("convertedPrice", true),
         f("currencyCode", false),
-        f("price", false),
-        f("salePrice", false),
+        f("convertedCurrencyCode", false),
+        f("cargoType", false),
+        f("crossBorderType", false),
         f("isZeroOrder", false),
         f("orderUid", false),
         f("deliveryType", false),
         f("comment", false),
         f("scanPrice", false),
         f("supplyId", false),
+        f("trackNumber", false),
+        f("options.isB2B", false),
     ]
 }
 
@@ -50,6 +58,8 @@ pub fn status_fields() -> Vec<ScriptField> {
         f_status("id", true),
         f_status("supplierStatus", true),
         f_status("wbStatus", true),
+        f_status("isCancellable", false),
+        f_status("isTransferable", false),
     ]
 }
 
@@ -108,16 +118,11 @@ fn order_cell(cabinet: &str, o: &Value, name: &str) -> String {
                 sheet_dates::format_wb_timestamp(&raw)
             }
         }
-        "offices" => o
-            .get("offices")
-            .and_then(|v| v.as_array())
-            .map(|a| {
-                a.iter()
-                    .filter_map(|x| x.as_str())
-                    .collect::<Vec<_>>()
-                    .join(", ")
-            })
-            .unwrap_or_default(),
+        "offices" | "skus" => join_str_array(o, name),
+        "address.fullAddress" => dig(o, &["address", "fullAddress"]),
+        "address.longitude" => dig(o, &["address", "longitude"]),
+        "address.latitude" => dig(o, &["address", "latitude"]),
+        "options.isB2B" => dig(o, &["options", "isB2B"]),
         _ => any(o, name),
     }
 }
@@ -126,6 +131,35 @@ fn status_cell(cabinet: &str, o: &Value, name: &str) -> String {
     match name {
         "cabinet" => cabinet.to_string(),
         _ => any(o, name),
+    }
+}
+
+fn join_str_array(o: &Value, key: &str) -> String {
+    o.get(key)
+        .and_then(|v| v.as_array())
+        .map(|a| {
+            a.iter()
+                .filter_map(|x| x.as_str())
+                .collect::<Vec<_>>()
+                .join("; ")
+        })
+        .unwrap_or_default()
+}
+
+fn dig(o: &Value, path: &[&str]) -> String {
+    let mut cur = o;
+    for p in path {
+        cur = match cur.get(*p) {
+            Some(x) => x,
+            None => return String::new(),
+        };
+    }
+    match cur {
+        Value::Null => String::new(),
+        Value::Bool(b) => b.to_string(),
+        Value::Number(n) => n.to_string(),
+        Value::String(s) => s.clone(),
+        other => other.to_string(),
     }
 }
 

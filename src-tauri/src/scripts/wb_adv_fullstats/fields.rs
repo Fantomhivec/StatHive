@@ -34,9 +34,12 @@ pub fn default_fields() -> Vec<ScriptField> {
         field("orders", true),
         field("cr", true),
         field("shks", true),
-        field("sumPrice", true),
+        field("sum_price", true),
         field("canceled", true),
         field("currency", true),
+        field("apps", false),
+        field("avg_position", false),
+        field("boosterNm", false),
     ]
 }
 
@@ -75,11 +78,15 @@ pub fn append_fullstats_rows(
             "",
             item,
             &currency,
+            "",
+            "",
+            "",
         ));
-        return;
+        // still emit boosterStats below
     }
     for day in &days {
         let date = format_date_cell(json_str(day, "date"));
+        let apps = join_apps(day);
         let nms = day
             .get("nms")
             .and_then(|a| a.as_array())
@@ -95,6 +102,9 @@ pub fn append_fullstats_rows(
                 "",
                 day,
                 &currency,
+                &apps,
+                "",
+                "",
             ));
             continue;
         }
@@ -110,9 +120,50 @@ pub fn append_fullstats_rows(
                 &name,
                 nm,
                 &currency,
+                &apps,
+                "",
+                "",
             ));
         }
     }
+    // boosterStats: avg_position / date / nm (schema snake avg_position).
+    let boosters = item
+        .get("boosterStats")
+        .and_then(|a| a.as_array())
+        .cloned()
+        .unwrap_or_default();
+    for b in &boosters {
+        out.push(row(
+            &selected,
+            cabinet,
+            &advert_id,
+            &format_date_cell(json_str(b, "date")),
+            "",
+            "",
+            b,
+            &currency,
+            "",
+            &json_num_str(b, "avg_position"),
+            &json_num_str(b, "nm"),
+        ));
+    }
+}
+
+fn join_apps(day: &Value) -> String {
+    day.get("apps")
+        .and_then(|a| a.as_array())
+        .map(|a| {
+            a.iter()
+                .filter_map(|x| x.get("appType"))
+                .map(|v| match v {
+                    Value::Number(n) => n.to_string(),
+                    Value::String(s) => s.clone(),
+                    other => other.to_string(),
+                })
+                .collect::<Vec<_>>()
+                .join(";")
+        })
+        .unwrap_or_default()
 }
 
 fn row(
@@ -124,6 +175,9 @@ fn row(
     name: &str,
     metrics: &Value,
     currency: &str,
+    apps: &str,
+    avg_position: &str,
+    booster_nm: &str,
 ) -> Vec<String> {
     selected
         .iter()
@@ -142,9 +196,12 @@ fn row(
             "orders" => json_num_str(metrics, "orders"),
             "cr" => json_num_str(metrics, "cr"),
             "shks" => json_num_str(metrics, "shks"),
-            "sumPrice" => json_num_str(metrics, "sum_price"),
+            "sum_price" => json_num_str(metrics, "sum_price"),
             "canceled" => json_num_str(metrics, "canceled"),
             "currency" => currency.to_string(),
+            "apps" => apps.to_string(),
+            "avg_position" => avg_position.to_string(),
+            "boosterNm" => booster_nm.to_string(),
             _ => String::new(),
         })
         .collect()

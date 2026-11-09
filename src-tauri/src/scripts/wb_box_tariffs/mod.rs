@@ -83,13 +83,13 @@ async fn run_box_tariffs(ctx: &ScriptContext) -> ScriptResult {
                         .warn(format!("Токен WB не задан для кабинета «{cabinet}»"));
                     return Ok((cabinet, None));
                 }
-                let (dt_next, dt_till, warehouses) =
+                let (currency, dt_next, dt_till, warehouses) =
                     fetch_box_tariffs(ctx, &cabinet, token.trim(), &date_api).await?;
                 ctx.log.info(format!(
                     "Кабинет «{cabinet}»: {} складов",
                     warehouses.len()
                 ));
-                Ok((cabinet, Some((dt_next, dt_till, warehouses))))
+                Ok((cabinet, Some((currency, dt_next, dt_till, warehouses))))
             }
         },
     )
@@ -99,7 +99,7 @@ async fn run_box_tariffs(ctx: &ScriptContext) -> ScriptResult {
     let mut header_done = false;
     let mut total = 0usize;
     for (cabinet, part) in parts {
-        let Some((dt_next, dt_till, warehouses)) = part else {
+        let Some((currency, dt_next, dt_till, warehouses)) = part else {
             continue;
         };
         if warehouses.is_empty() {
@@ -109,6 +109,7 @@ async fn run_box_tariffs(ctx: &ScriptContext) -> ScriptResult {
         let meta = BoxMeta {
             cabinet: &cabinet,
             date_display: &date_display,
+            currency: &currency,
             dt_next_box: &dt_next,
             dt_till_max: &dt_till,
         };
@@ -140,7 +141,7 @@ async fn fetch_box_tariffs(
     cabinet: &str,
     token: &str,
     date_api: &str,
-) -> Result<(String, String, Vec<Value>), String> {
+) -> Result<(String, String, String, Vec<Value>), String> {
     let url = format!("{BOX_URL}?date={date_api}");
     ctx.log.info(format!("GET tariffs/box date={date_api}"));
     let profile = rate::profile();
@@ -158,12 +159,17 @@ async fn fetch_box_tariffs(
         )
         .await?;
 
+    // Schema: response.data (RatesBoxResponse).
     let data = v
-        .get("data")
-        .or_else(|| v.pointer("/response/data"))
+        .pointer("/response/data")
         .cloned()
         .unwrap_or(Value::Object(Default::default()));
 
+    let currency = data
+        .get("currency")
+        .and_then(|x| x.as_str())
+        .unwrap_or("")
+        .to_string();
     let dt_next = data
         .get("dtNextBox")
         .and_then(|x| x.as_str())
@@ -180,7 +186,7 @@ async fn fetch_box_tariffs(
         .cloned()
         .unwrap_or_default();
 
-    Ok((dt_next, dt_till, warehouses))
+    Ok((currency, dt_next, dt_till, warehouses))
 }
 
 // --- fields (merged) ---
@@ -188,6 +194,7 @@ pub fn default_fields() -> Vec<ScriptField> {
     vec![
         field("cabinet", true),
         field("date", true),
+        field("currency", false),
         field("dtNextBox", true),
         field("dtTillMax", true),
         field("geoName", true),
@@ -215,6 +222,7 @@ fn field(name: &str, selected: bool) -> ScriptField {
 pub struct BoxMeta<'a> {
     pub cabinet: &'a str,
     pub date_display: &'a str,
+    pub currency: &'a str,
     pub dt_next_box: &'a str,
     pub dt_till_max: &'a str,
 }
@@ -237,6 +245,7 @@ fn cell(name: &str, meta: &BoxMeta<'_>, w: &Value) -> String {
     match name {
         "cabinet" => meta.cabinet.to_string(),
         "date" => meta.date_display.to_string(),
+        "currency" => meta.currency.to_string(),
         "dtNextBox" => meta.dt_next_box.to_string(),
         "dtTillMax" => meta.dt_till_max.to_string(),
         "geoName" => str(w, "geoName"),

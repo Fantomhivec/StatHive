@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! Поля `goods_labeling`.
+//! Поля `goods_labeling` — schema `report[]` (nmID / shkID / incomeId).
 
 use crate::core::script_field::ScriptField;
 use crate::core::sheet_dates;
@@ -21,11 +21,11 @@ use serde_json::Value;
 pub fn default_fields() -> Vec<ScriptField> {
     vec![
         field("cabinet", true),
-        field("nmId", true),
+        field("nmID", true),
         field("amount", true),
         field("date", true),
         field("incomeId", true),
-        field("shkId", true),
+        field("shkID", true),
         field("sku", true),
         field("photoUrls", true),
     ]
@@ -70,12 +70,12 @@ pub fn append_rows(
                 .iter()
                 .map(|f| match f.name.as_str() {
                     "cabinet" => cabinet.to_string(),
-                    "nmId" => first_num(d, &["nmID", "nmId"]),
-                    "amount" => first_num(d, &["amount"]),
-                    "date" => fmt_ts(first_str(d, &["date"])),
-                    "incomeId" => first_num(d, &["incomeId", "income_id"]),
-                    "shkId" => first_num(d, &["shkID", "shkId"]),
-                    "sku" => first_str(d, &["sku"]),
+                    "nmID" => json_num(d, "nmID"),
+                    "amount" => json_num(d, "amount"),
+                    "date" => fmt_ts(json_str(d, "date")),
+                    "incomeId" => json_num(d, "incomeId"),
+                    "shkID" => json_num(d, "shkID"),
+                    "sku" => json_str(d, "sku"),
                     "photoUrls" => photos.clone(),
                     _ => String::new(),
                 })
@@ -92,24 +92,17 @@ fn fmt_ts(raw: String) -> String {
     sheet_dates::format_wb_timestamp(t)
 }
 
-fn first_str(v: &Value, keys: &[&str]) -> String {
-    for k in keys {
-        if let Some(Value::String(s)) = v.get(*k) {
-            if !s.is_empty() {
-                return s.clone();
-            }
-        }
-    }
-    String::new()
+fn json_str(v: &Value, key: &str) -> String {
+    v.get(key)
+        .and_then(|x| x.as_str())
+        .unwrap_or("")
+        .to_string()
 }
 
-fn first_num(v: &Value, keys: &[&str]) -> String {
-    for k in keys {
-        match v.get(*k) {
-            Some(Value::Number(n)) => return n.to_string(),
-            Some(Value::String(s)) if !s.trim().is_empty() => return s.clone(),
-            _ => {}
-        }
+fn json_num(v: &Value, key: &str) -> String {
+    match v.get(key) {
+        Some(Value::Number(n)) => n.to_string(),
+        Some(Value::String(s)) => s.clone(),
+        _ => String::new(),
     }
-    String::new()
 }

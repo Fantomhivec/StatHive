@@ -63,7 +63,7 @@ fn report_type_name(row: &Value) -> String {
             .and_then(|s| s.parse().ok())
     }) {
         Some(1) => "Основной".into(),
-        Some(2) => "Дополнительный".into(),
+        Some(2) => "По выкупам".into(),
         Some(n) => n.to_string(),
         None => row
             .get("reportType")

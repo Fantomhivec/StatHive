@@ -107,6 +107,12 @@ pub fn default_fields() -> Vec<ScriptField> {
         field("salePriceAffiliatedDiscountPrc", false),
         field("agencyVat", false),
         field("salePriceWholesaleDiscountPrc", false),
+        field("b2bCustomerTin", false),
+        field("paidWithSocialCertificate", false),
+        field("warehouseLogisticsCoeff", false),
+        field("buyerTaxRegistrationReasonCode", false),
+        field("utdUcdNumber", false),
+        field("utdUcdDate", false),
     ]
 }
 

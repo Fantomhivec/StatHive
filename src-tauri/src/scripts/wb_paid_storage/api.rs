@@ -129,7 +129,7 @@ pub fn is_done_status(status: &str) -> bool {
 pub fn is_failed_status(status: &str) -> bool {
     matches!(
         status.trim().to_ascii_lowercase().as_str(),
-        "failed" | "error" | "canceled" | "cancelled"
+        "failed" | "error" | "canceled" | "cancelled" | "purged"
     )
 }
 
@@ -145,7 +145,7 @@ pub fn report_cell(name: &str, cabinet: &str, task_id: &str, it: &Value) -> Stri
                 sheet_dates::format_wb_timestamp(&raw)
             }
         }
-        "nmId" => json_any(it, "nmId").or_else(|| json_any(it, "nmID")).unwrap_or_default(),
+        "nmId" => json_any(it, "nmId").unwrap_or_default(),
         _ => json_any(it, name).unwrap_or_default(),
     }
 }

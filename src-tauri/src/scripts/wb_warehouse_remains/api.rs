@@ -51,11 +51,14 @@ pub async fn create_task(
     scope: &str,
     profile: &RateLimitProfile,
     g: GroupBy,
+    filter_pics: i32,
+    filter_volume: i32,
 ) -> Result<String, String> {
     let url = format!(
         "{BASE}?locale=ru&groupByNm={}&groupBySize={}&groupByBrand={}\
-         &groupBySubject={}&groupBySa={}&groupByBarcode={}",
-        g.nm, g.size, g.brand, g.subject, g.sa, g.barcode
+         &groupBySubject={}&groupBySa={}&groupByBarcode={}\
+         &filterPics={}&filterVolume={}",
+        g.nm, g.size, g.brand, g.subject, g.sa, g.barcode, filter_pics, filter_volume
     );
     let v = request
         .get_json(
@@ -178,21 +181,6 @@ pub fn report_cell(name: &str, cabinet: &str, task_id: &str, it: &Value) -> Stri
     match name {
         "cabinet" => cabinet.to_string(),
         "taskId" => task_id.to_string(),
-        "nmId" => json_any(it, "nmId")
-            .or_else(|| json_any(it, "nmID"))
-            .unwrap_or_default(),
-        "vendorCode" => json_any(it, "vendorCode")
-            .or_else(|| json_any(it, "saName"))
-            .unwrap_or_default(),
-        "subjectName" => json_any(it, "subjectName")
-            .or_else(|| json_any(it, "subject"))
-            .unwrap_or_default(),
-        "brand" => json_any(it, "brand")
-            .or_else(|| json_any(it, "brandName"))
-            .unwrap_or_default(),
-        "techSize" => json_any(it, "techSize")
-            .or_else(|| json_any(it, "size"))
-            .unwrap_or_default(),
         _ => json_any(it, name).unwrap_or_default(),
     }
 }
@@ -216,6 +204,7 @@ pub fn create_fields() -> Vec<ScriptField> {
 }
 
 pub fn download_fields() -> Vec<ScriptField> {
+    // Schema download: brand, subjectName, vendorCode, nmId, barcode, techSize, volume + warehouses[]
     vec![
         field("cabinet", true),
         field("taskId", true),
@@ -228,9 +217,6 @@ pub fn download_fields() -> Vec<ScriptField> {
         field("volume", true),
         field("warehouseName", true),
         field("quantity", true),
-        field("inWayToClient", true),
-        field("inWayFromClient", true),
-        field("quantityFull", true),
     ]
 }
 

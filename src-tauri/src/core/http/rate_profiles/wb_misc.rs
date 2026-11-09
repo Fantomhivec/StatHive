@@ -29,8 +29,9 @@ pub mod wb_adv_campaigns_stats_new {
     use super::*;
     pub const SCOPE: &str = "adv/v2/adverts|get_adverts_by_ids";
     pub fn profile() -> RateLimitProfile {
-        RateLimitProfile::sliding_window(5, Duration::from_secs(1), Duration::from_millis(500))
-            .with_429_pause(Duration::from_secs(21))
+        // Personal: 5 req / 1 s, interval 200 ms.
+        RateLimitProfile::sliding_window(5, Duration::from_secs(1), Duration::from_millis(200))
+            .with_429_pause(Duration::from_secs(6))
     }
 }
 
@@ -54,10 +55,10 @@ pub mod wb_adv_fullstats {
     }
 }
 
-/// `POST /adv/v0/normquery/stats`.
+/// `POST /adv/v1/normquery/stats`.
 pub mod wb_adv_norm_query_stats {
     use super::*;
-    pub const SCOPE: &str = "adv/v0/normquery/stats|post_normquery_stats";
+    pub const SCOPE: &str = "adv/v1/normquery/stats|post_normquery_stats";
     pub fn profile() -> RateLimitProfile {
         RateLimitProfile::sliding_window(10, Duration::from_secs(60), Duration::from_secs(6))
             .with_429_pause(Duration::from_secs(60))
@@ -128,7 +129,8 @@ pub mod sales_funnel_products {
     use super::*;
     pub const SCOPE: &str = "sales_funnel_products|post_sales_funnel_products";
     pub fn profile() -> RateLimitProfile {
-        RateLimitProfile::sliding_window(3, Duration::from_secs(60), Duration::from_secs(21))
+        // Personal: 3 req / 1 min, interval 20 s.
+        RateLimitProfile::sliding_window(3, Duration::from_secs(60), Duration::from_secs(20))
             .with_429_pause(Duration::from_secs(60))
     }
 }
@@ -299,8 +301,9 @@ pub mod wb_tnved_codes {
     use super::*;
     pub const SCOPE: &str = "wb_tnved_codes|get_tnved_by_subject";
     pub fn profile() -> RateLimitProfile {
-        RateLimitProfile::token_bucket(5.0 / 3.0, 1.0, Duration::from_millis(600))
-            .with_429_pause(Duration::from_millis(610))
+        // Content: 100 req/min, 600 ms interval (burst ignored — api-rate-no-burst).
+        RateLimitProfile::token_bucket(100.0 / 60.0, 1.0, Duration::from_millis(600))
+            .with_429_pause(Duration::from_millis(600))
     }
 }
 
@@ -369,7 +372,8 @@ pub mod wb_object_charcs {
     use super::*;
     pub const SCOPE: &str = "wb_object_charcs|get_subject_charcs";
     pub fn profile() -> RateLimitProfile {
-        RateLimitProfile::sliding_window(100, Duration::from_secs(60), Duration::from_millis(600))
+        // Content: 100 req/min, 600 ms interval (burst ignored — api-rate-no-burst).
+        RateLimitProfile::token_bucket(100.0 / 60.0, 1.0, Duration::from_millis(600))
             .with_429_pause(Duration::from_millis(600))
     }
 }

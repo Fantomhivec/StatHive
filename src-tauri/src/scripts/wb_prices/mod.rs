@@ -152,12 +152,18 @@ async fn fetch_all_prices(
         if n == 0 {
             break;
         }
+        if v.get("error").and_then(|e| e.as_bool()).unwrap_or(false) {
+            let text = v
+                .get("errorText")
+                .and_then(|t| t.as_str())
+                .unwrap_or("error=true");
+            return Err(format!("[{cabinet}] list/goods/filter: {text}"));
+        }
         all.extend(goods);
         offset += n as i64;
         if (n as i64) < PAGE_LIMIT {
             break;
         }
-        tokio::time::sleep(std::time::Duration::from_millis(600)).await;
     }
 
     Ok(all)

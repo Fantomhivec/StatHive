@@ -145,6 +145,7 @@ async fn run(ctx: &ScriptContext) -> ScriptResult {
         }
         match upload_batches(
             &ctx.request,
+            &ctx.log,
             &label,
             token.trim(),
             rate::SCOPE,

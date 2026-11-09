@@ -18,16 +18,16 @@ use serde_json::Value;
 pub fn default_fields() -> Vec<ScriptField> {
     vec![
         field("cabinet", true),
-        field("nmId", true),
+        field("nmID", true),
         field("vendorCode", true),
         field("discount", true),
         field("clubDiscount", false),
-        field("currency", true),
+        field("currencyIsoCode4217", true),
         field("editableSizePrice", false),
         field("price", true),
         field("discountedPrice", true),
         field("clubDiscountedPrice", false),
-        field("sizeId", false),
+        field("sizeID", false),
         field("techSizeName", false),
         field("sizesCount", false),
         field("minPrice", false),
@@ -36,16 +36,15 @@ pub fn default_fields() -> Vec<ScriptField> {
         field("maxDiscountedPrice", false),
         field("sizesPriceList", false),
         field("sizesTechSizeList", false),
+        field("wholesaleLevels", false),
+        field("wholesaleMinQuantities", false),
+        field("wholesaleDiscounts", false),
     ]
 }
 
-/// Поля `prices_by_nm` — те же + wholesale*.
+/// Поля `prices_by_nm` — те же schema + wholesale*.
 pub fn default_fields_by_nm() -> Vec<ScriptField> {
-    let mut f = default_fields();
-    f.push(field("wholesaleLevels", false));
-    f.push(field("wholesaleMinQuantities", false));
-    f.push(field("wholesaleDiscounts", false));
-    f
+    default_fields()
 }
 
 fn field(name: &str, selected: bool) -> ScriptField {
@@ -79,11 +78,11 @@ pub fn build_rows(cabinet: &str, goods: &[Value], fields: &[ScriptField]) -> Vec
 fn cell(name: &str, cabinet: &str, it: &Value, sz: Option<&Value>, sizes: &[Value]) -> String {
     match name {
         "cabinet" => cabinet.to_string(),
-        "nmId" => num(it, "nmID"),
+        "nmID" | "nmId" => num(it, "nmID"),
         "vendorCode" => str(it, "vendorCode"),
         "discount" => num(it, "discount"),
         "clubDiscount" => num(it, "clubDiscount"),
-        "currency" => str(it, "currencyIsoCode4217"),
+        "currencyIsoCode4217" | "currency" => str(it, "currencyIsoCode4217"),
         "editableSizePrice" => bool_str(it, "editableSizePrice"),
         "price" => sz.map(|s| num(s, "price")).unwrap_or_else(|| "0".into()),
         "discountedPrice" => sz
@@ -92,7 +91,7 @@ fn cell(name: &str, cabinet: &str, it: &Value, sz: Option<&Value>, sizes: &[Valu
         "clubDiscountedPrice" => sz
             .map(|s| num(s, "clubDiscountedPrice"))
             .unwrap_or_else(|| "0".into()),
-        "sizeId" => sz.map(|s| num(s, "sizeID")).unwrap_or_else(|| "0".into()),
+        "sizeID" | "sizeId" => sz.map(|s| num(s, "sizeID")).unwrap_or_else(|| "0".into()),
         "techSizeName" => sz
             .map(|s| str(s, "techSizeName"))
             .unwrap_or_default(),
@@ -111,15 +110,15 @@ fn cell(name: &str, cabinet: &str, it: &Value, sz: Option<&Value>, sizes: &[Valu
             .map(|s| str(s, "techSizeName"))
             .collect::<Vec<_>>()
             .join(";"),
-        "wholesaleLevels" => wholesale_list(it, "wholesalePrices", "level"),
-        "wholesaleMinQuantities" => wholesale_list(it, "wholesalePrices", "minQuantity"),
-        "wholesaleDiscounts" => wholesale_list(it, "wholesalePrices", "discount"),
+        "wholesaleLevels" => wholesale_list(it, "level"),
+        "wholesaleMinQuantities" => wholesale_list(it, "minQuantity"),
+        "wholesaleDiscounts" => wholesale_list(it, "wholesaleDiscount"),
         _ => String::new(),
     }
 }
 
-fn wholesale_list(it: &Value, arr_key: &str, field_key: &str) -> String {
-    it.get(arr_key)
+fn wholesale_list(it: &Value, field_key: &str) -> String {
+    it.get("wholesaleDiscountThreshold")
         .and_then(|a| a.as_array())
         .map(|arr| {
             arr.iter()

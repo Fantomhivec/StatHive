@@ -19,7 +19,8 @@ mod context;
 use serde::{Deserialize, Serialize};
 
 pub use context::{
-    format_label, MemberOk, Script, ScriptContext, ScriptOutput, ScriptRegistry, ScriptResult,
+    format_label, MemberOk, Script, ScriptContext, ScriptLog, ScriptOutput, ScriptRegistry,
+    ScriptResult,
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

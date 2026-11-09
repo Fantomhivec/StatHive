@@ -19,7 +19,9 @@ use serde_json::Value;
 pub fn default_fields() -> Vec<ScriptField> {
     vec![
         field("cabinet", true),
+        field("type", false),
         field("typeName", true),
+        field("status", false),
         field("statusName", true),
         field("count", false),
         field("advertId", true),
