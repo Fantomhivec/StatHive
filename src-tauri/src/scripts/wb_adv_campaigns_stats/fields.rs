@@ -237,7 +237,8 @@ fn kopecks_to_rub(v: Option<&Value>) -> String {
     if (rub - rub.round()).abs() < f64::EPSILON {
         format!("{}", rub as i64)
     } else {
-        format!("{rub}")
+        // USER_ENTERED + RU locale: "2,29" → number; "2.29" stays text.
+        format!("{rub}").replace('.', ",")
     }
 }
 
