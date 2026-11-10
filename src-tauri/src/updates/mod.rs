@@ -137,21 +137,12 @@ impl UpdateChecker {
         }
         if !res.status().is_success() {
             let code = res.status().as_u16();
-            let body = res.text().await.unwrap_or_default();
-            let hint: String = body.chars().take(120).collect();
-            let msg = format!(
-                "Ошибка проверки обновлений (HTTP {code}){}",
-                if hint.trim().is_empty() {
-                    String::new()
-                } else {
-                    format!(": {}", hint.replace('\n', " "))
-                }
-            );
-            // Rate limit / 403: quiet path should not spam error on every remount.
-            if verbose || code != 403 {
+            let _ = res.text().await;
+            // Do not write GitHub rate-limit / API bodies into app logs (403/429 spam).
+            // Quiet auto-check → soft_skip in updates_check; verbose → Err to UI only.
+            let msg = format!("Ошибка проверки обновлений (HTTP {code})");
+            if verbose && code != 403 && code != 429 {
                 self.log.error(&msg);
-            } else {
-                self.log.warn(&msg);
             }
             return Err(msg);
         }

@@ -1,5 +1,7 @@
 {
-  "title": "err",
-  "detail": "d",
-  "requestId": "r"
+  "detail": "bad request",
+  "origin": "advert-api",
+  "request_id": "test-req",
+  "status": 400,
+  "title": "Bad Request"
 }

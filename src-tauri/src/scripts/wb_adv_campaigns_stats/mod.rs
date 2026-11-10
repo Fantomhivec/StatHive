@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! Инфо РК: `wb_adv_campaigns_stats_new` — advertId → nmId (`GET /api/advert/v2/adverts`).
+//! Инфо РК: `wb_adv_campaigns_stats_new` — advertId → nmId (`GET /api/advert/v3/adverts`).
 
 pub mod fields;
 
@@ -28,7 +28,7 @@ use std::collections::{HashMap, HashSet};
 use std::future::Future;
 use std::pin::Pin;
 
-const ADVERTS_URL: &str = "https://advert-api.wildberries.ru/api/advert/v2/adverts";
+const ADVERTS_URL: &str = "https://advert-api.wildberries.ru/api/advert/v3/adverts";
 const CHUNK: usize = 50;
 
 /// Связка ID кампании ↔ артикул WB → лист «Инфо».
@@ -183,10 +183,11 @@ async fn fetch_adverts(
     token: &str,
     ids: &[String],
 ) -> Result<Vec<Value>, String> {
+    // advertIds alone — do not mix with statuses/next/paymentType.
     let ids_param = ids.join(",");
-    let url = format!("{ADVERTS_URL}?ids={ids_param}");
+    let url = format!("{ADVERTS_URL}?advertIds={ids_param}");
     ctx.log.info(format!(
-        "GET advert/v2/adverts ids={} (кабинет «{cabinet}»)",
+        "GET advert/v3/adverts advertIds={} (кабинет «{cabinet}»)",
         ids.len()
     ));
     let profile = rate::profile();

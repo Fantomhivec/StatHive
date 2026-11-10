@@ -1,3 +1,43 @@
 {
-  "data": {}
+  "adverts": [
+    {
+      "advertId": 12345,
+      "status": 9,
+      "settings": {
+        "name": "Моя кампания",
+        "paymentType": "cpm",
+        "placements": ["combined"]
+      },
+      "nms": [
+        {
+          "nmId": 12345678,
+          "subject": {
+            "id": 270,
+            "name": "Парашюты"
+          },
+          "bids": [
+            {
+              "type": "search",
+              "value": 65000
+            },
+            {
+              "type": "combined",
+              "value": 229
+            }
+          ]
+        }
+      ],
+      "timestamps": {
+        "created": "2024-01-01T10:00:00+03:00",
+        "updated": "2024-01-02T15:30:00+03:00",
+        "started": "2024-01-01T10:05:00+03:00",
+        "ended": null
+      },
+      "currency": "RUB",
+      "restrictions": {
+        "canChangeNms": true
+      }
+    }
+  ],
+  "next": ""
 }

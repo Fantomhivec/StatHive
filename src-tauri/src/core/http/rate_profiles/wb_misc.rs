@@ -24,10 +24,10 @@ pub mod adv_campaigns_list {
     }
 }
 
-/// `GET /api/advert/v2/adverts?ids=` — Инфо РК (до 50 id).
+/// `GET /api/advert/v3/adverts?advertIds=` — Инфо РК (до 50 id).
 pub mod wb_adv_campaigns_stats_new {
     use super::*;
-    pub const SCOPE: &str = "adv/v2/adverts|get_adverts_by_ids";
+    pub const SCOPE: &str = "adv/v3/adverts|get_adverts_by_ids";
     pub fn profile() -> RateLimitProfile {
         // Personal: 5 req / 1 s, interval 200 ms.
         RateLimitProfile::sliding_window(5, Duration::from_secs(1), Duration::from_millis(200))

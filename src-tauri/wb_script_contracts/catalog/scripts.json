@@ -169,9 +169,9 @@
   },
   {
     "key": "wb_adv_campaigns_stats_new",
-    "api": "GET /api/advert/v2/adverts",
+    "api": "GET /api/advert/v3/adverts",
     "kind": "api",
-    "api_updated": "09.11.2026"
+    "api_updated": "10.11.2026"
   },
   {
     "key": "wb_adv_fullstats",

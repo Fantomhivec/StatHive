@@ -1,8 +1,6 @@
 {
   "required": [
-    {
-      "path": "data",
-      "type": "object"
-    }
+    { "path": "adverts", "type": "array" },
+    { "path": "next", "type": "string" }
   ]
 }

@@ -165,7 +165,7 @@ pub fn list_grouped(registry: &ScriptRegistry, marketplace: &str) -> Vec<ScriptG
                 "groups.wb.advertising",
                 &[
                     ("adv_campaigns_list", "GET adv/v1/promotion/count", "09.11.2026"),
-                    ("wb_adv_campaigns_stats_new", "GET /api/advert/v2/adverts", "09.11.2026"),
+                    ("wb_adv_campaigns_stats_new", "GET /api/advert/v3/adverts", "10.11.2026"),
                     ("wb_adv_fullstats", "GET /adv/v3/fullstats", "09.11.2026"),
                     ("wb_adv_norm_query_stats", "POST /adv/v1/normquery/stats", "09.11.2026"),
                     ("wb_adv_norm_query_bids", "POST /adv/v0/normquery/get-bids", "09.11.2026"),

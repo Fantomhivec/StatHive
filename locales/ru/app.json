@@ -885,16 +885,18 @@
  "campaignName": "Название кампании",
  "placementsSearch": "Размещение в поиске",
  "placementsRecommendations": "Размещение в рекомендациях",
+ "placementsCombined": "Размещение combined",
  "canChangeNms": "Можно менять nm",
  "created": "Время создания",
  "updated": "Время последнего изменения",
  "started": "Время последнего запуска",
- "deleted": "Время удаления",
+ "ended": "Время завершения",
  "nmId": "Артикул WB",
  "subjectId": "ID предмета",
  "subjectName": "Название предмета",
  "bidSearch": "Ставка в поиске",
- "bidRecommendations": "Ставка в рекомендациях"
+ "bidRecommendations": "Ставка в рекомендациях",
+ "bidCombined": "Ставка combined"
  },
  "wb_adv_upd": {
  "cabinet": "Кабинет",
