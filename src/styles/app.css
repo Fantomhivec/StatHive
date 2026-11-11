@@ -34,7 +34,8 @@
   --control-face: #2f3549;
   /* Hover лица поля ≠ линия бордера (раньше оба #3b4261). */
   --control-face-hover: color-mix(in srgb, var(--btn-face-hover) 70%, var(--control-face));
-  --control-border: #565f89;
+  /* Slightly clearer than Storm comment so inputs don't melt into panel. */
+  --control-border: #5c658f;
   --btn-face: #363d59;
   --btn-face-hover: #414868;
   /* Primary CTA: яркий teal + тёмный текст (WCAG на светлой заливке). */
@@ -206,41 +207,47 @@ a {
 
 .shell-nav {
   width: var(--nav-w);
-  background: var(--panel);
+  background: color-mix(in srgb, var(--panel) 94%, var(--bg));
   border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
-  padding: 12px 0;
+  gap: 2px;
+  padding: 10px 8px;
+  box-sizing: border-box;
 }
 
 .shell-nav a {
   appearance: none;
   background: transparent;
   border: 0;
+  border-left: 3px solid transparent;
   color: var(--muted);
   text-align: left;
-  padding: 10px 16px;
+  padding: 9px 12px;
   cursor: pointer;
   font-size: 14px;
   text-decoration: none;
   display: block;
+  border-radius: var(--control-radius);
+  transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
 }
 
 .shell-nav a:hover {
   color: var(--text);
-  background: color-mix(in srgb, var(--text) 6%, transparent);
+  background: color-mix(in srgb, var(--text) 7%, transparent);
 }
 
 .shell-nav a.active {
   color: var(--text);
+  font-weight: 600;
   background: color-mix(in srgb, var(--accent) 16%, transparent);
-  border-right: 2px solid var(--accent);
+  border-left-color: var(--accent);
 }
 
 .shell-main {
   flex: 1;
   overflow: auto;
-  padding: 20px 24px;
+  padding: 22px 26px;
 }
 
 /* Tables sticky toolbar: no shell padding — otherwise rows peek in the gap above sticky. */
@@ -274,7 +281,7 @@ a {
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  padding: 24px;
+  padding: 28px 24px;
   box-sizing: border-box;
 }
 
@@ -289,8 +296,9 @@ a {
 }
 
 .login-card h1 {
-  margin: 0 0 6px;
+  margin: 0 0 8px;
   font-size: 22px;
+  letter-spacing: -0.01em;
 }
 
 .error {

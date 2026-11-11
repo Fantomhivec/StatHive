@@ -83,7 +83,7 @@ textarea.input:focus,
 .input-compact:focus {
   outline: none;
   border-color: var(--accent);
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent);
+  box-shadow: var(--focus-ring);
 }
 
 /* Monospace JSON / team code / import blobs — face from .input. */

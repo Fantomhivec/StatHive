@@ -1,10 +1,10 @@
 /* Shared control metrics — colors stay in app.css :root / data-theme. */
 :root {
-  --control-radius-sm: 4px;
-  --control-radius-md: 6px;
-  --control-radius: 8px;
-  --control-radius-lg: 10px;
-  --control-radius-xl: 12px;
+  --control-radius-sm: 5px;
+  --control-radius-md: 7px;
+  --control-radius: 9px;
+  --control-radius-lg: 12px;
+  --control-radius-xl: 14px;
   --control-radius-pill: 999px;
   --control-radius-circle: 50%;
   --control-pad-y: 10px;
@@ -27,21 +27,25 @@
   --btn-card-font: 12px;
   --input-compact-pad-x: 7px;
   --input-compact-font: 0.85rem;
-  /* Card / plate / popover pads — same values as before (single edit point). */
-  --card-pad: 12px;
-  --card-pad-sm: 10px 12px;
+  /* Card / plate / popover pads — single edit point. */
+  --card-pad: 14px;
+  --card-pad-sm: 10px 14px;
   /* Header / footer / tpl body: top-bottom 12, left-right 16. */
   --card-pad-yx: 12px 16px;
-  --card-stack-pad: 12px 16px 16px;
+  --card-stack-pad: 14px 16px 16px;
   --popover-pad: 12px;
   --popover-pad-sm: 6px;
   --overlay-bg: color-mix(in srgb, var(--scrim) 55%, transparent);
   --overlay-bg-soft: color-mix(in srgb, var(--scrim) 45%, transparent);
   --overlay-pad: 24px;
   --overlay-pad-sm: 16px;
-  /* Floating panels: combo, menus, tips, date popover — edit once. */
-  --shadow-popover: 0 8px 24px color-mix(in srgb, var(--scrim) 35%, transparent);
-  --shadow-popover-lg: 0 12px 32px color-mix(in srgb, var(--scrim) 45%, transparent);
-  --shadow-dialog: 0 8px 32px color-mix(in srgb, var(--scrim) 35%, transparent);
-  --shadow-dialog-win: 0 12px 40px color-mix(in srgb, var(--scrim) 40%, transparent);
+  /* Focus ring (inputs / buttons :focus-visible). */
+  --focus-ring: 0 0 0 2px color-mix(in srgb, var(--accent) 42%, transparent);
+  /* Floating panels + soft card elevation — edit once. */
+  --shadow-card: 0 1px 2px color-mix(in srgb, var(--scrim) 14%, transparent),
+    0 6px 18px color-mix(in srgb, var(--scrim) 10%, transparent);
+  --shadow-popover: 0 10px 28px color-mix(in srgb, var(--scrim) 38%, transparent);
+  --shadow-popover-lg: 0 14px 36px color-mix(in srgb, var(--scrim) 48%, transparent);
+  --shadow-dialog: 0 10px 36px color-mix(in srgb, var(--scrim) 38%, transparent);
+  --shadow-dialog-win: 0 14px 44px color-mix(in srgb, var(--scrim) 42%, transparent);
 }

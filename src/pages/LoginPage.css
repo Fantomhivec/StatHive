@@ -20,7 +20,7 @@
 .login-stack {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
 }
 
 .login-welcome {
@@ -39,7 +39,7 @@
 .login-oauth-layout {
   display: grid;
   grid-template-columns: minmax(0, 1.45fr) minmax(260px, 0.9fr);
-  gap: 14px 16px;
+  gap: 16px 18px;
   align-items: stretch;
   min-width: 0;
 }
@@ -47,7 +47,7 @@
 .login-oauth-side {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   min-width: 0;
 }
 
@@ -60,11 +60,11 @@
 .login-oauth-guide-panel {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   min-width: 0;
-  padding: 12px 14px;
+  padding: 14px 16px;
   border: 1px solid var(--border);
-  border-radius: var(--control-radius);
+  border-radius: var(--control-radius-lg);
   background: color-mix(in srgb, var(--control-face) 55%, var(--panel));
   font-size: 12px;
   line-height: 1.35;

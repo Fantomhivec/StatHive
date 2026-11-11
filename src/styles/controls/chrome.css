@@ -4,6 +4,7 @@
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: var(--control-radius-lg);
+  box-shadow: var(--shadow-card);
 }
 
 .card--md {
@@ -17,6 +18,7 @@
 /* Section panels (Users / Profile) — same face as .card, square corners + inner stack. */
 .card--flush {
   border-radius: 0;
+  box-shadow: none;
 }
 
 .card--stack {
@@ -249,9 +251,9 @@ html[data-theme="light"] .wb-tables-plaque-refresh {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 40px;
-  padding: 0 0 0 10px;
-  background: var(--panel);
+  height: 42px;
+  padding: 0 0 0 12px;
+  background: color-mix(in srgb, var(--panel) 92%, var(--bg));
   border-bottom: 1px solid var(--border);
   color: var(--text);
   user-select: none;

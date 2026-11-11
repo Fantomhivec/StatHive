@@ -36,10 +36,15 @@
   overflow: hidden;
 }
 
-.app-combo.open .app-combo-main,
 .app-combo-main:hover {
   border-color: var(--accent);
   background: var(--control-face-hover);
+}
+
+.app-combo.open .app-combo-main {
+  border-color: var(--accent);
+  background: var(--control-face-hover);
+  box-shadow: var(--focus-ring);
 }
 
 .app-combo-input,
