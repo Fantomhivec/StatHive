@@ -5,19 +5,21 @@
   max-height: min(80vh, 720px);
 }
 
-/* Редактор шаблона: шире под длинные title + api_method · date в script combo. */
+/* Editor: form-dialog measure; body scrolls, header/footer sticky via panel flex. */
 .tpl-dialog--wide {
-  width: min(720px, 100%);
-  max-height: min(92vh, 828px);
+  width: min(780px, 100%);
+  max-height: min(90vh, 880px);
 }
 
-/* Dense editor: ~−40% vertical air; zero .field margin inside gap stacks (105). */
-.tpl-dialog .tpl-modal-body {
-  gap: 8px;
+/* Section-card air (lesson 105); zero .field margin inside gap stacks. */
+.tpl-dialog--wide .tpl-modal-body {
+  gap: 16px;
 }
 
-.tpl-dialog .tpl-dialog-card {
-  gap: 7px;
+.tpl-dialog--wide .tpl-dialog-card {
+  gap: 12px;
+  background: var(--panel);
+  box-shadow: var(--shadow-card);
 }
 
 .tpl-dialog .tpl-dialog-card > .field {
@@ -28,11 +30,17 @@
   margin: 0;
 }
 
-.tpl-dialog .field > label {
-  font-size: 14px;
-  font-weight: 700;
+.tpl-dialog-card-desc {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--muted);
 }
 
+.tpl-dialog .field > label {
+  font-size: 13px;
+  font-weight: 600;
+}
 .tpl-dialog-header-title {
   display: flex;
   align-items: center;
@@ -44,6 +52,11 @@
 .tpl-dialog-header-title h2 {
   flex-shrink: 1;
   min-width: 0;
+  margin: 0;
+  font-size: 17px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
 }
 
 .tpl-dialog-header-actions {
@@ -308,32 +321,55 @@ body.tpl-picker-dragging * {
 
 .tpl-ed-pickers {
   width: 100%;
-  flex-wrap: nowrap;
+  display: flex;
+  flex-wrap: wrap;
   gap: 10px;
   margin: 0;
 }
 
-.tpl-ed-pickers .btn {
+.tpl-ed-pickers .btn,
+.tpl-ed-picker-tile {
   flex: 1 1 0;
   min-width: 0;
 }
 
-/* Card gap stack: flush the picker row (no extra field margins). */
+/* Outline data tiles (cabinets / fields) — not primary CTA. */
+.tpl-ed-picker-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 4px;
+  min-height: 52px;
+  padding: 10px 14px;
+  text-align: left;
+}
+
+.tpl-ed-picker-tile-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.tpl-ed-picker-tile-meta {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+/* Card gap stack: flush the picker row. */
 .tpl-dialog .tpl-dialog-card > .tpl-ed-pickers {
   margin-bottom: 0;
 }
 
-.tpl-ed-section {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+/* Advanced block: one tint shell, inner cards without double title chrome. */
+.tpl-ed-advanced {
   margin: 0;
+  gap: 12px;
 }
 
-.tpl-ed-section-title {
+.tpl-ed-advanced > .tpl-dialog-card-header {
   margin: 0;
-  font-size: 14px;
-  font-weight: 700;
 }
 
 .tpl-ed-section-stack {
@@ -344,6 +380,8 @@ body.tpl-picker-dragging * {
 
 .tpl-ed-section-stack .tpl-dialog-card {
   margin-bottom: 0;
+  background: var(--panel);
+  box-shadow: none;
 }
 
 .tpl-triggers-table-wrap {
@@ -362,7 +400,10 @@ body.tpl-picker-dragging * {
 .tpl-dialog-card-header {
   margin: 0 0 12px;
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+  color: var(--text);
 }
 
 .tpl-section-title {

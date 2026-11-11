@@ -61,6 +61,7 @@ export default function TemplateEditorWriteCards({
       {!visibility.hideWriteSettings ? (
         <div className="tpl-dialog-card">
           <h3 className="tpl-dialog-card-header">{t("templates.editor.writeSettings")}</h3>
+          <p className="tpl-dialog-card-desc">{t("templates.editor.writeSettingsHint")}</p>
           <div className="tpl-write-row">
             <div className="field tpl-write-field">
               <label>{t("templates.editor.sortBy")}</label>
@@ -116,6 +117,7 @@ export default function TemplateEditorWriteCards({
       {!visibility.hideWriteSettings && !tpl.export_to_excel ? (
         <div className="tpl-dialog-card">
           <h3 className="tpl-dialog-card-header">{t("templates.editor.changeSync")}</h3>
+          <p className="tpl-dialog-card-desc">{t("templates.editor.changeSyncHint")}</p>
           <p className="tpl-info">{syncInfo}</p>
           <button
             type="button"
@@ -130,6 +132,7 @@ export default function TemplateEditorWriteCards({
 
       <div className="tpl-dialog-card">
         <h3 className="tpl-dialog-card-header">{t("templates.editor.timeTriggers")}</h3>
+        <p className="tpl-dialog-card-desc">{t("templates.editor.timeTriggersHint")}</p>
         {tpl.sync_settings?.enable_change_sync && !tpl.export_to_excel ? (
           <p className="page-sub tpl-export-hint">{t("templates.editor.syncTriggersHint")}</p>
         ) : null}

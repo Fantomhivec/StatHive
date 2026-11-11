@@ -103,6 +103,9 @@ export default function TemplateEditorBody({
     visibility.showOzonIdMode ||
     hasUnifiedSources(visibility);
 
+  const cabinetsCount = (tpl.cabinets ?? []).length;
+  const fieldsCount = (tpl.selected_fields ?? []).filter((f) => f.selected).length;
+
   return (
     <>
       {excelOnly && !visibility.hideExportToExcelCard ? (
@@ -111,6 +114,7 @@ export default function TemplateEditorBody({
 
       <div className="tpl-dialog-card">
         <h3 className="tpl-dialog-card-header">{t("templates.editor.mainSettings")}</h3>
+        <p className="tpl-dialog-card-desc">{t("templates.editor.mainSettingsHint")}</p>
         <div className="field">
           <label htmlFor="tpl-name">{t("common.name")}</label>
           <input
@@ -191,25 +195,37 @@ export default function TemplateEditorBody({
 
       {showPickers ? (
         <div className="tpl-dialog-card">
+          <h3 className="tpl-dialog-card-header">{t("templates.editor.dataSection")}</h3>
+          <p className="tpl-dialog-card-desc">{t("templates.editor.dataSectionHint")}</p>
           <div className="form-actions tpl-ed-pickers">
             {!visibility.hideCabinets ? (
               <button
                 type="button"
-                className="btn btn-primary btn-md"
+                className="btn btn-outline tpl-ed-picker-tile"
                 disabled={saving}
                 onClick={onOpenCabinets}
               >
-                {t("templates.editor.pickCabinets")}
+                <span className="tpl-ed-picker-tile-label">
+                  {t("templates.editor.pickCabinets")}
+                </span>
+                <span className="tpl-ed-picker-tile-meta">
+                  {t("templates.editor.cabinetsCount", { count: cabinetsCount })}
+                </span>
               </button>
             ) : null}
             {!visibility.hideFields ? (
               <button
                 type="button"
-                className="btn btn-primary btn-md"
+                className="btn btn-outline tpl-ed-picker-tile"
                 disabled={saving}
                 onClick={onOpenFields}
               >
-                {t("templates.editor.pickExportFields")}
+                <span className="tpl-ed-picker-tile-label">
+                  {t("templates.editor.pickExportFields")}
+                </span>
+                <span className="tpl-ed-picker-tile-meta">
+                  {t("templates.editor.fieldsCount", { count: fieldsCount })}
+                </span>
               </button>
             ) : null}
           </div>
@@ -226,8 +242,9 @@ export default function TemplateEditorBody({
       ) : null}
 
       {showExtras ? (
-        <section className="tpl-ed-section">
-          <h3 className="tpl-ed-section-title">{t("templates.editor.extra")}</h3>
+        <section className="section-tint tpl-ed-advanced">
+          <h3 className="tpl-dialog-card-header">{t("templates.editor.extra")}</h3>
+          <p className="tpl-dialog-card-desc">{t("templates.editor.extraHint")}</p>
           <div className="tpl-ed-section-stack">
             <ScriptExtraCards
               visibility={visibility}
