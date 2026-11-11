@@ -87,9 +87,15 @@ pub fn register(run_key: &str) -> Arc<AtomicBool> {
     flag
 }
 
+/// Remove key from cancel_map; idempotent (safe if already cleared by cancel/Drop).
 pub fn unregister(run_key: &str) {
-    if let Ok(mut g) = cancel_map().lock() {
-        g.remove(run_key);
+    let removed = if let Ok(mut g) = cancel_map().lock() {
+        g.remove(run_key).is_some()
+    } else {
+        false
+    };
+    if !removed {
+        return;
     }
     if let Some(gid) = run_key.strip_prefix("group:") {
         clear_group_active_template(gid);
@@ -97,14 +103,118 @@ pub fn unregister(run_key: &str) {
     MANUAL_ACTIVE.fetch_sub(1, Ordering::Relaxed);
 }
 
+fn parse_run_key(run_key: &str) -> Option<(&str, &str)> {
+    if let Some(id) = run_key.strip_prefix("group:") {
+        Some(("group", id))
+    } else if let Some(id) = run_key.strip_prefix("template:") {
+        Some(("template", id))
+    } else {
+        None
+    }
+}
+
+/// Stop: set cancel flag, drop map key (hydrate idle), emit cancelled.
+/// Live loops keep their `Arc<AtomicBool>` and still observe the flag.
 pub fn cancel(run_key: &str) -> bool {
-    if let Ok(g) = cancel_map().lock() {
+    let found = if let Ok(g) = cancel_map().lock() {
         if let Some(f) = g.get(run_key) {
             f.store(true, Ordering::Relaxed);
-            return true;
+            true
+        } else {
+            false
+        }
+    } else {
+        false
+    };
+    unregister(run_key);
+    if let Some((entity_type, id)) = parse_run_key(run_key) {
+        let at = chrono::Utc::now().to_rfc3339();
+        emit_progress_ex(
+            entity_type,
+            id,
+            Some("cancelled"),
+            false,
+            Some(&at),
+            None,
+            if entity_type == "group" {
+                Some(id)
+            } else {
+                None
+            },
+        );
+        if entity_type == "group" {
+            let _ = crate::templates::store::set_group_last_run(id, "cancelled");
+        } else {
+            let _ = crate::templates::store::set_last_run(id, "cancelled");
         }
     }
-    false
+    found
+}
+
+/// Best-effort: cancel every active run (window close).
+pub fn cancel_all() {
+    for key in active_keys() {
+        let _ = cancel(&key);
+    }
+}
+
+/// RAII: always unregister; on abort (not disarmed) emit cancelled + persist.
+pub struct RunGuard {
+    run_key: String,
+    entity_type: &'static str,
+    entity_id: String,
+    disarmed: bool,
+}
+
+impl RunGuard {
+    pub fn arm(run_key: String, entity_type: &'static str, entity_id: String) -> (Arc<AtomicBool>, Self) {
+        let flag = register(&run_key);
+        (
+            flag,
+            Self {
+                run_key,
+                entity_type,
+                entity_id,
+                disarmed: false,
+            },
+        )
+    }
+
+    /// Normal path finished emit/persist — Drop only unregisters.
+    pub fn disarm(mut self) {
+        self.disarmed = true;
+        unregister(&self.run_key);
+        std::mem::forget(self);
+    }
+}
+
+impl Drop for RunGuard {
+    fn drop(&mut self) {
+        unregister(&self.run_key);
+        if self.disarmed {
+            return;
+        }
+        let at = chrono::Utc::now().to_rfc3339();
+        let gid = if self.entity_type == "group" {
+            Some(self.entity_id.as_str())
+        } else {
+            None
+        };
+        emit_progress_ex(
+            self.entity_type,
+            &self.entity_id,
+            Some("cancelled"),
+            false,
+            Some(&at),
+            None,
+            gid,
+        );
+        if self.entity_type == "group" {
+            let _ = crate::templates::store::set_group_last_run(&self.entity_id, "cancelled");
+        } else {
+            let _ = crate::templates::store::set_last_run(&self.entity_id, "cancelled");
+        }
+    }
 }
 
 /// Snapshot of active run keys (`template:…` / `group:…`).
@@ -183,7 +293,19 @@ pub fn emit_progress_ex(
 }
 
 /// Patch snapshot cards with live run flags from cancel_map / active template.
+/// Full reconcile: clear all ephemeral flags first, then set from active_keys only.
 pub fn hydrate_snapshot_running(snap: &mut crate::templates::model::TemplatesSnapshot) {
+    for g in &mut snap.groups {
+        g.is_running = false;
+        g.active_template_id = None;
+    }
+    for t in &mut snap.templates {
+        t.is_running = false;
+    }
+    for t in &mut snap.standalone {
+        t.is_running = false;
+    }
+
     let keys = active_keys();
     let mut tpl_running: std::collections::HashSet<String> = std::collections::HashSet::new();
     let mut group_running: std::collections::HashSet<String> = std::collections::HashSet::new();

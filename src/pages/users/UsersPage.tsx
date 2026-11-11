@@ -70,7 +70,7 @@ export default function UsersPage() {
               </button>
             ) : null}
             <button
-              className="btn btn-outline"
+              className="btn btn-soft"
               type="button"
               disabled={m.busy}
               title={t("users.discordTitle", { name: DISCORD_COMMUNITY_NAME })}
@@ -80,7 +80,7 @@ export default function UsersPage() {
             </button>
             {m.isMainAdmin ? (
               <button
-                className="btn btn-outline"
+                className="btn btn-soft"
                 type="button"
                 disabled={m.busy}
                 onClick={() => void m.onCopyTeamCode()}
@@ -89,7 +89,7 @@ export default function UsersPage() {
               </button>
             ) : null}
             <button
-              className="btn btn-ghost"
+              className="btn btn-soft"
               type="button"
               disabled={m.busy}
               onClick={() => void m.withBusy(() => m.loadAll(true))}
@@ -116,7 +116,7 @@ export default function UsersPage() {
             <button
               key={k}
               type="button"
-              className={`btn btn-ghost btn-segment${m.tab === k ? " is-active" : ""}`}
+              className={`btn btn-soft btn-segment${m.tab === k ? " is-active" : ""}`}
               disabled={m.busy}
               onClick={() => m.setTab(k)}
             >
@@ -131,25 +131,30 @@ export default function UsersPage() {
         {m.tab === "users" && (
           <>
             {m.isMainAdmin ? (
-              <div className="card card--md card--stack users-team-toolbar">
-                <div className="users-team-toolbar-row">
-                  <div className="users-team-toolbar-meta">
-                    <span className="users-team-toolbar-label">{t("users.teamNameTitle")}</span>
-                    <span className="users-team-toolbar-name">
-                      {teamShort || t("common.emDash")}
-                    </span>
+              <>
+                <div className="card card--md card--stack users-section-card">
+                  <div className="users-section-head">
+                    <h2 className="users-section-title">{t("users.teamNameTitle")}</h2>
+                    <p className="users-section-desc">{t("users.teamNameHint")}</p>
                   </div>
-                  <button
-                    type="button"
-                    className="btn btn-outline btn-sm"
-                    disabled={m.busy || !m.workspaceId}
-                    onClick={() => {
-                      m.setTeamNameDraft(teamShort || "StatHive");
-                      setTeamNameOpen(true);
-                    }}
-                  >
-                    {t("users.teamNameEdit")}
-                  </button>
+                  <div className="users-team-toolbar-row">
+                    <div className="users-team-toolbar-meta">
+                      <span className="users-team-toolbar-name">
+                        {teamShort || t("common.emDash")}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      className="btn btn-outline btn-sm"
+                      disabled={m.busy || !m.workspaceId}
+                      onClick={() => {
+                        m.setTeamNameDraft(teamShort || "StatHive");
+                        setTeamNameOpen(true);
+                      }}
+                    >
+                      {t("users.teamNameEdit")}
+                    </button>
+                  </div>
                 </div>
                 <UsersSaPanel
                   busy={m.busy}
@@ -162,20 +167,8 @@ export default function UsersPage() {
                   onReplace={() => void m.onReplaceServiceAccount()}
                   onSave={(e) => void m.onSaveServiceAccount(e)}
                 />
-              </div>
+              </>
             ) : null}
-
-            <div className="users-table-actions">
-              <button
-                type="button"
-                className="btn btn-primary"
-                disabled={inviteDisabled}
-                title={inviteTitle}
-                onClick={() => setInviteOpen(true)}
-              >
-                {t("users.inviteOpen")}
-              </button>
-            </div>
 
             <UsersTeamTable
               team={m.team}
@@ -185,6 +178,9 @@ export default function UsersPage() {
               calcConfigs={m.calcConfigs}
               presetOptions={m.presetOptions}
               calcConfigOptions={m.calcConfigOptions}
+              inviteDisabled={inviteDisabled}
+              inviteTitle={inviteTitle}
+              onInvite={() => setInviteOpen(true)}
               onSetPreset={m.onSetPreset}
               onSetCalcConfig={m.onSetCalcConfig}
               onDeleteUser={m.onDeleteUser}

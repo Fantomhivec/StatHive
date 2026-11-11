@@ -26,7 +26,7 @@ pub async fn run_group(
 ) -> Result<(usize, String), String> {
     let group = store::get_group(group_id)?.ok_or_else(|| t("errors.templates.groupNotFound"))?;
     let run_key = format!("group:{}", group.id);
-    let cancelled = runs::register(&run_key);
+    let (cancelled, guard) = runs::RunGuard::arm(run_key, "group", group.id.clone());
     let started_at = Utc::now().to_rfc3339();
     runs::emit_progress_ex(
         "group",
@@ -82,7 +82,6 @@ pub async fn run_group(
     }
 
     runs::clear_group_active_template(&group.id);
-    runs::unregister(&run_key);
     let at = Utc::now().to_rfc3339();
 
     if was_cancelled {
@@ -97,6 +96,7 @@ pub async fn run_group(
             None,
             Some(&group.id),
         );
+        guard.disarm();
         return Err(t("errors.cancelled"));
     }
 
@@ -113,6 +113,7 @@ pub async fn run_group(
             None,
             Some(&group.id),
         );
+        guard.disarm();
         return Err(summary);
     }
 
@@ -126,5 +127,6 @@ pub async fn run_group(
         None,
         Some(&group.id),
     );
+    guard.disarm();
     Ok((total_rows, messages.join("; ")))
 }

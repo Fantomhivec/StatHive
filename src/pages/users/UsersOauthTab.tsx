@@ -111,8 +111,11 @@ export default function UsersOauthTab({
   const uiBusy = busy || loading;
 
   return (
-    <div className="card card--md card--stack users-oauth-tab">
-      <p className="muted users-oauth-intro">{t("users.oauthTabIntro")}</p>
+    <div className="card card--md card--stack users-section-card users-oauth-tab">
+      <div className="users-section-head">
+        <h2 className="users-section-title">{t("users.tabOauth")}</h2>
+        <p className="users-section-desc users-oauth-intro">{t("users.oauthTabIntro")}</p>
+      </div>
 
       <div className="users-oauth-status">
         <p className="users-oauth-status-text u-m-0">
@@ -155,7 +158,9 @@ export default function UsersOauthTab({
       </div>
 
       <div className="users-oauth-grants">
-        <h3 className="users-oauth-grants-title">{t("users.oauthGrantsTitle")}</h3>
+        <h3 className="users-section-title users-oauth-grants-title">
+          {t("users.oauthGrantsTitle")}
+        </h3>
         <ul className="users-oauth-grant-list">
           {grants.map((g) => (
             <li key={g.login} className="users-oauth-grant-item">

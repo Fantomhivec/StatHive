@@ -110,7 +110,23 @@ export function useTemplatesActions() {
     ensureTemplatesRunProgressBridge();
     const cached = getTemplatesSnapCache(market);
     if (cached) {
-      setSnap(cached);
+      // Cache-first paint: never show Stop from stale is_running; reload restores if live.
+      setSnap({
+        ...cached,
+        groups: (cached.groups ?? []).map((g) => ({
+          ...g,
+          is_running: false,
+          active_template_id: null,
+        })),
+        templates: (cached.templates ?? []).map((tpl) => ({
+          ...tpl,
+          is_running: false,
+        })),
+        standalone: (cached.standalone ?? []).map((tpl) => ({
+          ...tpl,
+          is_running: false,
+        })),
+      });
       setError(null);
     }
     void ensureScriptsMap();
@@ -143,6 +159,8 @@ export function useTemplatesActions() {
   // Groups hydrate already reported is_running — required before hydrate-end finalize
   // (avoids closing wave on the tick before Rust register enters cancel_map).
   const seenHydrateRunningRef = useRef(new Set<string>());
+  /** Consecutive !is_running polls after seen running — avoid mid-group false finalize. */
+  const idleHydrateTicksRef = useRef(new Map<string, number>());
 
   // Lesson 121: while group wave flies, poll hydrate cursor → same tones pipeline.
   // Lesson 123: hydrate !is_running + inFlight → finalize (finish events may be lost).
@@ -156,17 +174,26 @@ export function useTemplatesActions() {
         if (dead) return;
         let moved = false;
         for (const g of s.groups ?? []) {
-          if (g.is_running) seenHydrateRunningRef.current.add(g.id);
+          if (g.is_running) {
+            seenHydrateRunningRef.current.add(g.id);
+            idleHydrateTicksRef.current.set(g.id, 0);
+          }
           if (advanceGroupWaveFromActive(g.id, g.active_template_id)) moved = true;
           // Group left cancel_map — close wave even if runProgress finish never arrived.
-          if (
-            !g.is_running &&
-            seenHydrateRunningRef.current.has(g.id) &&
-            finalizeGroupWaveFromHydrate(g.id, g.last_run_status)
-          ) {
-            seenHydrateRunningRef.current.delete(g.id);
-            moved = true;
-            setBusyId((id) => (id === g.id ? null : id));
+          // Require 2 idle ticks so a brief gap between nested runs cannot flash «N of M».
+          if (!g.is_running && seenHydrateRunningRef.current.has(g.id)) {
+            const n = (idleHydrateTicksRef.current.get(g.id) ?? 0) + 1;
+            idleHydrateTicksRef.current.set(g.id, n);
+            if (
+              n >= 2 &&
+              busyId !== g.id &&
+              finalizeGroupWaveFromHydrate(g.id, g.last_run_status)
+            ) {
+              seenHydrateRunningRef.current.delete(g.id);
+              idleHydrateTicksRef.current.delete(g.id);
+              moved = true;
+              setBusyId((id) => (id === g.id ? null : id));
+            }
           }
         }
         if (moved) setGroupWaves(snapshotGroupWaves());
@@ -182,7 +209,7 @@ export function useTemplatesActions() {
       dead = true;
       window.clearInterval(timer);
     };
-  }, [waveFlying, market, applySnap]);
+  }, [waveFlying, market, applySnap, busyId]);
 
   // Caps/пресеты догрузились после restore — убрать ложный «нет доступа» без ухода со вкладки.
   useEffect(() => {

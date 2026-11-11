@@ -29,7 +29,20 @@
   cursor: default;
 }
 
-/* Tertiary: без заливки — не конкурирует с primary/outline. */
+/* Soft: тихий bordered — сегменты / действия на --bg, где ghost теряется. */
+.btn-soft {
+  background: var(--btn-soft-face);
+  border-color: var(--btn-soft-border);
+  color: var(--btn-soft-text);
+}
+
+.btn-soft:hover:not(:disabled) {
+  background: var(--btn-soft-face-hover);
+  border-color: color-mix(in srgb, var(--muted) 45%, var(--btn-soft-border));
+  color: var(--btn-soft-text);
+}
+
+/* Ghost: без рамки — только Cancel / слабый акцент на панели с границей. */
 .btn-ghost {
   background: transparent;
   border-color: transparent;
@@ -395,10 +408,11 @@
   filter: brightness(1.08);
 }
 
-/* Segment / entity list: accent border+text without soft fill (Users, Login mode). */
+/* Segment / entity list: accent border+text + soft fill (Users, Login mode). */
 .btn-segment.is-active {
   color: var(--accent);
   border-color: color-mix(in srgb, var(--accent) 50%, var(--border));
+  background: var(--accent-soft);
 }
 
 .btn-tab-add {

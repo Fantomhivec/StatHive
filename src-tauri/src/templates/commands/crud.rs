@@ -48,6 +48,12 @@ pub async fn templates_snapshot(
             }
         }
     }
+    // Boot: last_run_status "running" left after kill / Save mid-run → cancelled.
+    if let Ok(n) = store::scrub_stuck_running_last_runs_once() {
+        if n > 0 {
+            snap = store::snapshot(&args.marketplace)?;
+        }
+    }
     let market = normalize_marketplace(&args.marketplace);
     let allowed = |script_key: &str| {
         let member_ok = state.registry.is_member_ok(script_key);

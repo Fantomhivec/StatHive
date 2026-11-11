@@ -26,6 +26,9 @@ export type UsersTeamTableProps = {
   calcConfigs: TeamConfigListItem[];
   presetOptions: { value: string; label: string }[];
   calcConfigOptions: { value: string; label: string }[];
+  inviteDisabled: boolean;
+  inviteTitle?: string;
+  onInvite: () => void;
   onSetPreset: (rowIndex: number, presetId: string) => void;
   onSetCalcConfig: (rowIndex: number, nextId: string, shownId: string) => void;
   onDeleteUser: (rowIndex: number, login: string) => void;
@@ -39,6 +42,9 @@ export default function UsersTeamTable({
   calcConfigs,
   presetOptions,
   calcConfigOptions,
+  inviteDisabled,
+  inviteTitle,
+  onInvite,
   onSetPreset,
   onSetCalcConfig,
   onDeleteUser,
@@ -75,8 +81,22 @@ export default function UsersTeamTable({
   }, [team, calcConfigs, calcConfigOptions]);
 
   return (
-    <section className="card card--flush card--stack users-panel">
-      <h2 className="panel-title">{t("users.teamTitle", { count: team.length })}</h2>
+    <section className="card card--md card--stack users-section-card users-panel">
+      <div className="users-presets-toolbar">
+        <div className="users-presets-toolbar-meta">
+          <h2 className="users-section-title">{t("users.teamTitle", { count: team.length })}</h2>
+          <p className="users-section-desc">{t("users.teamListHint")}</p>
+        </div>
+        <button
+          type="button"
+          className="btn btn-primary"
+          disabled={inviteDisabled}
+          title={inviteTitle}
+          onClick={onInvite}
+        >
+          {t("users.inviteOpen")}
+        </button>
+      </div>
       <div className="users-table-wrap">
         <table className="data-table data-table--top">
           <thead>

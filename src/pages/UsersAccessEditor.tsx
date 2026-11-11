@@ -212,9 +212,13 @@ export default function UsersAccessEditor({
           onChange={(e) => emit({ title: e.target.value })}
         />
       </div>
-      <div className="users-scripts-block">
-        <p className="muted users-scripts-hint">{t("users.access.calcHint")}</p>
-        <div className="plate plate--pad users-flag-grid">
+
+      <section className="card card--md card--stack users-access-section">
+        <div className="users-section-head">
+          <h3 className="users-section-title">{t("users.access.calcTitle")}</h3>
+          <p className="users-section-desc">{t("users.access.calcHint")}</p>
+        </div>
+        <div className="wb-card wb-card--control users-flag-grid">
           {CALC_FLAGS.map((flag) => (
             <label key={flag} className="users-check-row">
               <input
@@ -230,11 +234,14 @@ export default function UsersAccessEditor({
         {flags.includes("tables") ? (
           <p className="muted users-scripts-hint">{t("users.access.tablesDriveHint")}</p>
         ) : null}
-      </div>
+      </section>
 
-      <div className="users-scripts-block">
-        <p className="muted users-scripts-hint">{t("users.access.appHint")}</p>
-        <div className="plate plate--pad users-flag-grid users-flag-grid--app">
+      <section className="card card--md card--stack users-access-section">
+        <div className="users-section-head">
+          <h3 className="users-section-title">{t("users.access.appTitle")}</h3>
+          <p className="users-section-desc">{t("users.access.appHint")}</p>
+        </div>
+        <div className="wb-card wb-card--control users-flag-grid users-flag-grid--app">
           {APP_FLAGS.map((flag) => (
             <label key={flag} className="users-check-row">
               <input
@@ -247,10 +254,13 @@ export default function UsersAccessEditor({
             </label>
           ))}
         </div>
-      </div>
+      </section>
 
-      <div className="users-scripts-block users-scripts-block--catalog">
-        <p className="muted users-scripts-hint">{t("users.access.scriptsHint")}</p>
+      <section className="card card--md card--stack users-access-section users-scripts-block users-scripts-block--catalog">
+        <div className="users-section-head">
+          <h3 className="users-section-title">{t("users.access.scriptsTitle")}</h3>
+          <p className="users-section-desc">{t("users.access.scriptsHint")}</p>
+        </div>
         <label className="users-check-row">
           <input
             type="checkbox"
@@ -295,7 +305,7 @@ export default function UsersAccessEditor({
             autoComplete="off"
           />
         </div>
-        <div className="plate plate--pad users-script-catalog">
+        <div className="wb-card wb-card--control users-script-catalog">
           {catalog.length === 0 ? (
             <p className="muted u-m-0">{t("users.access.catalogEmpty")}</p>
           ) : visibleCatalog.length === 0 ? (
@@ -317,7 +327,7 @@ export default function UsersAccessEditor({
             ))
           )}
         </div>
-      </div>
+      </section>
     </div>
   );
 }

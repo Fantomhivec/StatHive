@@ -27,6 +27,11 @@ pub fn upsert_group(mut group: TemplateGroup) -> Result<TemplateGroup, String> {
     if group.name.trim().is_empty() {
         return Err(t("errors.templates.groupNameRequired"));
     }
+    // Never persist ephemeral mid-run status from editor snap.
+    if group.last_run_status.trim().eq_ignore_ascii_case("running") {
+        group.last_run_status = String::new();
+        group.last_run_at = String::new();
+    }
     with_file_mut(|file| {
         let market = group.marketplace.clone();
         let bundle = file.market_mut(&market);

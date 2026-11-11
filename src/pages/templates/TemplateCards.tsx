@@ -134,9 +134,12 @@ function GroupCardInner({
     !liveWave.inFlight &&
     Object.keys(liveWave.tones).length > 0 &&
     !Object.values(liveWave.tones).some((tone) => tone === "run");
-  const groupRunning = waveSessionDone
+  const snapOrBusyRunning =
+    !!g.is_running || busyId === g.id || nestedRunning || !!liveWave?.inFlight;
+  // waveSessionDone kills Stop only when snap/busy also idle — not while Rust still runs.
+  const groupRunning = waveSessionDone && !g.is_running && busyId !== g.id
     ? false
-    : !!g.is_running || busyId === g.id || nestedRunning || !!liveWave?.inFlight;
+    : snapOrBusyRunning;
   const running = groupRunning;
   const when = formatRunAtDisplay(g.last_run_at);
   const status = (g.last_run_status ?? "").trim();
@@ -146,7 +149,10 @@ function GroupCardInner({
       ? `${t("templates.card.templatesShort", { count: g.template_ids?.length ?? 0 })} · ${[when, status || t("templates.card.ready")].filter(Boolean).join(" · ")}`
       : `${t("templates.card.templatesShort", { count: g.template_ids?.length ?? 0 })} · ${t("templates.card.ready")}`;
   const successCount = !running
-    ? groupWaveSuccessCount(liveWave, g.template_ids?.length ?? 0)
+    ? groupWaveSuccessCount(liveWave, g.template_ids?.length ?? 0, {
+        groupRunning: !!g.is_running,
+        busy: busyId === g.id,
+      })
     : null;
   return (
     <div className="card card--md card--pad tpl-card">

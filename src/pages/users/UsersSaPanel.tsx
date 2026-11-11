@@ -42,10 +42,13 @@ export default function UsersSaPanel({
   const [manualOpen, setManualOpen] = useState(false);
 
   return (
-    <div className="users-sa-compact">
+    <section className="card card--md card--stack users-section-card">
+      <div className="users-section-head">
+        <h2 className="users-section-title">{t("users.serviceAccountTitle")}</h2>
+        <p className="users-section-desc">{t("users.serviceAccountSectionHint")}</p>
+      </div>
       <div className="users-sa-compact-row">
         <div className="users-sa-compact-meta">
-          <span className="users-sa-compact-label">{t("users.serviceAccountTitle")}</span>
           {saConfigured ? (
             <span className="ok-text u-m-0">
               {t("users.serviceAccountOk", { email: saEmail || "—" })}
@@ -83,7 +86,7 @@ export default function UsersSaPanel({
           )}
           <button
             type="button"
-            className="btn btn-ghost btn-sm"
+            className={"btn btn-sm" + (manualOpen ? " btn-ghost" : " btn-soft")}
             disabled={busy}
             onClick={() => setManualOpen((v) => !v)}
           >
@@ -116,6 +119,6 @@ export default function UsersSaPanel({
           </div>
         </form>
       ) : null}
-    </div>
+    </section>
   );
 }

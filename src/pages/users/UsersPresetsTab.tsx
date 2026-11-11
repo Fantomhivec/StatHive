@@ -54,11 +54,11 @@ export default function UsersPresetsTab({
 
   return (
     <>
-      <section className="card card--md card--stack users-presets-panel">
+      <section className="card card--md card--stack users-section-card users-presets-panel">
         <div className="users-presets-toolbar">
           <div className="users-presets-toolbar-meta">
-            <h2 className="panel-title u-m-0">{t("users.presetsTitle")}</h2>
-            <p className="muted u-m-0">{t("users.presetsHintShort")}</p>
+            <h2 className="users-section-title">{t("users.presetsTitle")}</h2>
+            <p className="users-section-desc">{t("users.presetsHintShort")}</p>
           </div>
           <button
             type="button"

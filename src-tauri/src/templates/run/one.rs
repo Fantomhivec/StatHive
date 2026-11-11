@@ -27,13 +27,12 @@ pub async fn run_one_template(
     dry_run: bool,
 ) -> Result<(usize, String), String> {
     let run_key = format!("template:{}", tpl.id);
-    let cancelled = runs::register(&run_key);
+    let (cancelled, guard) = runs::RunGuard::arm(run_key, "template", tpl.id.clone());
     let started_at = Utc::now().to_rfc3339();
     runs::emit_progress("template", &tpl.id, Some("running"), true, Some(&started_at));
 
     let result = run_one_inner(state, tpl, cancelled.clone(), dry_run).await;
 
-    runs::unregister(&run_key);
     match &result {
         Ok(_) => {
             let at = Utc::now().to_rfc3339();
@@ -61,6 +60,7 @@ pub async fn run_one_template(
             );
         }
     }
+    guard.disarm();
     result
 }
 

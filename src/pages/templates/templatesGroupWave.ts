@@ -269,11 +269,29 @@ export function finalizeGroupWaveFromHydrate(
   return true;
 }
 
+function ensureWaveMemberIds(w: GroupWave, groupIdHint?: string): string[] {
+  if (w.memberIds.length > 0) return w.memberIds;
+  for (const market of ["wb", "ozon"] as TemplatesMarket[]) {
+    const snap = getTemplatesSnapCache(market);
+    const groups = snap?.groups ?? [];
+    const g = groupIdHint
+      ? groups.find((x) => x.id === groupIdHint)
+      : groups.find((x) => (x.template_ids ?? []).some((id) => w.tones[id] != null));
+    if (g?.template_ids?.length) {
+      w.memberIds = [...g.template_ids];
+      return w.memberIds;
+    }
+  }
+  return w.memberIds;
+}
+
 /** Last nested (or sole member) finished — no next cursor to advance tones. */
 function finalizeWaveIfLastMember(w: GroupWave, templateId: string, endTone: WaveTone) {
-  const members = w.memberIds;
-  // Empty roster: still finalize once no `run` tones remain (beginWave may omit ids).
-  if (members.length > 0 && members[members.length - 1] !== templateId) return;
+  const members = ensureWaveMemberIds(w);
+  // Empty roster: do NOT clear inFlight mid-group (premature «N of M» banner).
+  // Wait for group-end emit or hydrate-end after roster is known.
+  if (members.length === 0) return;
+  if (members[members.length - 1] !== templateId) return;
   for (const id of Object.keys(w.tones)) {
     if (w.tones[id] === "run") w.tones[id] = endTone;
   }
@@ -284,13 +302,16 @@ function finalizeWaveIfLastMember(w: GroupWave, templateId: string, endTone: Wav
 
 /**
  * Session summary after a finished group wave (lesson 123).
- * null while inFlight or when no terminal tones yet.
+ * null while inFlight, while group still running on snap, or when no terminal tones yet.
  */
 export function groupWaveSuccessCount(
   wave: GroupWave | undefined,
   fallbackMemberCount: number,
+  opts?: { groupRunning?: boolean; busy?: boolean },
 ): { ok: number; total: number } | null {
   if (!wave || wave.inFlight) return null;
+  // Mid-flight insurance: wave closed early but Rust/busy still live → hide banner.
+  if (opts?.groupRunning || opts?.busy) return null;
   let ok = 0;
   let terminal = 0;
   for (const tone of Object.values(wave.tones)) {

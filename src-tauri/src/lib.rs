@@ -45,6 +45,12 @@ pub fn run() {
             });
             Ok(())
         })
+        .on_window_event(|_window, event| {
+            // Best-effort: clear cancel_map orphans before process exit (titlebar close).
+            if let tauri::WindowEvent::CloseRequested { .. } = event {
+                templates::runs::cancel_all();
+            }
+        })
         .invoke_handler(tauri::generate_handler![
             bridge::app_version,
             bridge::i18n_get_locale,

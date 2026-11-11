@@ -28,6 +28,7 @@ pub(crate) use io::{with_file, with_file_mut};
 pub use tabs::{add_tab, delete_tab, rename_tab, select_tab, set_tab_color};
 pub use templates::{
     backfill_spreadsheet_target, backfill_spreadsheet_targets, clear_stuck_excel_exports,
-    clear_stuck_excel_exports_once, delete, get, set_last_run, snapshot, upsert,
+    clear_stuck_excel_exports_once, delete, get, scrub_stuck_running_last_runs_once, set_last_run,
+    snapshot, upsert,
 };
 pub(crate) use templates::find_market_for_template;

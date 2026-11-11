@@ -53,6 +53,11 @@
   --btn-outline-face-hover: var(--btn-face-hover);
   --btn-outline-border: var(--control-border);
   --btn-outline-text: var(--text);
+  /* Soft: тихий bordered tertiary — читается на --bg, слабее outline. */
+  --btn-soft-face: var(--control-face);
+  --btn-soft-face-hover: var(--control-face-hover);
+  --btn-soft-border: var(--control-border);
+  --btn-soft-text: var(--text);
   /* Площадки: узнаваемые бренд-акценты (на dark — светлее/мягче, не pure neon). */
   --mp-wb: #e056c8;
   --mp-ozon: #4d8fff;
@@ -134,6 +139,10 @@ html[data-theme="light"] {
   --btn-outline-face-hover: #d5d6db;
   --btn-outline-border: #a1a6c5;
   --btn-outline-text: var(--text);
+  --btn-soft-face: var(--control-face);
+  --btn-soft-face-hover: var(--control-face-hover);
+  --btn-soft-border: var(--control-border);
+  --btn-soft-text: var(--text);
   /* Бренд площадок на light — как в гайдах, чуть мягче для плашек. */
   --mp-wb: #c218a8;
   --mp-ozon: #005bff;

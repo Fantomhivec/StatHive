@@ -110,6 +110,45 @@ pub fn clear_stuck_excel_exports_once() -> Result<usize, String> {
     clear_stuck_excel_exports()
 }
 
+/// Disk scrub: mid-run status left after kill/Save during run → cancelled.
+pub fn scrub_stuck_running_last_runs() -> Result<usize, String> {
+    with_file_mut(|file| {
+        let now = Utc::now().to_rfc3339();
+        let mut n = 0usize;
+        for t in file
+            .wb
+            .templates
+            .iter_mut()
+            .chain(file.ozon.templates.iter_mut())
+        {
+            if t.last_run_status.trim().eq_ignore_ascii_case("running") {
+                t.last_run_status = "cancelled".into();
+                t.last_run_at = now.clone();
+                t.touch();
+                n += 1;
+            }
+        }
+        for g in file.wb.groups.iter_mut().chain(file.ozon.groups.iter_mut()) {
+            if g.last_run_status.trim().eq_ignore_ascii_case("running") {
+                g.last_run_status = "cancelled".into();
+                g.last_run_at = now.clone();
+                n += 1;
+            }
+        }
+        Ok((n, n > 0))
+    })
+}
+
+/// Один раз за процесс при первом snapshot.
+pub fn scrub_stuck_running_last_runs_once() -> Result<usize, String> {
+    use std::sync::atomic::{AtomicBool, Ordering};
+    static DONE: AtomicBool = AtomicBool::new(false);
+    if DONE.swap(true, Ordering::SeqCst) {
+        return Ok(0);
+    }
+    scrub_stuck_running_last_runs()
+}
+
 pub fn upsert(mut tpl: Template) -> Result<Template, String> {
     tpl.touch();
     tpl.normalize();
