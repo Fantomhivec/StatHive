@@ -64,6 +64,7 @@ debug = false
 # Не копить incremental в release (и так почти не даёт выигрыша при LTO).
 incremental = false
 
-# Dev: символы не в отдельный огромный PDB-поток сверх нужного для отладки MSVC.
+# Dev: легче полного debug=2 — меньше PDB на MSVC, для повседневной отладки хватает.
 [profile.dev]
 incremental = true
+debug = 1

@@ -104,9 +104,10 @@ $zip = Join-Path $PSScriptRoot "StatHive-win-x64.zip"
 if (Test-Path $zip) { Remove-Item $zip -Force }
 Compress-Archive -Path (Join-Path $out "*") -DestinationPath $zip -Force
 
-Step "clean target leftovers (tmp + incremental + release deps)"
+Step "clean target leftovers (tmp + incremental + rename + release deps)"
 & (Join-Path $PSScriptRoot "scripts\clean-rust-tmp.ps1") `
-  -TargetDir $cargoTarget -MinAgeMinutes 0 -PruneIncremental -DropReleaseIntermediates
+  -TargetDir $cargoTarget -MinAgeMinutes 0 -PruneIncremental `
+  -DropRenamedLeftovers -PruneStaleCgu -DropReleaseIntermediates
 
 Write-Host ""
 Write-Host "OK:"
