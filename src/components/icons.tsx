@@ -21,6 +21,15 @@ export function IconGear() {
   );
 }
 
+/** Три полоски — меню разделов (shell nav). */
+export function IconMenu() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M4 7h16M4 12h16M4 17h16" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 /** Иконка глаза для показа/скрытия пароля. */
 export function IconEye({ hidden }: { hidden?: boolean }) {
   if (hidden) {

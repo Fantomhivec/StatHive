@@ -12,23 +12,70 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-export type AppTheme = "dark" | "light";
+export type ThemeScheme = "dark" | "light";
+
+export type AppTheme =
+  | "obsidian"
+  | "polar"
+  | "graphite"
+  | "paper"
+  | "frost"
+  | "slate";
+
+export type ThemeMeta = {
+  id: AppTheme;
+  scheme: ThemeScheme;
+  /** i18n key under settings.* */
+  labelKey: string;
+};
+
+export const THEME_PRESETS: readonly ThemeMeta[] = [
+  { id: "obsidian", scheme: "dark", labelKey: "settings.themeObsidian" },
+  { id: "polar", scheme: "dark", labelKey: "settings.themePolar" },
+  { id: "graphite", scheme: "dark", labelKey: "settings.themeGraphite" },
+  { id: "paper", scheme: "light", labelKey: "settings.themePaper" },
+  { id: "frost", scheme: "light", labelKey: "settings.themeFrost" },
+  { id: "slate", scheme: "light", labelKey: "settings.themeSlate" },
+] as const;
 
 const STORAGE_KEY = "app-theme";
+const DEFAULT_THEME: AppTheme = "obsidian";
+
+const PRESET_IDS = new Set<string>(THEME_PRESETS.map((p) => p.id));
+
+function metaFor(id: AppTheme): ThemeMeta {
+  return THEME_PRESETS.find((p) => p.id === id) ?? THEME_PRESETS[0];
+}
+
+/** Migrate legacy binary themes + validate preset id. */
+export function normalizeThemeId(raw: string | null | undefined): AppTheme {
+  const v = (raw ?? "").trim().toLowerCase();
+  if (v === "dark") return "obsidian";
+  if (v === "light") return "paper";
+  if (PRESET_IDS.has(v)) return v as AppTheme;
+  return DEFAULT_THEME;
+}
 
 export function readTheme(): AppTheme {
   try {
-    return localStorage.getItem(STORAGE_KEY) === "light" ? "light" : "dark";
+    return normalizeThemeId(localStorage.getItem(STORAGE_KEY));
   } catch {
-    return "dark";
+    return DEFAULT_THEME;
   }
 }
 
-/** Пишет тему на `<html>`, чтобы шапка и страницы читали одни CSS-переменные. */
+export function themeScheme(theme: AppTheme): ThemeScheme {
+  return metaFor(theme).scheme;
+}
+
+/** Пишет тему на `<html>` (`data-theme` + `data-scheme` для light overrides). */
 export function applyTheme(theme: AppTheme) {
-  document.documentElement.dataset.theme = theme;
+  const id = normalizeThemeId(theme);
+  const scheme = themeScheme(id);
+  document.documentElement.dataset.theme = id;
+  document.documentElement.dataset.scheme = scheme;
   try {
-    localStorage.setItem(STORAGE_KEY, theme);
+    localStorage.setItem(STORAGE_KEY, id);
   } catch {
     /* приватный режим */
   }

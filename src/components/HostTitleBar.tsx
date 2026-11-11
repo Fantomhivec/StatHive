@@ -20,7 +20,8 @@ import { hostWindow } from "../bridge/hostApiChrome";
 import { useAuth } from "../auth/AuthContext";
 import { useTabsLayoutCaps } from "../bridge/useTabsLayoutCaps";
 import { shortTeamName, WORKSPACE_TITLE_CHANGED } from "../bridge/workspaceTitle";
-import { IconGear } from "./icons";
+import { IconGear, IconMenu } from "./icons";
+import { useShellNav } from "../shell/ShellNavContext";
 import "./HostTitleBar.css";
 import { useT } from "../i18n";
 
@@ -75,6 +76,7 @@ export default function HostTitleBar({ variant, title }: Props) {
 
   const { user } = useAuth();
   const layoutCaps = useTabsLayoutCaps();
+  const { open: navOpen, toggle: toggleNav } = useShellNav();
   const [menuOpen, setMenuOpen] = useState(false);
   const [maximized, setMaximized] = useState(false);
   const [workspaceTitle, setWorkspaceTitle] = useState("");
@@ -184,6 +186,19 @@ export default function HostTitleBar({ variant, title }: Props) {
       onMouseDown={onTitleMouseDown}
     >
       <div className="host-titlebar-left">
+        {shell ? (
+          <button
+            type="button"
+            className="btn btn-chrome-sm host-tb-no-drag host-nav-toggle"
+            title={navOpen ? t("nav.closeMenu") : t("nav.openMenu")}
+            aria-label={navOpen ? t("nav.closeMenu") : t("nav.openMenu")}
+            aria-expanded={navOpen}
+            aria-controls="shell-nav"
+            onClick={() => toggleNav()}
+          >
+            <IconMenu />
+          </button>
+        ) : null}
         <img className="host-app-icon" src={appIcon} alt="" draggable={false} />
         <div className="host-title">{barTitle}</div>
       </div>

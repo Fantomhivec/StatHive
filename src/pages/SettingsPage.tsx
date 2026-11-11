@@ -15,7 +15,13 @@
 import { useState } from "react";
 import AppComboBox from "../components/AppComboBox";
 import { useI18n, useT } from "../i18n";
-import { applyTheme, readTheme, type AppTheme } from "../theme";
+import {
+  applyTheme,
+  normalizeThemeId,
+  readTheme,
+  THEME_PRESETS,
+  type AppTheme,
+} from "../theme";
 import type { AppLocale } from "../i18n";
 
 /** Настройка интерфейса (тема). Вкладки — из шестерёнки title bar. */
@@ -32,12 +38,12 @@ export default function SettingsPage() {
         <label htmlFor="app-theme">{t("settings.themeLabel")}</label>
         <AppComboBox
           value={theme}
-          options={[
-            { value: "dark", label: t("settings.themeDark") },
-            { value: "light", label: t("settings.themeLight") },
-          ]}
+          options={THEME_PRESETS.map((p) => ({
+            value: p.id,
+            label: t(p.labelKey),
+          }))}
           onChange={(v) => {
-            const next: AppTheme = v === "light" ? "light" : "dark";
+            const next = normalizeThemeId(v);
             setTheme(next);
             applyTheme(next);
           }}

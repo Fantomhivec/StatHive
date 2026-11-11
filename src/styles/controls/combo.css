@@ -298,20 +298,20 @@
   font-weight: 700;
 }
 
-html[data-theme="light"] .app-combo--emphasis .app-combo-main {
+html[data-scheme="light"] .app-combo--emphasis .app-combo-main {
   background: color-mix(in srgb, var(--accent) 8%, var(--panel));
 }
 
-html[data-theme="light"] .app-combo--emphasis.open .app-combo-main,
-html[data-theme="light"] .app-combo--emphasis .app-combo-main:hover {
+html[data-scheme="light"] .app-combo--emphasis.open .app-combo-main,
+html[data-scheme="light"] .app-combo--emphasis .app-combo-main:hover {
   background: color-mix(in srgb, var(--accent) 12%, var(--panel));
 }
 
-html[data-theme="light"] .app-combo--emphasis .app-combo-display-secondary {
+html[data-scheme="light"] .app-combo--emphasis .app-combo-display-secondary {
   color: color-mix(in srgb, var(--accent) 55%, var(--muted));
 }
 
-html[data-theme="light"] .app-combo--emphasis .app-combo-display-tertiary,
-html[data-theme="light"] .app-combo--emphasis.app-combo-grouped .app-combo-item-tertiary {
+html[data-scheme="light"] .app-combo--emphasis .app-combo-display-tertiary,
+html[data-scheme="light"] .app-combo--emphasis.app-combo-grouped .app-combo-item-tertiary {
   color: color-mix(in srgb, var(--warn) 70%, var(--ink));
 }

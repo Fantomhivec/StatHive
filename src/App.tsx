@@ -29,6 +29,11 @@ import HostTitleBar from "./components/HostTitleBar";
 import { FAIL_CLOSED_TABS_LAYOUT } from "./bridge/useTabsLayoutCaps";
 import { useT } from "./i18n";
 import { ensureTemplatesRunProgressBridge } from "./pages/templates/templatesPageCache";
+import {
+  ShellNavProvider,
+  shellNavTabBlocked,
+  useShellNav,
+} from "./shell/ShellNavContext";
 import "./styles/app.css";
 
 const UpdateAvailableDialog = lazy(() => import("./components/UpdateAvailableDialog"));
@@ -212,6 +217,32 @@ function ShellLayout() {
         : canLogs
           ? "/logs"
           : "/profile";
+
+  const { open: navOpen, setOpen: setNavOpen, toggle: toggleNav } = useShellNav();
+
+  useEffect(() => {
+    setNavOpen(false);
+  }, [location.pathname, setNavOpen]);
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        if (!navOpen) return;
+        if (document.querySelector(".overlay--win, .overlay--modal, .overlay--nested")) {
+          return;
+        }
+        e.preventDefault();
+        setNavOpen(false);
+        return;
+      }
+      if (e.key !== "Tab" || e.ctrlKey || e.metaKey || e.altKey) return;
+      if (shellNavTabBlocked()) return;
+      e.preventDefault();
+      toggleNav();
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [navOpen, setNavOpen, toggleNav]);
 
   const sessionId = user?.session_id ?? "";
   const accessLevel = user?.access_level ?? "";
@@ -437,13 +468,24 @@ function ShellLayout() {
   ]);
 
   return (
-    <div className="shell">
-      <nav className="shell-nav" aria-label={t("nav.sectionsAria")}>
+    <div className={navOpen ? "shell shell--nav-open" : "shell"}>
+      <div
+        className="shell-nav-scrim"
+        aria-hidden="true"
+        onClick={() => setNavOpen(false)}
+      />
+      <nav
+        id="shell-nav"
+        className={navOpen ? "shell-nav is-open" : "shell-nav"}
+        aria-label={t("nav.sectionsAria")}
+        aria-hidden={!navOpen}
+      >
         {navItems.map((l) => (
           <NavLink
             key={l.tabKey}
             to={l.to}
             end={l.end}
+            tabIndex={navOpen ? undefined : -1}
             className={({ isActive }) => (isActive ? "active" : undefined)}
           >
             {l.label}
@@ -463,12 +505,14 @@ function ShellLayout() {
 export default function App() {
   return (
     <AuthProvider>
-      <div className="app-frame">
-        <HostTitleBar />
-        <div className="app-body">
-          <AppRoutes />
+      <ShellNavProvider>
+        <div className="app-frame">
+          <HostTitleBar />
+          <div className="app-body">
+            <AppRoutes />
+          </div>
         </div>
-      </div>
+      </ShellNavProvider>
     </AuthProvider>
   );
 }

@@ -1,151 +1,367 @@
 @import "./tokens.css";
 @import "./controls.css";
 
-:root {
+/*
+ * Named theme presets (settings combo). Hex only here (lesson 109).
+ * Default before JS apply = Obsidian. Light control overrides use [data-scheme="light"].
+ */
+:root,
+html[data-theme="obsidian"] {
   color-scheme: dark;
-  /*
-   * Dark = Tokyo Night Storm (https://tokyonight.org/palette/):
-   * глубокий indigo-фон, чёткие слои elevation, акцент teal `#73daca`
-   * (не синий light/Ozon, не magenta WB). Не pure black.
-   */
-  --bg: #1a1b26;
-  --panel: #24283b;
-  --border: #3b4261;
-  /* Ярче Storm fg — иначе body/meta сливаются с panel. */
-  --text: #e8eaf8;
-  --muted: #c2c8e0;
-  --accent: #73daca;
-  --danger: #f7768e;
-  --ok: #9ece6a;
-  --warn: #e0af68;
-  --accent-soft: color-mix(in srgb, var(--accent) 22%, transparent);
-  /* Nested wave tints: strong mix so warn vs ok do not merge on dark bg (lesson 123). */
+  /* Обсидиан — Linear/Raycast charcoal, soft teal CTA. */
+  --bg: #0f1115;
+  --panel: #1c1f26;
+  --border: #2e3440;
+  --text: #e8eaed;
+  --muted: #9aa3b2;
+  --accent: #5eead4;
+  --danger: #fb7185;
+  --ok: #86efac;
+  --warn: #fbbf24;
+  --accent-soft: color-mix(in srgb, var(--accent) 20%, transparent);
   --tpl-wave-run: color-mix(in srgb, var(--warn) 48%, var(--bg));
   --tpl-wave-ok: color-mix(in srgb, var(--ok) 42%, var(--bg));
   --tpl-wave-err: color-mix(in srgb, var(--danger) 36%, var(--bg));
-  /* Mix bases + text on saturated fills (hex only here). */
-  --shade: #16161e;
-  /* Светлый на тёмных/затемнённых заливках (chips, plaque CTA). */
-  --on-strong: #c0caf5;
-  /* Тёмный ink на ярком teal/coral — иначе «Запустить»/«Удалить» нечитаемы. */
-  --ink: #1a1b26;
+  --shade: #0a0c10;
+  --on-strong: #e8eaed;
+  --ink: #0f1115;
   --scrim: #000000;
-  /* Лицо контролов светлее панели — комбо/инпуты/кнопки читаются на тёмном фоне. */
-  --control-face: #2f3549;
-  /* Hover лица поля ≠ линия бордера (раньше оба #3b4261). */
+  --control-face: #262b35;
   --control-face-hover: color-mix(in srgb, var(--btn-face-hover) 70%, var(--control-face));
-  /* Slightly clearer than Storm comment so inputs don't melt into panel. */
-  --control-border: #5c658f;
-  --btn-face: #363d59;
-  --btn-face-hover: #414868;
-  /* Primary CTA: яркий teal + тёмный текст (WCAG на светлой заливке). */
+  --control-border: #4a5568;
+  --btn-face: #2d3340;
+  --btn-face-hover: #3a4252;
   --btn-primary-face: var(--accent);
   --btn-primary-face-hover: color-mix(in srgb, var(--accent) 88%, var(--text));
   --btn-primary-border: color-mix(in srgb, var(--accent) 70%, var(--control-border));
   --btn-primary-text: var(--ink);
-  /* Danger: яркий coral + тёмный текст. */
   --btn-danger-face: var(--danger);
   --btn-danger-face-hover: color-mix(in srgb, var(--danger) 88%, var(--text));
   --btn-danger-border: color-mix(in srgb, var(--danger) 65%, var(--control-border));
   --btn-danger-text: var(--ink);
-  /* Outline: активный secondary — лицо/текст как у .btn, не muted (muted = «disabled»). */
   --btn-outline-face: var(--btn-face);
   --btn-outline-face-hover: var(--btn-face-hover);
   --btn-outline-border: var(--control-border);
   --btn-outline-text: var(--text);
-  /* Soft: тихий bordered tertiary — читается на --bg, слабее outline. */
   --btn-soft-face: var(--control-face);
   --btn-soft-face-hover: var(--control-face-hover);
   --btn-soft-border: var(--control-border);
   --btn-soft-text: var(--text);
-  /* Площадки: узнаваемые бренд-акценты (на dark — светлее/мягче, не pure neon). */
   --mp-wb: #e056c8;
   --mp-ozon: #4d8fff;
-  /* Calc section accents (card chrome). */
-  --calc-sec-params: #6a9fb5;
-  --calc-sec-id: #5b8def;
-  --calc-sec-stock: #3dba8a;
-  --calc-sec-funnel: #c9a227;
-  --calc-sec-price: #9b7bde;
-  --calc-sec-cost: #e07a5f;
-  --calc-sec-docs: #7a8a99;
-  /* Formula token chips (same hue both themes). */
-  --formula-chip-price: #3b82f6;
-  --formula-chip-fbs: #f59e0b;
-  --formula-chip-fbo: #eab308;
-  --formula-chip-extra: #a855f7;
-  --formula-chip-acquiring: #22c55e;
-  --formula-chip-ads: #ec4899;
-  --formula-chip-logistics: #14b8a6;
-  --formula-chip-tax: #ef4444;
-  --formula-chip-purchase: #8b5cf6;
-  /* Template tab color presets: soft face + readable text (dark). */
-  --tpl-tab-teal-face: color-mix(in srgb, #73daca 28%, var(--panel));
-  --tpl-tab-teal-text: #b4f0e4;
-  --tpl-tab-blue-face: color-mix(in srgb, #7aa2f7 30%, var(--panel));
-  --tpl-tab-blue-text: #c0d4ff;
-  --tpl-tab-violet-face: color-mix(in srgb, #bb9af7 30%, var(--panel));
-  --tpl-tab-violet-text: #e0d0ff;
-  --tpl-tab-coral-face: color-mix(in srgb, #f7768e 28%, var(--panel));
-  --tpl-tab-coral-text: #ffc0cb;
-  --tpl-tab-amber-face: color-mix(in srgb, #e0af68 30%, var(--panel));
-  --tpl-tab-amber-text: #f0d9a8;
-  --tpl-tab-green-face: color-mix(in srgb, #9ece6a 28%, var(--panel));
-  --tpl-tab-green-text: #d4f0a8;
+  --tpl-tab-teal-face: color-mix(in srgb, #5eead4 28%, var(--panel));
+  --tpl-tab-teal-text: #a7f3e8;
+  --tpl-tab-blue-face: color-mix(in srgb, #60a5fa 30%, var(--panel));
+  --tpl-tab-blue-text: #bfdbfe;
+  --tpl-tab-violet-face: color-mix(in srgb, #a78bfa 30%, var(--panel));
+  --tpl-tab-violet-text: #ddd6fe;
+  --tpl-tab-coral-face: color-mix(in srgb, #fb7185 28%, var(--panel));
+  --tpl-tab-coral-text: #fecdd3;
+  --tpl-tab-amber-face: color-mix(in srgb, #fbbf24 30%, var(--panel));
+  --tpl-tab-amber-text: #fde68a;
+  --tpl-tab-green-face: color-mix(in srgb, #86efac 28%, var(--panel));
+  --tpl-tab-green-text: #bbf7d0;
   --tpl-tab-rose-face: color-mix(in srgb, #e056c8 26%, var(--panel));
   --tpl-tab-rose-text: #f5c0ea;
-  --nav-w: 200px;
-  font-family: "Segoe UI", system-ui, sans-serif;
 }
 
-/*
- * Light = Tokyo Night Day (пара к Storm):
- * https://github.com/folke/tokyonight.nvim — bg `#e1e2e7`, cyan CTA `#007197`
- * (не Ozon blue). Текст/ink тёмные для AA; primary/danger = solid + `--on-strong`.
- */
-html[data-theme="light"] {
+html[data-theme="polar"] {
+  color-scheme: dark;
+  /* Полярная ночь — Nord Polar Night, frost cyan. */
+  --bg: #2e3440;
+  --panel: #3b4252;
+  --border: #4c566a;
+  --text: #eceff4;
+  --muted: #d8dee9;
+  --accent: #88c0d0;
+  --danger: #bf616a;
+  --ok: #a3be8c;
+  --warn: #ebcb8b;
+  --accent-soft: color-mix(in srgb, var(--accent) 22%, transparent);
+  --tpl-wave-run: color-mix(in srgb, var(--warn) 48%, var(--bg));
+  --tpl-wave-ok: color-mix(in srgb, var(--ok) 42%, var(--bg));
+  --tpl-wave-err: color-mix(in srgb, var(--danger) 36%, var(--bg));
+  --shade: #242933;
+  --on-strong: #eceff4;
+  --ink: #2e3440;
+  --scrim: #000000;
+  --control-face: #434c5e;
+  --control-face-hover: color-mix(in srgb, var(--btn-face-hover) 70%, var(--control-face));
+  --control-border: #6b768a;
+  --btn-face: #4c566a;
+  --btn-face-hover: #5a6478;
+  --btn-primary-face: var(--accent);
+  --btn-primary-face-hover: color-mix(in srgb, var(--accent) 88%, var(--text));
+  --btn-primary-border: color-mix(in srgb, var(--accent) 70%, var(--control-border));
+  --btn-primary-text: var(--ink);
+  --btn-danger-face: var(--danger);
+  --btn-danger-face-hover: color-mix(in srgb, var(--danger) 88%, var(--text));
+  --btn-danger-border: color-mix(in srgb, var(--danger) 65%, var(--control-border));
+  --btn-danger-text: var(--ink);
+  --btn-outline-face: var(--btn-face);
+  --btn-outline-face-hover: var(--btn-face-hover);
+  --btn-outline-border: var(--control-border);
+  --btn-outline-text: var(--text);
+  --btn-soft-face: var(--control-face);
+  --btn-soft-face-hover: var(--control-face-hover);
+  --btn-soft-border: var(--control-border);
+  --btn-soft-text: var(--text);
+  --mp-wb: #e056c8;
+  --mp-ozon: #81a1c1;
+  --tpl-tab-teal-face: color-mix(in srgb, #88c0d0 28%, var(--panel));
+  --tpl-tab-teal-text: #c8e4ec;
+  --tpl-tab-blue-face: color-mix(in srgb, #81a1c1 30%, var(--panel));
+  --tpl-tab-blue-text: #d0dce8;
+  --tpl-tab-violet-face: color-mix(in srgb, #b48ead 30%, var(--panel));
+  --tpl-tab-violet-text: #e4d4e0;
+  --tpl-tab-coral-face: color-mix(in srgb, #bf616a 28%, var(--panel));
+  --tpl-tab-coral-text: #e8c0c4;
+  --tpl-tab-amber-face: color-mix(in srgb, #ebcb8b 30%, var(--panel));
+  --tpl-tab-amber-text: #f5e6c4;
+  --tpl-tab-green-face: color-mix(in srgb, #a3be8c 28%, var(--panel));
+  --tpl-tab-green-text: #d4e4c4;
+  --tpl-tab-rose-face: color-mix(in srgb, #e056c8 26%, var(--panel));
+  --tpl-tab-rose-text: #f5c0ea;
+}
+
+html[data-theme="graphite"] {
+  color-scheme: dark;
+  /* Графит — GitHub Dimmed slate, soft blue-cyan CTA. */
+  --bg: #22272e;
+  --panel: #2d333b;
+  --border: #444c56;
+  --text: #adbac7;
+  --muted: #768390;
+  --accent: #39c5cf;
+  --danger: #f47067;
+  --ok: #57ab5a;
+  --warn: #c69026;
+  --accent-soft: color-mix(in srgb, var(--accent) 20%, transparent);
+  --tpl-wave-run: color-mix(in srgb, var(--warn) 48%, var(--bg));
+  --tpl-wave-ok: color-mix(in srgb, var(--ok) 42%, var(--bg));
+  --tpl-wave-err: color-mix(in srgb, var(--danger) 36%, var(--bg));
+  --shade: #1c2128;
+  --on-strong: #cdd9e5;
+  --ink: #1c2128;
+  --scrim: #000000;
+  --control-face: #373e47;
+  --control-face-hover: color-mix(in srgb, var(--btn-face-hover) 70%, var(--control-face));
+  --control-border: #636e7b;
+  --btn-face: #3d444d;
+  --btn-face-hover: #4a525c;
+  --btn-primary-face: var(--accent);
+  --btn-primary-face-hover: color-mix(in srgb, var(--accent) 88%, var(--text));
+  --btn-primary-border: color-mix(in srgb, var(--accent) 70%, var(--control-border));
+  --btn-primary-text: var(--ink);
+  --btn-danger-face: var(--danger);
+  --btn-danger-face-hover: color-mix(in srgb, var(--danger) 88%, var(--text));
+  --btn-danger-border: color-mix(in srgb, var(--danger) 65%, var(--control-border));
+  --btn-danger-text: var(--ink);
+  --btn-outline-face: var(--btn-face);
+  --btn-outline-face-hover: var(--btn-face-hover);
+  --btn-outline-border: var(--control-border);
+  --btn-outline-text: var(--text);
+  --btn-soft-face: var(--control-face);
+  --btn-soft-face-hover: var(--control-face-hover);
+  --btn-soft-border: var(--control-border);
+  --btn-soft-text: var(--text);
+  --mp-wb: #e056c8;
+  --mp-ozon: #6cb6ff;
+  --tpl-tab-teal-face: color-mix(in srgb, #39c5cf 28%, var(--panel));
+  --tpl-tab-teal-text: #9ae2e8;
+  --tpl-tab-blue-face: color-mix(in srgb, #6cb6ff 30%, var(--panel));
+  --tpl-tab-blue-text: #c0d8ff;
+  --tpl-tab-violet-face: color-mix(in srgb, #b083f0 30%, var(--panel));
+  --tpl-tab-violet-text: #e0d0ff;
+  --tpl-tab-coral-face: color-mix(in srgb, #f47067 28%, var(--panel));
+  --tpl-tab-coral-text: #ffc0bc;
+  --tpl-tab-amber-face: color-mix(in srgb, #c69026 30%, var(--panel));
+  --tpl-tab-amber-text: #e8d4a0;
+  --tpl-tab-green-face: color-mix(in srgb, #57ab5a 28%, var(--panel));
+  --tpl-tab-green-text: #b4e0b6;
+  --tpl-tab-rose-face: color-mix(in srgb, #e056c8 26%, var(--panel));
+  --tpl-tab-rose-text: #f5c0ea;
+}
+
+html[data-theme="paper"] {
   color-scheme: light;
-  --bg: #e1e2e7;
+  /* Бумага — clean SaaS off-white, deep teal CTA. */
+  --bg: #f4f5f7;
   --panel: #ffffff;
-  --border: #b4b5b9;
-  --text: #1a1b26;
-  --muted: #545c7a;
-  --accent: #007197;
-  --danger: #f52a65;
-  --ok: #587539;
-  --warn: #8c6c3e;
+  --border: #d0d4dc;
+  --text: #1a1d26;
+  --muted: #5c6578;
+  --accent: #0d9488;
+  --danger: #e11d48;
+  --ok: #15803d;
+  --warn: #a16207;
+  --accent-soft: color-mix(in srgb, var(--accent) 12%, transparent);
+  --tpl-wave-run: color-mix(in srgb, var(--warn) 40%, var(--bg));
+  --tpl-wave-ok: color-mix(in srgb, var(--ok) 36%, var(--bg));
+  --tpl-wave-err: color-mix(in srgb, var(--danger) 30%, var(--bg));
+  --shade: #000000;
+  --on-strong: #ffffff;
+  --ink: #1a1d26;
+  --scrim: #000000;
+  --control-face: #ffffff;
+  --control-face-hover: #e8eaef;
+  --control-border: #b0b7c6;
+  --btn-face: #e8eaef;
+  --btn-face-hover: #d6dae3;
+  --btn-primary-face: var(--accent);
+  --btn-primary-face-hover: #0f766e;
+  --btn-primary-border: #0f766e;
+  --btn-primary-text: var(--on-strong);
+  --btn-danger-face: var(--danger);
+  --btn-danger-face-hover: #be123c;
+  --btn-danger-border: #be123c;
+  --btn-danger-text: var(--on-strong);
+  --btn-outline-face: #e8eaef;
+  --btn-outline-face-hover: #d6dae3;
+  --btn-outline-border: #b0b7c6;
+  --btn-outline-text: var(--text);
+  --btn-soft-face: var(--control-face);
+  --btn-soft-face-hover: var(--control-face-hover);
+  --btn-soft-border: var(--control-border);
+  --btn-soft-text: var(--text);
+  --mp-wb: #cb11ab;
+  --mp-ozon: #005bff;
+  --tpl-tab-teal-face: color-mix(in srgb, #0d9488 16%, var(--panel));
+  --tpl-tab-teal-text: #0f766e;
+  --tpl-tab-blue-face: color-mix(in srgb, #2563eb 16%, var(--panel));
+  --tpl-tab-blue-text: #1e40af;
+  --tpl-tab-violet-face: color-mix(in srgb, #7c3aed 14%, var(--panel));
+  --tpl-tab-violet-text: #5b21b6;
+  --tpl-tab-coral-face: color-mix(in srgb, #e11d48 14%, var(--panel));
+  --tpl-tab-coral-text: #9f1239;
+  --tpl-tab-amber-face: color-mix(in srgb, #a16207 16%, var(--panel));
+  --tpl-tab-amber-text: #854d0e;
+  --tpl-tab-green-face: color-mix(in srgb, #15803d 18%, var(--panel));
+  --tpl-tab-green-text: #166534;
+  --tpl-tab-rose-face: color-mix(in srgb, #cb11ab 14%, var(--panel));
+  --tpl-tab-rose-text: #9d0280;
+}
+
+html[data-theme="frost"] {
+  color-scheme: light;
+  /* Иней — Nord Snow Storm cool gray-blue. */
+  --bg: #eceff4;
+  --panel: #ffffff;
+  --border: #d8dee9;
+  --text: #2e3440;
+  --muted: #4c566a;
+  --accent: #5e81ac;
+  --danger: #bf616a;
+  --ok: #a3be8c;
+  --warn: #d08770;
   --accent-soft: color-mix(in srgb, var(--accent) 14%, transparent);
   --tpl-wave-run: color-mix(in srgb, var(--warn) 40%, var(--bg));
   --tpl-wave-ok: color-mix(in srgb, var(--ok) 36%, var(--bg));
   --tpl-wave-err: color-mix(in srgb, var(--danger) 30%, var(--bg));
   --shade: #000000;
   --on-strong: #ffffff;
-  --ink: #1a1b26;
+  --ink: #2e3440;
   --scrim: #000000;
   --control-face: #ffffff;
-  --control-face-hover: #e9e9ed;
-  --control-border: #a1a6c5;
-  --btn-face: #e9e9ed;
-  --btn-face-hover: #d5d6db;
+  --control-face-hover: #e5e9f0;
+  --control-border: #b8c0d0;
+  --btn-face: #e5e9f0;
+  --btn-face-hover: #d8dee9;
   --btn-primary-face: var(--accent);
-  --btn-primary-face-hover: #005a7a;
-  --btn-primary-border: #005a7a;
+  --btn-primary-face-hover: #4c6f99;
+  --btn-primary-border: #4c6f99;
   --btn-primary-text: var(--on-strong);
   --btn-danger-face: var(--danger);
-  --btn-danger-face-hover: #d42055;
-  --btn-danger-border: #d42055;
+  --btn-danger-face-hover: #a54e56;
+  --btn-danger-border: #a54e56;
   --btn-danger-text: var(--on-strong);
-  --btn-outline-face: #e9e9ed;
-  --btn-outline-face-hover: #d5d6db;
-  --btn-outline-border: #a1a6c5;
+  --btn-outline-face: #e5e9f0;
+  --btn-outline-face-hover: #d8dee9;
+  --btn-outline-border: #b8c0d0;
   --btn-outline-text: var(--text);
   --btn-soft-face: var(--control-face);
   --btn-soft-face-hover: var(--control-face-hover);
   --btn-soft-border: var(--control-border);
   --btn-soft-text: var(--text);
-  /* Бренд площадок на light — как в гайдах, чуть мягче для плашек. */
-  --mp-wb: #c218a8;
+  --mp-wb: #cb11ab;
   --mp-ozon: #005bff;
+  --tpl-tab-teal-face: color-mix(in srgb, #8fbcbb 18%, var(--panel));
+  --tpl-tab-teal-text: #4c7a78;
+  --tpl-tab-blue-face: color-mix(in srgb, #5e81ac 16%, var(--panel));
+  --tpl-tab-blue-text: #3b5a80;
+  --tpl-tab-violet-face: color-mix(in srgb, #b48ead 14%, var(--panel));
+  --tpl-tab-violet-text: #7a5a72;
+  --tpl-tab-coral-face: color-mix(in srgb, #bf616a 14%, var(--panel));
+  --tpl-tab-coral-text: #8f454c;
+  --tpl-tab-amber-face: color-mix(in srgb, #d08770 16%, var(--panel));
+  --tpl-tab-amber-text: #9a5c48;
+  --tpl-tab-green-face: color-mix(in srgb, #a3be8c 18%, var(--panel));
+  --tpl-tab-green-text: #6b8a52;
+  --tpl-tab-rose-face: color-mix(in srgb, #cb11ab 14%, var(--panel));
+  --tpl-tab-rose-text: #9d0280;
+}
+
+html[data-theme="slate"] {
+  color-scheme: light;
+  /* Сланец — Notion/Linear cool slate canvas. */
+  --bg: #f1f5f9;
+  --panel: #ffffff;
+  --border: #cbd5e1;
+  --text: #0f172a;
+  --muted: #64748b;
+  --accent: #0e7490;
+  --danger: #e11d48;
+  --ok: #16a34a;
+  --warn: #ca8a04;
+  --accent-soft: color-mix(in srgb, var(--accent) 12%, transparent);
+  --tpl-wave-run: color-mix(in srgb, var(--warn) 40%, var(--bg));
+  --tpl-wave-ok: color-mix(in srgb, var(--ok) 36%, var(--bg));
+  --tpl-wave-err: color-mix(in srgb, var(--danger) 30%, var(--bg));
+  --shade: #000000;
+  --on-strong: #ffffff;
+  --ink: #0f172a;
+  --scrim: #000000;
+  --control-face: #ffffff;
+  --control-face-hover: #e2e8f0;
+  --control-border: #94a3b8;
+  --btn-face: #e2e8f0;
+  --btn-face-hover: #cbd5e1;
+  --btn-primary-face: var(--accent);
+  --btn-primary-face-hover: #155e75;
+  --btn-primary-border: #155e75;
+  --btn-primary-text: var(--on-strong);
+  --btn-danger-face: var(--danger);
+  --btn-danger-face-hover: #be123c;
+  --btn-danger-border: #be123c;
+  --btn-danger-text: var(--on-strong);
+  --btn-outline-face: #e2e8f0;
+  --btn-outline-face-hover: #cbd5e1;
+  --btn-outline-border: #94a3b8;
+  --btn-outline-text: var(--text);
+  --btn-soft-face: var(--control-face);
+  --btn-soft-face-hover: var(--control-face-hover);
+  --btn-soft-border: var(--control-border);
+  --btn-soft-text: var(--text);
+  --mp-wb: #cb11ab;
+  --mp-ozon: #005bff;
+  --tpl-tab-teal-face: color-mix(in srgb, #0e7490 16%, var(--panel));
+  --tpl-tab-teal-text: #155e75;
+  --tpl-tab-blue-face: color-mix(in srgb, #2563eb 16%, var(--panel));
+  --tpl-tab-blue-text: #1e40af;
+  --tpl-tab-violet-face: color-mix(in srgb, #7c3aed 14%, var(--panel));
+  --tpl-tab-violet-text: #5b21b6;
+  --tpl-tab-coral-face: color-mix(in srgb, #e11d48 14%, var(--panel));
+  --tpl-tab-coral-text: #9f1239;
+  --tpl-tab-amber-face: color-mix(in srgb, #ca8a04 16%, var(--panel));
+  --tpl-tab-amber-text: #a16207;
+  --tpl-tab-green-face: color-mix(in srgb, #16a34a 18%, var(--panel));
+  --tpl-tab-green-text: #15803d;
+  --tpl-tab-rose-face: color-mix(in srgb, #cb11ab 14%, var(--panel));
+  --tpl-tab-rose-text: #9d0280;
+}
+
+:root {
+  /* Shared across all presets (hue tokens + chrome metrics). */
   --calc-sec-params: #6a9fb5;
   --calc-sec-id: #5b8def;
   --calc-sec-stock: #3dba8a;
@@ -162,21 +378,8 @@ html[data-theme="light"] {
   --formula-chip-logistics: #14b8a6;
   --formula-chip-tax: #ef4444;
   --formula-chip-purchase: #8b5cf6;
-  /* Template tab presets (light): pale face + dark text. */
-  --tpl-tab-teal-face: color-mix(in srgb, #007197 16%, var(--panel));
-  --tpl-tab-teal-text: #005a7a;
-  --tpl-tab-blue-face: color-mix(in srgb, #2e5aac 16%, var(--panel));
-  --tpl-tab-blue-text: #1e3a8a;
-  --tpl-tab-violet-face: color-mix(in srgb, #7c3aed 14%, var(--panel));
-  --tpl-tab-violet-text: #5b21b6;
-  --tpl-tab-coral-face: color-mix(in srgb, #f52a65 14%, var(--panel));
-  --tpl-tab-coral-text: #b01040;
-  --tpl-tab-amber-face: color-mix(in srgb, #b45309 16%, var(--panel));
-  --tpl-tab-amber-text: #92400e;
-  --tpl-tab-green-face: color-mix(in srgb, #587539 18%, var(--panel));
-  --tpl-tab-green-text: #3f5428;
-  --tpl-tab-rose-face: color-mix(in srgb, #cb11ab 14%, var(--panel));
-  --tpl-tab-rose-text: #9d0280;
+  --nav-w: 200px;
+  font-family: "Segoe UI", system-ui, sans-serif;
 }
 
 * {
@@ -212,17 +415,49 @@ a {
 .shell {
   display: flex;
   height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.shell-nav-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  background: var(--overlay-bg-soft);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.shell--nav-open .shell-nav-scrim {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .shell-nav {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 25;
   width: var(--nav-w);
   background: color-mix(in srgb, var(--panel) 94%, var(--bg));
   border-right: 1px solid var(--border);
+  box-shadow: var(--shadow-popover);
   display: flex;
   flex-direction: column;
   gap: 2px;
   padding: 10px 8px;
   box-sizing: border-box;
+  transform: translateX(-100%);
+  transition: transform 0.2s ease;
+  pointer-events: none;
+  overflow: auto;
+}
+
+.shell-nav.is-open {
+  transform: translateX(0);
+  pointer-events: auto;
 }
 
 .shell-nav a {
@@ -253,8 +488,16 @@ a {
   border-left-color: var(--accent);
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .shell-nav,
+  .shell-nav-scrim {
+    transition: none;
+  }
+}
+
 .shell-main {
   flex: 1;
+  min-width: 0;
   overflow: auto;
   padding: 22px 26px;
 }

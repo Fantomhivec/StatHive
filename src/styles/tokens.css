@@ -1,4 +1,4 @@
-/* Shared control metrics — colors stay in app.css :root / data-theme. */
+/* Shared control metrics — colors stay in app.css named data-theme presets. */
 :root {
   --control-radius-sm: 5px;
   --control-radius-md: 7px;

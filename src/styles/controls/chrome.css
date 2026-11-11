@@ -131,7 +131,7 @@
   --btn-primary-text: color-mix(in srgb, var(--on-strong) 92%, var(--plaque-accent));
 }
 
-html[data-theme="light"] .wb-tables-plaque-refresh {
+html[data-scheme="light"] .wb-tables-plaque-refresh {
   --btn-primary-face: var(--plaque-accent);
   --btn-primary-face-hover: color-mix(in srgb, var(--plaque-accent) 82%, var(--shade));
   --btn-primary-border: color-mix(in srgb, var(--plaque-accent) 70%, var(--shade));
