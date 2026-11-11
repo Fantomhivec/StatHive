@@ -36,7 +36,6 @@ export type {
   AccessPresetDto,
   CalcAccessDto,
   AuthSetupStatus,
-  SwitchTeamResult,
   TeamIndexEntry,
   EnvKeyRow,
   EnvKeysSnapshot,
@@ -83,8 +82,7 @@ let versionInflight: Promise<string> | null = null;
 export function ensureAppVersion(): Promise<string> {
   if (versionCached != null) return Promise.resolve(versionCached);
   if (!versionInflight) {
-    versionInflight = hostApi
-      .version()
+    versionInflight = invoke<string>("app_version")
       .then((v) => {
         versionCached = v;
         versionInflight = null;
@@ -127,15 +125,9 @@ export function ensureUpdatesCheckQuiet(): Promise<UpdateInfo> {
   return updatesQuietInflight;
 }
 
-export { getLocale, setLocale } from "./hostApi.i18n";
-import { getLocale, setLocale } from "./hostApi.i18n";
-
 const hostApiAuth = createAuthApi({ clearTabsLayoutCache, refreshTabsLayout });
 
 export const hostApi = {
-  version: () => invoke<string>("app_version"),
-  getLocale,
-  setLocale,
   logsGet: (knownRevision = 0) =>
     invoke<{ revision: number; unchanged: boolean; lines: LogLine[] }>("logs_get", {
       args: { knownRevision },
@@ -317,17 +309,16 @@ export const hostApi = {
     listTeamConfigs: async () => {
       const raw = await invoke<{
         defaultId?: string;
-        default_id?: string;
         items?: Array<Record<string, unknown>>;
       }>("wb_calculator_list_team_configs");
       const itemsRaw = Array.isArray(raw.items) ? raw.items : [];
       return {
-        defaultId: String(raw.defaultId ?? raw.default_id ?? ""),
+        defaultId: String(raw.defaultId ?? ""),
         items: itemsRaw.map((x) => ({
           id: String(x.id ?? ""),
           name: String(x.name ?? ""),
           revision: String(x.revision ?? ""),
-          isDefault: Boolean(x.isDefault ?? x.is_default),
+          isDefault: Boolean(x.isDefault),
         })),
       } satisfies TeamConfigCatalogDto;
     },

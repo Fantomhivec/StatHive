@@ -40,7 +40,7 @@ function normalizeCalcAccess(raw: unknown): TabsLayoutResult["calcAccess"] {
   };
 }
 
-export function normalizeTabsLayout(res: Record<string, unknown>): TabsLayoutResult {
+function normalizeTabsLayout(res: Record<string, unknown>): TabsLayoutResult {
   const itemsRaw = Array.isArray(res.items) ? res.items : [];
   const canTemplatesRaw = res.canTemplates ?? res.can_templates;
   const hasEnvKeys = Boolean(res.hasEnvKeys ?? res.has_env_keys);

@@ -14,6 +14,7 @@
 
 import { lazy, Suspense } from "react";
 import SpreadsheetIdField from "../components/templates/SpreadsheetIdField";
+import { CalcSnapLoading } from "./calculator/CalcSnapLoading";
 import { CalculatorTablesBody } from "./calculator/tables/CalculatorTablesBody";
 import { useCalculatorTablesController } from "./calculator/tables/useCalculatorTablesController";
 import "./WbCalculatorLayout.css";
@@ -36,10 +37,9 @@ export default function CalculatorTablesPage() {
 
   if (!snap) {
     return (
-      <div className="calc-tables page wb-calc">
-        <p className="muted">{error || t("common.loading")}</p>
+      <CalcSnapLoading className="calc-tables page wb-calc" hint={error}>
         {dialogs}
-      </div>
+      </CalcSnapLoading>
     );
   }
 

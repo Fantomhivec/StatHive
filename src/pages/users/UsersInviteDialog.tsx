@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { FormEvent } from "react";
+import type { SubmitEvent } from "react";
 import AppCustomWindow from "../../components/AppCustomWindow";
 import { useT } from "../../i18n";
 import UsersInviteForm, {
@@ -25,7 +25,7 @@ const FORM_ID = "users-invite-dialog-form";
 type Props = Omit<UsersInviteFormProps, "hideSubmit" | "formId" | "onSubmit"> & {
   open: boolean;
   onClose: () => void;
-  onSubmit: (e: FormEvent) => void;
+  onSubmit: (e: SubmitEvent<HTMLFormElement>) => void;
 };
 
 export default function UsersInviteDialog({

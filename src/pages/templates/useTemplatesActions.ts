@@ -25,8 +25,6 @@ import { useT } from "../../i18n";
 import { enrichSpreadsheetTitles } from "./enrichSpreadsheetTitles";
 import {
   advanceGroupWaveFromActive,
-  beginGroupWave,
-  cancelGroupWave,
   emptySnap,
   ensureScriptsMap,
   ensureTemplatesRunProgressBridge,
@@ -40,6 +38,7 @@ import {
   type GroupWave,
   type TemplatesMarket,
 } from "./templatesPageCache";
+import { useTemplatesEntityActions } from "./useTemplatesEntityActions";
 
 export function useTemplatesActions() {
   const t = useT();
@@ -221,318 +220,40 @@ export function useTemplatesActions() {
     [applySnap, enrichTitlesInBackground, reloadSnap],
   );
 
-  const patchOptimisticRunning = useCallback((id: string, kind: "template" | "group") => {
-    setSnap((prev) => {
-      let next: TemplatesSnapshot;
-      if (kind === "template") {
-        const mark = (tpl: TemplateDto): TemplateDto =>
-          tpl.id === id ? { ...tpl, is_running: true } : tpl;
-        next = {
-          ...prev,
-          templates: (prev.templates ?? []).map(mark),
-          standalone: (prev.standalone ?? []).map(mark),
-        };
-      } else {
-        const firstTpl = (prev.groups ?? []).find((g) => g.id === id)?.template_ids?.[0];
-        next = {
-          ...prev,
-          groups: (prev.groups ?? []).map((g) =>
-            g.id === id
-              ? {
-                  ...g,
-                  is_running: true,
-                  active_template_id: g.active_template_id || firstTpl || null,
-                }
-              : g,
-          ),
-        };
-        if (firstTpl) {
-          const memberIds = new Set(
-            (prev.groups ?? []).find((g) => g.id === id)?.template_ids ?? [],
-          );
-          const markNested = (tpl: TemplateDto): TemplateDto =>
-            memberIds.has(tpl.id)
-              ? { ...tpl, is_running: tpl.id === firstTpl }
-              : tpl;
-          next = {
-            ...next,
-            templates: (next.templates ?? []).map(markNested),
-            standalone: (next.standalone ?? []).map(markNested),
-          };
-        }
-      }
-      const m = (next.marketplace === "ozon" ? "ozon" : "wb") as TemplatesMarket;
-      setTemplatesSnapCache(m, next);
-      return next;
-    });
-  }, []);
-
-  const run = useCallback(
-    async (id: string, dryRun = false) => {
-      if (runLockRef.current) return;
-      runLockRef.current = true;
-      setBusyId(id);
-      setMsg(null);
-      setError(null);
-      patchOptimisticRunning(id, "template");
-      try {
-        // Lesson 123: no top-of-tab run summary — status lives on the card.
-        await hostApi.templatesRun(id, dryRun);
-      } catch (e) {
-        setError(e instanceof Error ? e.message : String(e));
-      } finally {
-        runLockRef.current = false;
-        setBusyId(null);
-        // Clear optimistic is_running before reload (finish event may lag).
-        setSnap((prev) => {
-          const clear = (tpl: TemplateDto): TemplateDto =>
-            tpl.id === id ? { ...tpl, is_running: false } : tpl;
-          const next: TemplatesSnapshot = {
-            ...prev,
-            templates: (prev.templates ?? []).map(clear),
-            standalone: (prev.standalone ?? []).map(clear),
-          };
-          const m = (next.marketplace === "ozon" ? "ozon" : "wb") as TemplatesMarket;
-          setTemplatesSnapCache(m, next);
-          return next;
-        });
-        // С диска: иначе кэш/effect откатывает карточку к старому last_run_*.
-        await reloadSnap();
-      }
-    },
-    [reloadSnap, patchOptimisticRunning],
-  );
-
-  const runGroup = useCallback(
-    async (id: string, dryRun = false) => {
-      if (runLockRef.current) return;
-      runLockRef.current = true;
-      setBusyId(id);
-      setMsg(null);
-      setError(null);
-      const memberIds =
-        snap.groups.find((g) => g.id === id)?.template_ids ?? [];
-      beginGroupWave(id, memberIds);
-      seenHydrateRunningRef.current.delete(id);
-      const waves = snapshotGroupWaves();
-      setGroupWaves(waves);
-      const started = waves[id];
-      patchOptimisticRunning(id, "group");
-      // Same tick as optimistic busy: stamp wave_tones so paint does not wait on events.
-      if (started) {
-        setSnap((prev) => {
-          const next: TemplatesSnapshot = {
-            ...prev,
-            groups: (prev.groups ?? []).map((g) =>
-              g.id === id
-                ? {
-                    ...g,
-                    wave_in_flight: true,
-                    wave_tones: { ...started.tones },
-                  }
-                : g,
-            ),
-          };
-          const m = (next.marketplace === "ozon" ? "ozon" : "wb") as TemplatesMarket;
-          setTemplatesSnapCache(m, next);
-          return next;
-        });
-      }
-      try {
-        // Lesson 123: group итог — справа от имени группы, не ok-text сверху вкладки.
-        await hostApi.templatesRunGroup(id, dryRun);
-      } catch (e) {
-        setError(e instanceof Error ? e.message : String(e));
-      } finally {
-        runLockRef.current = false;
-        setBusyId(null);
-        // Invoke returned — close wave even if finish events / hydrate lagged.
-        finalizeGroupWaveFromHydrate(id, "ok");
-        setGroupWaves(snapshotGroupWaves());
-        await reloadSnap();
-      }
-    },
-    [reloadSnap, patchOptimisticRunning, snap.groups],
-  );
-
-  const duplicateTemplate = useCallback(
-    async (id: string) => {
-      if (runLockRef.current) return;
-      setBusyId(id);
-      setMsg(null);
-      setError(null);
-      try {
-        const { template } = await hostApi.templatesGet(id);
-        const srcName = (template.name ?? "").trim() || id;
-        const clone: TemplateDto = {
-          ...template,
-          id: crypto.randomUUID(),
-          name: t("templates.copyName", { name: srcName }),
-          last_run_status: "",
-          last_run_at: "",
-          is_running: false,
-          created_at: undefined,
-          updated_at: undefined,
-        };
-        const saved = await hostApi.templatesSave(clone);
-        setMsg(t("templates.copiedOk", { name: saved.template.name }));
-        await reloadSnap();
-      } catch (e) {
-        setError(e instanceof Error ? e.message : String(e));
-      } finally {
-        setBusyId(null);
-      }
-    },
-    [t, reloadSnap],
-  );
-
-  const cancelRun = useCallback(async (id: string, entityType: "template" | "group") => {
-    // Lesson 118: UI unlock immediately — do not wait for long Sheets/rate-limit.
-    runLockRef.current = false;
-    setBusyId(null);
-    if (entityType === "group") {
-      cancelGroupWave(id);
-      const waves = snapshotGroupWaves();
-      setGroupWaves(waves);
-      const cancelled = waves[id];
-      setSnap((prev) => {
-        const next: TemplatesSnapshot = {
-          ...prev,
-          groups: (prev.groups ?? []).map((g) =>
-            g.id === id
-              ? {
-                  ...g,
-                  is_running: false,
-                  active_template_id: null,
-                  wave_in_flight: false,
-                  wave_tones: cancelled?.tones ? { ...cancelled.tones } : g.wave_tones,
-                }
-              : g,
-          ),
-          templates: (prev.templates ?? []).map((tpl) => {
-            const g = prev.groups?.find((x) => x.id === id);
-            if (!g?.template_ids?.includes(tpl.id)) return tpl;
-            return { ...tpl, is_running: false };
-          }),
-        };
-        const m = (next.marketplace === "ozon" ? "ozon" : "wb") as TemplatesMarket;
-        setTemplatesSnapCache(m, next);
-        return next;
-      });
-    } else {
-      setSnap((prev) => {
-        const mark = (tpl: TemplateDto): TemplateDto =>
-          tpl.id === id ? { ...tpl, is_running: false } : tpl;
-        const next = {
-          ...prev,
-          templates: (prev.templates ?? []).map(mark),
-          standalone: (prev.standalone ?? []).map(mark),
-        };
-        const m = (next.marketplace === "ozon" ? "ozon" : "wb") as TemplatesMarket;
-        setTemplatesSnapCache(m, next);
-        return next;
-      });
-    }
-    try {
-      await hostApi.templatesCancel(id, entityType);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-    }
-  }, []);
-
-  const remove = useCallback(
-    async (id: string) => {
-      if (!(await confirm(t("templates.deleteTemplateConfirm"), t("dialogs.confirm")))) return;
-      setBusyId(id);
-      try {
-        await hostApi.templatesDelete(id);
-        await reloadSnap();
-      } catch (e) {
-        setError(e instanceof Error ? e.message : String(e));
-      } finally {
-        setBusyId(null);
-      }
-    },
-    [confirm, reloadSnap, t],
-  );
-
-  const removeGroup = useCallback(
-    async (id: string) => {
-      if (!(await confirm(t("templates.deleteGroupConfirm"), t("dialogs.confirm")))) return;
-      setBusyId(id);
-      try {
-        await hostApi.templatesDeleteGroup(id);
-        await reloadSnap();
-      } catch (e) {
-        setError(e instanceof Error ? e.message : String(e));
-      } finally {
-        setBusyId(null);
-      }
-    },
-    [confirm, reloadSnap, t],
-  );
-
-  const onExpandGroup = useCallback(
-    (id: string, expanded: boolean) => {
-      void withReload(async () => {
-        await hostApi.templatesSetGroupExpanded(id, expanded);
-        return hostApi.templatesSnapshot(market);
-      });
-    },
-    [market, withReload],
-  );
-
-  const onMoveGroup = useCallback(
-    (id: string, dir: "up" | "down") => {
-      void withReload(async () => {
-        await hostApi.templatesMoveGroup(id, dir);
-        return hostApi.templatesSnapshot(market);
-      });
-    },
-    [market, withReload],
-  );
-
-  const onMoveTemplateInGroup = useCallback(
-    (groupId: string, id: string, dir: "up" | "down") => {
-      void withReload(async () => {
-        await hostApi.templatesMove(id, dir, groupId);
-        return hostApi.templatesSnapshot(market);
-      });
-    },
-    [market, withReload],
-  );
-
-  const onRemoveFromGroup = useCallback(
-    (id: string) => {
-      void withReload(async () => {
-        await hostApi.templatesRemoveFromGroup(id);
-        return hostApi.templatesSnapshot(market);
-      });
-    },
-    [market, withReload],
-  );
-
-  const onMoveStandalone = useCallback(
-    (id: string, dir: "up" | "down") => {
-      void withReload(async () => {
-        await hostApi.templatesMove(id, dir);
-        return hostApi.templatesSnapshot(market);
-      });
-    },
-    [market, withReload],
-  );
-
-  const onEditTemplate = useCallback((id: string) => setEditorId(id), []);
-  const onEditGroup = useCallback((id: string) => setGroupEditor({ groupId: id }), []);
-  const onAddToGroup = useCallback((id: string) => setGroupPick({ templateId: id }), []);
-  const onCancelTemplate = useCallback(
-    (id: string) => void cancelRun(id, "template"),
-    [cancelRun],
-  );
-  const onCancelGroup = useCallback(
-    (id: string) => void cancelRun(id, "group"),
-    [cancelRun],
-  );
+  const {
+    run,
+    runGroup,
+    duplicateTemplate,
+    remove,
+    removeGroup,
+    onExpandGroup,
+    onMoveGroup,
+    onMoveTemplateInGroup,
+    onRemoveFromGroup,
+    onMoveStandalone,
+    onEditTemplate,
+    onEditGroup,
+    onAddToGroup,
+    onCancelTemplate,
+    onCancelGroup,
+  } = useTemplatesEntityActions({
+    t,
+    market,
+    groups: snap.groups ?? [],
+    confirm,
+    withReload,
+    reloadSnap,
+    setSnap,
+    setBusyId,
+    setMsg,
+    setError,
+    setGroupWaves,
+    setEditorId,
+    setGroupEditor,
+    setGroupPick,
+    runLockRef,
+    seenHydrateRunningRef,
+  });
 
   const byId = useMemo(() => {
     const m = new Map<string, TemplateDto>();

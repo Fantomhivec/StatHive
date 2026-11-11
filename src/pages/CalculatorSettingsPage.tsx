@@ -33,6 +33,7 @@ import {
 } from "./calculator/settings/SettingsCabinetsBlock";
 import { SettingsImportDialog } from "./calculator/settings/SettingsImportDialog";
 import { SettingsRatesFormulaCard } from "./calculator/settings/SettingsRatesFormulaCard";
+import { CalcSnapLoading } from "./calculator/CalcSnapLoading";
 import { useCalculatorSnapshot } from "./calculator/useCalculatorSnapshot";
 import "./WbCalculatorLayout.css";
 import "./WbCalculatorPage.css";
@@ -181,12 +182,7 @@ export default function CalculatorSettingsPage() {
   }
 
   if (!snap) {
-    return (
-      <div className="page wb-calc">
-        <p className="muted">{error || t("common.loading")}</p>
-        {dialogs}
-      </div>
-    );
+    return <CalcSnapLoading hint={error}>{dialogs}</CalcSnapLoading>;
   }
 
   const showWbFormula = snap.marketplace === "wb" || snap.marketplace === "both";

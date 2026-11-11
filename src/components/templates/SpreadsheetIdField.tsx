@@ -16,7 +16,7 @@ import { useState } from "react";
 import { hostApi, openUrl } from "../../bridge/hostApi";
 import AppComboBox from "../AppComboBox";
 import { t } from "../../i18n";
-import { sheetsUrl } from "../../pages/users/usersPageCache";
+import { sheetsUrl } from "../../bridge/sheetsUrl";
 import "./templates-dialogs.css";
 
 type Props = {

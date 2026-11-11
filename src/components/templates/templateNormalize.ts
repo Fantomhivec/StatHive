@@ -19,7 +19,7 @@ import { visibilityForScript } from "./visibility/scriptVisibility";
 export type FieldRow = { name: string; title: string; selected: boolean };
 
 /** Normalize PascalCase / camelCase field rows from host JSON. */
-export function normalizeFieldRow(raw: unknown): FieldRow | null {
+function normalizeFieldRow(raw: unknown): FieldRow | null {
   if (!raw || typeof raw !== "object") return null;
   const o = raw as Record<string, unknown>;
   const name = String(o.name ?? o.Name ?? "").trim();

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { FormEvent, useEffect, useState } from "react";
+import { useEffect, useState, type SubmitEvent } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { takeAccessRevokedMessage, useAuth } from "../../auth/AuthContext";
 import { hostApi, type AuthSetupStatus, type TeamIndexEntry } from "../../bridge/hostApi";
@@ -189,7 +189,7 @@ export function useLoginPageModel() {
     }
   }
 
-  async function onRegister(e: FormEvent) {
+  async function onRegister(e: SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
     setBusy(true);
@@ -209,7 +209,7 @@ export function useLoginPageModel() {
     }
   }
 
-  async function onApplyCode(e: FormEvent) {
+  async function onApplyCode(e: SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
     setBusy(true);
@@ -237,7 +237,7 @@ export function useLoginPageModel() {
     setGate(setup && teamsOf(setup).length >= 1 ? "hub" : "choose");
   }
 
-  async function onLogin(e: FormEvent) {
+  async function onLogin(e: SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
     setBusy(true);

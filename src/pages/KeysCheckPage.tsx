@@ -104,16 +104,16 @@ export default function KeysCheckPage() {
     }
   }
 
-  // При заходе: ключи + тихая проверка Google (только если есть client/грант).
+  // Mount: keys + quiet Google in parallel (manual OAuth path stays in checkGoogle(false)).
   useEffect(() => {
     let cancelled = false;
     void (async () => {
       try {
-        await applyCheck();
-        if (cancelled) return;
-        if (canCheckGoogle) {
-          await checkGoogle(true);
-        }
+        const keysP = applyCheck();
+        const googleP = canCheckGoogle
+          ? checkGoogle(true)
+          : Promise.resolve(null);
+        await Promise.all([keysP, googleP]);
       } catch (e) {
         if (!cancelled) {
           setError(e instanceof Error ? e.message : String(e));

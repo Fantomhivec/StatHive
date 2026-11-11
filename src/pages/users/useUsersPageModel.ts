@@ -120,7 +120,7 @@ export function useUsersPageModel() {
       const loginKey = (me?.login ?? "").trim().toLowerCase();
       const setup = await hostApi.authSetupStatus().catch(() => null);
       const teamId = String(
-        setup?.active_team_id ?? setup?.activeTeamId ?? "",
+        setup?.activeTeamId ?? setup?.active_team_id ?? "",
       ).trim();
       applySnap(await fetchUsersPageSnap(loginKey, teamId, force));
     },

@@ -19,6 +19,8 @@ import {
   type TeamConfigListItem,
   type TeamUserRow,
 } from "../../bridge/hostApi";
+import { pickNum, pickStr } from "../../bridge/pickField";
+import { sheetsUrl } from "../../bridge/sheetsUrl";
 import {
   clearUsersPageSnap as clearUsersPageSnapStore,
   getUsersPageSnap,
@@ -26,29 +28,21 @@ import {
 } from "../../bridge/snapCache";
 import { clearTeamOauthSnap } from "./teamOauthTabCache";
 
+export { sheetsUrl };
+
 /** Лист команды сериализуется в camelCase. */
 export function normalizeTeamRow(raw: TeamUserRow): TeamUserRow {
-  const r = raw as TeamUserRow & {
-    displayName?: string;
-    accessLevel?: string;
-    googleEmail?: string;
-    rowIndex?: number;
-    calcConfigId?: string;
-  };
-  const calc = String(r.calcConfigId ?? r.calc_config_id ?? "").trim();
+  const r = raw as unknown as Record<string, unknown>;
+  const calc = pickStr(r, "calcConfigId", "calc_config_id");
   return {
-    login: r.login,
-    display_name: String(r.display_name ?? r.displayName ?? "").trim(),
-    access_level: String(r.access_level ?? r.accessLevel ?? "").trim(),
-    google_email: String(r.google_email ?? r.googleEmail ?? "").trim(),
-    row_index: Number(r.row_index ?? r.rowIndex ?? 0),
+    login: String(r.login ?? ""),
+    display_name: pickStr(r, "displayName", "display_name"),
+    access_level: pickStr(r, "accessLevel", "access_level"),
+    google_email: pickStr(r, "googleEmail", "google_email"),
+    row_index: pickNum(r, "rowIndex", "row_index"),
     calc_config_id: calc,
     calcConfigId: calc,
   };
-}
-
-export function sheetsUrl(spreadsheetId: string) {
-  return `https://docs.google.com/spreadsheets/d/${encodeURIComponent(spreadsheetId.trim())}`;
 }
 
 export {

@@ -22,6 +22,7 @@ import {
 } from "../../../bridge/hostApi";
 import type { SyncSettingsDto } from "../../../bridge/hostApi.types";
 import { useT } from "../../../i18n";
+import { ensureScriptsGrouped } from "../../../pages/templates/templatesPageCache";
 import { buildTemplateSavePayload } from "../buildTemplateSavePayload";
 import TemplateEditorBody from "../TemplateEditorBody";
 import { normalizeFieldRows, normalizeTpl, type FieldRow } from "../templateNormalize";
@@ -78,7 +79,7 @@ export default function TemplateEditorDialog({
       setError(null);
       try {
         const [grouped, env, loaded, layout] = await Promise.all([
-          hostApi.scriptsListGrouped(marketplace),
+          ensureScriptsGrouped(marketplace),
           hostApi
             .envListCabinetNames()
             .catch(() => ({ path: "", rows: [] as EnvKeyRow[] })),
@@ -289,7 +290,7 @@ export default function TemplateEditorDialog({
             ) : null}
           </div>
           <div className="tpl-dialog-header-actions">
-            <button type="button" className="btn btn-ghost" onClick={onClose}>
+            <button type="button" className="btn btn-ghost btn-ghost-plain" onClick={onClose}>
               {t("common.close")}
             </button>
           </div>

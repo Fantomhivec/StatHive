@@ -341,8 +341,6 @@ export const TPL_TAB_COLOR_IDS = [
   "rose",
 ] as const;
 
-export type TplTabColorId = (typeof TPL_TAB_COLOR_IDS)[number];
-
 export type TabLayoutItem = {
   tabKey: string;
   title: string;

@@ -15,6 +15,7 @@
 import {
   hostApi,
   onEvent,
+  type ScriptGroupDto,
   type TemplateDto,
   type TemplateGroupDto,
   type TemplatesSnapshot,
@@ -236,6 +237,11 @@ export function applyTemplatesRunProgress(
 
 /** scriptsList не зависит от market — один раз на сессию страницы. */
 let scriptsListCache: Record<string, string> | null = null;
+/** scriptsListGrouped per marketplace — reuse when opening editor. */
+const scriptsGroupedCache = new Map<
+  TemplatesMarket,
+  { groups: ScriptGroupDto[] }
+>();
 
 export function emptySnap(market: TemplatesMarket): TemplatesSnapshot {
   return {
@@ -256,4 +262,19 @@ export async function ensureScriptsMap(): Promise<Record<string, string>> {
   for (const [k, title] of scriptList) map[k] = title;
   scriptsListCache = map;
   return map;
+}
+
+export async function ensureScriptsGrouped(
+  marketplace: TemplatesMarket,
+): Promise<{ groups: ScriptGroupDto[] }> {
+  const hit = scriptsGroupedCache.get(marketplace);
+  if (hit) return hit;
+  const grouped = await hostApi.scriptsListGrouped(marketplace);
+  const value = { groups: grouped.groups ?? [] };
+  scriptsGroupedCache.set(marketplace, value);
+  return value;
+}
+
+export function clearScriptsGroupedCache() {
+  scriptsGroupedCache.clear();
 }

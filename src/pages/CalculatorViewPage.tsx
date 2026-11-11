@@ -30,6 +30,7 @@ import {
   formatProfitRu,
   type ProfitEditKey,
 } from "./calculator/evaluateProfit";
+import { CalcSnapLoading } from "./calculator/CalcSnapLoading";
 import { useCalculatorSnapshot } from "./calculator/useCalculatorSnapshot";
 import "./CalculatorViewPage.css";
 import "./WbCalculatorLayout.css";
@@ -387,12 +388,7 @@ export default function CalculatorViewPage() {
   const editDisabled = !hasCard || busy;
 
   if (!snap) {
-    return (
-      <div className="page wb-calc">
-        <p className="muted">{hint || t("common.loading")}</p>
-        {dialogs}
-      </div>
-    );
+    return <CalcSnapLoading hint={hint}>{dialogs}</CalcSnapLoading>;
   }
 
   return (

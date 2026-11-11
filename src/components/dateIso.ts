@@ -32,6 +32,13 @@ export function formatDisplayDate(iso: string): string {
   return `${d}.${m}.${y}`;
 }
 
+/** Sheet/template cells: trim + display, else raw string if not ISO. */
+export function formatSheetDate(iso?: string): string {
+  const s = (iso ?? "").trim();
+  if (!s) return "";
+  return formatDisplayDate(s) || s;
+}
+
 export function parseIso(iso: string): Date | null {
   const s = toIsoDate(iso);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return null;

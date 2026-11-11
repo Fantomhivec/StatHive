@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import type { FormEvent } from "react";
+import type { SubmitEvent } from "react";
 import { useT } from "../../i18n";
 
 type RegisterProps = {
@@ -27,7 +27,7 @@ type RegisterProps = {
   onPassword: (v: string) => void;
   onWorkspaceTitle: (v: string) => void;
   onSwitchGoogle: () => void;
-  onSubmit: (e: FormEvent) => void;
+  onSubmit: (e: SubmitEvent<HTMLFormElement>) => void;
 };
 
 export function LoginRegisterForm({
@@ -118,7 +118,7 @@ type MemberCodeProps = {
   teamCodePassphrase: string;
   onTeamCode: (v: string) => void;
   onPassphrase: (v: string) => void;
-  onSubmit: (e: FormEvent) => void;
+  onSubmit: (e: SubmitEvent<HTMLFormElement>) => void;
   onBack: () => void;
 };
 
@@ -183,7 +183,7 @@ type SignInProps = {
   onMemberEmail: (v: string) => void;
   onLogin: (v: string) => void;
   onPassword: (v: string) => void;
-  onSubmit: (e: FormEvent) => void;
+  onSubmit: (e: SubmitEvent<HTMLFormElement>) => void;
   onBackToHub: () => void;
   onOtherTeamCode: () => void;
 };

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { FormEvent } from "react";
+import type { SubmitEvent } from "react";
 import AppCustomWindow from "../../components/AppCustomWindow";
 import { useT } from "../../i18n";
 import { shortTeamName } from "../../bridge/workspaceTitle";
@@ -26,7 +26,7 @@ type Props = {
   workspaceTitle: string;
   teamNameDraft: string;
   onTeamNameDraftChange: (value: string) => void;
-  onSubmit: (e: FormEvent) => void;
+  onSubmit: (e: SubmitEvent<HTMLFormElement>) => void;
   onClose: () => void;
 };
 

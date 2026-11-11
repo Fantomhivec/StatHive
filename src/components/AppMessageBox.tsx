@@ -33,7 +33,7 @@ export type AppMessageBoxProps = {
 
 const DEFAULT_OK: MessageBoxButton[] = [{ label: t("common.ok"), role: "primary", value: t("login.googleEmailFallback") }];
 
-export function inferDialogTone(title?: string | null, tone?: string | null): DialogTone {
+function inferDialogTone(title?: string | null, tone?: string | null): DialogTone {
   const t = (tone || "").trim().toLowerCase();
   if (t === "success" || t === "error" || t === "warning" || t === "info" || t === "neutral") {
     return t;

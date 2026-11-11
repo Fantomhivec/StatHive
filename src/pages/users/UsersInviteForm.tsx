@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { FormEvent } from "react";
+import type { SubmitEvent } from "react";
 import AppComboBox from "../../components/AppComboBox";
 import { useT } from "../../i18n";
 
@@ -35,7 +35,7 @@ export type UsersInviteFormProps = {
   onEmailChange: (value: string) => void;
   onInvitePresetChange: (value: string) => void;
   onInviteCalcConfigChange: (value: string) => void;
-  onSubmit: (e: FormEvent) => void;
+  onSubmit: (e: SubmitEvent<HTMLFormElement>) => void;
   /** Submit в footer диалога — без кнопки внутри формы. */
   hideSubmit?: boolean;
   formId?: string;

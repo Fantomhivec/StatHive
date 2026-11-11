@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { FormEvent, type Dispatch, type SetStateAction } from "react";
+import { type Dispatch, type SetStateAction, type SubmitEvent } from "react";
 import { isMainAdminRole } from "../../bridge/accessRole";
 import {
   hostApi,
@@ -118,7 +118,7 @@ export function createUsersPageMutations(a: UsersPageMutationsArgs) {
     });
   }
 
-  async function onSaveServiceAccount(e: FormEvent) {
+  async function onSaveServiceAccount(e: SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     await a.withBusy(async () => {
       if (!a.saJson.trim()) {
@@ -160,7 +160,7 @@ export function createUsersPageMutations(a: UsersPageMutationsArgs) {
     }
   }
 
-  async function onInvite(e: FormEvent, onSuccess?: () => void) {
+  async function onInvite(e: SubmitEvent<HTMLFormElement>, onSuccess?: () => void) {
     e.preventDefault();
     if (!a.saConfigured) {
       a.setError(a.t("users.errNeedServiceAccount"));
@@ -303,7 +303,7 @@ export function createUsersPageMutations(a: UsersPageMutationsArgs) {
     });
   }
 
-  async function onSaveTeamName(e: FormEvent, onSuccess?: () => void) {
+  async function onSaveTeamName(e: SubmitEvent<HTMLFormElement>, onSuccess?: () => void) {
     e.preventDefault();
     if (!a.isMainAdmin) return;
     await a.withBusy(async () => {

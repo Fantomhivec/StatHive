@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import AppComboBox from "../components/AppComboBox";
+import { CalcSnapLoading } from "./calculator/CalcSnapLoading";
 import { useCalculatorSnapshot } from "./calculator/useCalculatorSnapshot";
 import {
   coalesceOzKgt,
@@ -115,11 +116,7 @@ export default function CalculatorKgtRulesPage() {
   const { snap, setSnap, error, setError, busy, patch } = useCalculatorSnapshot("kgt");
 
   if (!snap) {
-    return (
-      <div className="page wb-calc">
-        <p className="muted">{error || t("common.loading")}</p>
-      </div>
-    );
+    return <CalcSnapLoading hint={error} />;
   }
 
   const wb = coalesceWbKgt(snap.wbKgt);

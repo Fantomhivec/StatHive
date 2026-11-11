@@ -13,17 +13,12 @@
 // limitations under the License.
 
 import type { TemplateDto } from "../../bridge/hostApi";
-import { formatDisplayDate } from "../../components/dateIso";
+import { formatSheetDate } from "../../components/dateIso";
 import { calculateDateRangeFromTemplate, DATE_TEMPLATES } from "../../components/templates/dateTemplates";
 import { visibilityForScript } from "../../components/templates/visibility/scriptVisibility";
 import { t as tr } from "../../i18n";
 
-/** ISO `yyyy-MM-dd` → `dd.MM.yyyy` (как sheet_dates). */
-export function formatSheetDate(iso?: string): string {
-  const s = (iso ?? "").trim();
-  if (!s) return "";
-  return formatDisplayDate(s) || s;
-}
+export { formatSheetDate };
 
 /** RFC3339 / ISO → `dd.MM.yyyy  HH:mm:ss` (локальное время). */
 export function formatRunAtDisplay(at?: string): string {

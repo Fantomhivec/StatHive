@@ -76,7 +76,7 @@ export function ensureAuthStatus(): Promise<UserInfo | null> {
   return authInflight;
 }
 
-export type AuthApiDeps = {
+type AuthApiDeps = {
   clearTabsLayoutCache: () => void;
   refreshTabsLayout: () => Promise<unknown>;
 };

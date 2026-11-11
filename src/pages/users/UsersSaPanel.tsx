@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { FormEvent, useState } from "react";
+import { useState, type SubmitEvent } from "react";
 import { useT } from "../../i18n";
 
 export type UsersSaPanelProps = {
@@ -24,7 +24,7 @@ export type UsersSaPanelProps = {
   onSaJsonChange: (value: string) => void;
   onCreate: () => void;
   onReplace: () => void;
-  onSave: (e: FormEvent) => void;
+  onSave: (e: SubmitEvent<HTMLFormElement>) => void;
 };
 
 export default function UsersSaPanel({

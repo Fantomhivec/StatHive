@@ -13,7 +13,7 @@
 // limitations under the License.
 
 /** Pixels from bottom that still count as «at end» (lesson 122). */
-export const STICK_SCROLL_THRESHOLD_PX = 48;
+const STICK_SCROLL_THRESHOLD_PX = 48;
 
 /** True when the scrollport is within threshold of the bottom. */
 export function isNearScrollBottom(
